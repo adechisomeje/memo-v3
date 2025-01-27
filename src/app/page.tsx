@@ -1,101 +1,194 @@
-import Image from "next/image";
+'use client'
+
+import { Button } from '@/components/ui/button'
+import Image from 'next/image'
+import Navbar from './customers/components/navbar'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import WhyAndWhatSection from './customers/components/why-and-what-section'
+import ProcessSimplified from './customers/components/process'
+import TrustedCompanies from './customers/components/trusted-companies'
+import { SearchForm } from './customers/components/search-form'
+import { useRouter } from 'next/navigation'
+
+const navItems = [
+  {
+    label: 'Home',
+    href: '/',
+  },
+  {
+    label: 'About us',
+    href: '/about',
+    // subItems: [
+    //   { label: 'Create Shipment', href: '/ship' },
+    //   { label: 'Get a quote', href: '/get-a-quote' },
+    //   { label: 'Track', href: '/track' },
+    // ],
+  },
+  {
+    label: 'Contact us',
+    href: '/job-riders',
+    // subItems: [
+    //   { label: 'Riders', href: '/riders' },
+    //   { label: 'Rider scout', href: '/job-riders' },
+    // ],
+  },
+  {
+    label: 'Blogs',
+    href: '/sign-in',
+  },
+]
+
+const mobileNavItems = [
+  {
+    label: 'Home',
+    href: '/',
+  },
+  {
+    label: 'About us',
+    href: '/resources',
+    subItems: [
+      { label: 'Create Shipment', href: '/ship' },
+      { label: 'Get a quote', href: '/get-a-quote' },
+      { label: 'Track', href: '/track' },
+    ],
+  },
+  {
+    label: 'Contact us',
+    href: '/job-riders',
+    subItems: [
+      { label: 'Riders', href: '/riders' },
+      { label: 'Rider scout', href: '/job-riders' },
+    ],
+  },
+  {
+    label: 'Blog',
+    href: '/sign-in',
+    subItems: [
+      { label: 'Blog', href: '/blog' },
+      { label: 'User Case', href: '/user-case' },
+    ],
+  },
+]
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const router = useRouter()
+  const handleSubmit = (formData: FormData) => {
+    // Handle form submission
+    console.log(Object.fromEntries(formData))
+  }
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleClick = () => {
+    router.push('/customers/results')
+  }
+
+  return (
+    <div className=''>
+      <Navbar
+        navItems={navItems}
+        mobileNavItems={mobileNavItems}
+        ctaLink='/get-started'
+      />
+      <main>
+        <div className='relative lg:min-h-[800px] min-h-[450px] flex items-center justify-center'>
+          {/* Background Image */}
+          <Image
+            src='/assets/images/landing-bg.png'
+            alt='Background celebration image'
+            fill
+            className='object-cover brightness-50'
+            priority
+          />
+
+          <div className='relative z-10 container mx-auto px-4 text-center text-white'>
+            <h1 className='text-3xl md:text-4xl lg:text-5xl font-extrabold max-w-[800px] mx-auto lg:leading-[68px]'>
+              Celebrate <span className='text-[#f5e6d3]'>Moments</span> with
+              Cakes, Flowers, & More.
+            </h1>
+            <p className='md:text-xl mt-2 max-w-2xl mx-auto'>
+              Surprise your loved ones with cakes and gifts delivered straight
+              to their doorstep, whether they&apos;re nearby or miles away.
+            </p>
+
+            {/* <div className='bg-white hidden rounded-full p-2 md:flex flex-col md:flex-row gap-2 max-w-4xl mx-auto mt-10'>
+              <div className='flex-1 flex items-center gap-2 text-left px-4 text-[#1E1B16]'>
+                <MapPin className='h-5 w-5' />
+                <input
+                  type='text'
+                  placeholder='Input delivery address'
+                  className='w-full bg-transparent focus:outline-none'
+                />
+              </div>
+
+              <button className='md:w-40 px-4 py-2 text-[#1E1B16] flex items-center justify-between hover:bg-gray-100 rounded-full'>
+                <span>Country</span>
+                <ChevronDown className='h-4 w-4' />
+              </button>
+
+              <button className='md:w-40 px-4 py-2 text-[#1E1B16] flex items-center justify-between hover:bg-gray-100 rounded-full'>
+                <span>State</span>
+                <ChevronDown className='h-4 w-4' />
+              </button>
+
+              <button className='md:w-40 px-4 py-2 text-[#1E1B16] flex items-center justify-between hover:bg-gray-100 rounded-full'>
+                <span>City</span>
+                <ChevronDown className='h-4 w-4' />
+              </button>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant='ghost'
+                    className={cn(
+                      'md:w-48 justify-between text-left font-normal hover:bg-gray-100',
+                      !date && 'text-muted-foreground'
+                    )}
+                  >
+                    <div className='flex items-center gap-2'>
+                      <CalendarIcon className='h-4 w-4' />
+                      {date ? format(date, 'PPP') : <span>Delivery date</span>}
+                    </div>
+                    <ChevronDown className='h-4 w-4' />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className='w-auto p-0' align='start'>
+                  <Calendar
+                    mode='single'
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div> */}
+            <SearchForm className='hidden md:block' onSubmit={handleSubmit} />
+            <div className='text-center hidden md:block'>
+              <Button onClick={handleClick} size='lg' className='mt-10'>
+                Get Started
+              </Button>
+            </div>
+            <div className='md:hidden'>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button onClick={handleClick} size='lg' className='mt-10'>
+                    Get Started
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side='right' className=' sm:max-w-md'>
+                  <SearchForm
+                    variant='sheet'
+                    onSubmit={handleSubmit}
+                    className='h-full flex flex-col'
+                  />
+                </SheetContent>
+              </Sheet>
+            </div>
+          </div>
         </div>
+
+        <WhyAndWhatSection />
+        <ProcessSimplified />
+        <TrustedCompanies />
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
-  );
+  )
 }
