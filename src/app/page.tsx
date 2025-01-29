@@ -100,13 +100,14 @@ export default function Home() {
           />
 
           <div className='relative z-10 container mx-auto px-4 text-center text-white'>
-            <h1 className='text-3xl md:text-4xl lg:text-5xl font-extrabold max-w-[800px] mx-auto lg:leading-[68px]'>
+            <h1 className='text-3xl md:text-4xl lg:text-5xl font-extrabold max-w-[700px] mx-auto lg:leading-[68px]'>
               Celebrate <span className='text-[#f5e6d3]'>Moments</span> with
               Cakes, Flowers, & More.
             </h1>
             <p className='md:text-xl mt-2 max-w-2xl mx-auto'>
-              Surprise your loved ones with cakes and gifts delivered straight
-              to their doorstep, whether they&apos;re nearby or miles away.
+              We make every celebration, from birthdays to anniversaries, easy
+              and memorable. Send joy to your loved ones, no matter where they
+              are
             </p>
 
             {/* <div className='bg-white hidden rounded-full p-2 md:flex flex-col md:flex-row gap-2 max-w-4xl mx-auto mt-10'>
