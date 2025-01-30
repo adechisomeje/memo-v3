@@ -1,4 +1,3 @@
-import { User } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import GlobalReach from '@/components/icons/GlobalReach'
 import Image from 'next/image'
@@ -12,7 +11,7 @@ const features = [
       "Surprise your loved ones with cakes, flowers and gifts delivered straight to their doorstep, whether they're nearby or miles away.",
   },
   {
-    icon: User,
+    icon: Unlock,
     title: 'Direct Communication with Vendors',
     description:
       'Contact vendors directly for order updates, custom requests, or additional inquiries for a seamless experience',
@@ -66,12 +65,15 @@ const WhyAndWhatSection = () => {
 
           <div className='grid md:grid-cols-3 gap-8 px-4'>
             {features.map((feature, index) => (
-              <Card key={index} className='border-none bg-[#FFFBFA] shadow-lg'>
+              <Card
+                key={index}
+                className='border-none max-w-sm mx-auto h-[400px] bg-[#FFFBFA] shadow-lg'
+              >
                 <CardContent className='pt-6 text-left flex flex-col items-center'>
                   <div className='mb-6 inline-block rounded-full bg-[#FFEAE4] p-4'>
                     <feature.icon className='h-6 w-6 text-primary' />
                   </div>
-                  <div className='w-full'>
+                  <div className='w-full mt-10'>
                     <h3 className='text-xl font-bold  text-[#370E06] mb-3'>
                       {feature.title}
                     </h3>
@@ -98,7 +100,10 @@ const WhyAndWhatSection = () => {
 
           <div className='grid md:grid-cols-3 gap-8'>
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className='border-none shadow-lg bg-[#FFFBFA] '>
+              <Card
+                key={index}
+                className='border-none shadow-lg h-[270px] bg-[#FFFBFA] '
+              >
                 <CardContent className='pt-6'>
                   <div className='flex items-center gap-3 mb-4'>
                     <div className='relative h-16 w-16 overflow-hidden rounded-full'>
@@ -118,7 +123,7 @@ const WhyAndWhatSection = () => {
                       </p>
                     </div>
                   </div>
-                  <blockquote className='text-#1E1B16'>
+                  <blockquote className='text-#1E1B16 mt-10'>
                     &quot;{testimonial.quote}&quot;
                   </blockquote>
                 </CardContent>

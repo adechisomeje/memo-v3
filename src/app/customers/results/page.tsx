@@ -195,7 +195,7 @@ const ResultsPage = () => {
               </Tabs>
             </div>
           </div>
-          <Pagination>
+          <Pagination className='my-10'>
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious href='#' />

@@ -3,12 +3,14 @@
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Navbar from './customers/components/navbar'
+import { Footer } from './customers/components/footer'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import WhyAndWhatSection from './customers/components/why-and-what-section'
 import ProcessSimplified from './customers/components/process'
 import TrustedCompanies from './customers/components/trusted-companies'
 import { SearchForm } from './customers/components/search-form'
 import { useRouter } from 'next/navigation'
+import StatsSection from './customers/components/memo-stats'
 
 const navItems = [
   {
@@ -161,7 +163,10 @@ export default function Home() {
                 </PopoverContent>
               </Popover>
             </div> */}
-            <SearchForm className='hidden md:block' onSubmit={handleSubmit} />
+            <SearchForm
+              className='mt-10 hidden md:block'
+              onSubmit={handleSubmit}
+            />
             <div className='text-center hidden md:block'>
               <Button onClick={handleClick} size='lg' className='mt-10'>
                 Get Started
@@ -189,7 +194,9 @@ export default function Home() {
         <WhyAndWhatSection />
         <ProcessSimplified />
         <TrustedCompanies />
+        <StatsSection />
       </main>
+      <Footer />
     </div>
   )
 }

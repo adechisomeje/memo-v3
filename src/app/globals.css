@@ -65,3 +65,21 @@
   }
 }
 
+@keyframes carousel {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-carousel {
+  animation: carousel 50s linear infinite;
+}
+
+/* Optional: Pause animation on hover */
+.animate-carousel:hover {
+  animation-play-state: paused;
+}
+

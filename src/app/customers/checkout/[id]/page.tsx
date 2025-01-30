@@ -51,33 +51,49 @@ const CheckOutPage = () => {
         <main className='max-w-7xl mx-auto px-4 py-8'>
           <div className='grid lg:grid-cols-2 gap-8 mb-12'>
             <div>
-              <div className='aspect-w-1 aspect-h-1 relative rounded-lg overflow-hidden'>
-                <Image
-                  src='/assets/images/cake-sample.svg'
-                  alt='Birthday Cake'
-                  fill
-                  className='object-cover'
-                />
-              </div>
-              {cartItems.length > 0 && (
-                <div className='mt-4 grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-x-auto'>
-                  {cartItems.map((item, index) => (
-                    <div key={index} className='relative w-full aspect-square'>
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        fill
-                        className='object-cover rounded-lg'
-                      />
-                      {index !== 0 && (
-                        <X
-                          onClick={() => removeFromCart(index)}
-                          className='absolute top-1 right-1 bg-primary text-white cursor-pointer rounded-full p-1 text-xs'
-                        />
-                      )}
-                    </div>
-                  ))}
+              {cartItems.length === 1 ? (
+                // Single item view - larger but width-constrained image
+                <div className='relative rounded-lg overflow-hidden h-96 max-w-lg mx-auto'>
+                  <Image
+                    src='/assets/images/cake-sample.svg'
+                    alt='Birthday Cake'
+                    fill
+                    className='object-cover'
+                  />
                 </div>
+              ) : (
+                // Multiple items view - grid layout
+                <>
+                  <div className='aspect-w-1 aspect-h-1 relative rounded-lg overflow-hidden'>
+                    <Image
+                      src='/assets/images/cake-sample.svg'
+                      alt='Birthday Cake'
+                      fill
+                      className='object-cover'
+                    />
+                  </div>
+                  <div className='mt-4 grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-x-auto'>
+                    {cartItems.map((item, index) => (
+                      <div
+                        key={index}
+                        className='relative w-full aspect-square'
+                      >
+                        <Image
+                          src={item.image}
+                          alt={item.title}
+                          fill
+                          className='object-cover rounded-lg'
+                        />
+                        {index !== 0 && (
+                          <X
+                            onClick={() => removeFromCart(index)}
+                            className='absolute top-1 right-1 bg-primary text-white cursor-pointer rounded-full p-1 text-xs'
+                          />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
               <div className='mt-5'>
                 <h2 className='font-bold'>Cake Specs:</h2>
@@ -147,12 +163,7 @@ const CheckOutPage = () => {
                     </div>
                   </div>
                 </div>
-                {/* <Button variant='outline' className='w-full p-6 gap-32'>
-                  5 Reviews
-                  <Link className='underline' href='/'>
-                    View all
-                  </Link>
-                </Button> */}
+
                 <ReviewButton vendorId='ajasco-cakes' reviewCount={5} />
                 <Button variant='outline' className='w-full p-6 '>
                   Message Vendor
