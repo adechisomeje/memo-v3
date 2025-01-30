@@ -6,7 +6,7 @@ const ProcessSimplified = () => {
           {/* Left Column - Process Steps */}
           <div className='space-y-12'>
             <div>
-              <h1 className='text-4xl md:text-5xl font-bold text-primary mb-4'>
+              <h1 className='text-4xl md:text-5xl font-bold text-primary mb-5'>
                 Memo process
               </h1>
               <h2 className='text-4xl md:text-5xl font-bold text-primary'>
