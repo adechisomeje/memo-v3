@@ -34,9 +34,9 @@ export function ProductCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className='aspect-square relative overflow-hidden rounded-lg'>
+      <div className='aspect-square relative overflow-hidden rounded-xl'>
         <Image
-          src={'/assets/images/flower-sample.png'}
+          src={'/assets/images/cake-sample.svg'}
           alt={title}
           width={300}
           height={300}

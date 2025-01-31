@@ -106,7 +106,9 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
               </div>
             </div>
             <Link href={ctaLink}>
-              <Button size='lg'>Become A Vendor</Button>
+              <Button className='hover:bg-[#DE3633]' size='lg'>
+                Become A Vendor
+              </Button>
             </Link>
           </div>
         </div>

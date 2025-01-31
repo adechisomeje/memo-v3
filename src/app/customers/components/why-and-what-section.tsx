@@ -67,7 +67,7 @@ const WhyAndWhatSection = () => {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className='border-none max-w-sm mx-auto h-[400px] bg-[#FFFBFA] shadow-lg'
+                className='border-none max-w-sm mx-auto h-[400px] bg-[#FFFBFA] shadow-lg hover:bg-[#FDF0D5] cursor-pointer'
               >
                 <CardContent className='pt-6 text-left flex flex-col items-center'>
                   <div className='mb-6 inline-block rounded-full bg-[#FFEAE4] p-4'>

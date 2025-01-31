@@ -26,7 +26,7 @@ const defaultCartItem = {
 }
 
 const products = Array(6).fill({
-  image: '/assets/images/flower-sample.png',
+  image: '/assets/images/cake-sample.svg',
   title: 'Bouquet Flower',
   description: 'A fruity rich wine any day',
   price: 150,
@@ -53,7 +53,7 @@ const CheckOutPage = () => {
             <div>
               {cartItems.length === 1 ? (
                 // Single item view - larger but width-constrained image
-                <div className='relative rounded-lg overflow-hidden h-96 max-w-lg mx-auto'>
+                <div className='relative rounded-2xl overflow-hidden h-96 max-w-lg mx-auto'>
                   <Image
                     src='/assets/images/cake-sample.svg'
                     alt='Birthday Cake'
@@ -64,7 +64,7 @@ const CheckOutPage = () => {
               ) : (
                 // Multiple items view - grid layout
                 <>
-                  <div className='aspect-w-1 aspect-h-1 relative rounded-lg overflow-hidden'>
+                  <div className='aspect-w-1  aspect-h-1 relative rounded-2xl overflow-hidden'>
                     <Image
                       src='/assets/images/cake-sample.svg'
                       alt='Birthday Cake'
@@ -76,7 +76,7 @@ const CheckOutPage = () => {
                     {cartItems.map((item, index) => (
                       <div
                         key={index}
-                        className='relative w-full aspect-square'
+                        className='relative rounded-lg overflow-hidden w-full aspect-square'
                       >
                         <Image
                           src={item.image}

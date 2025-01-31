@@ -102,7 +102,7 @@ export default function Home() {
           />
 
           <div className='relative z-10 container mx-auto px-4 text-center text-white'>
-            <h1 className='text-3xl md:text-4xl lg:text-5xl font-extrabold max-w-[700px] mx-auto lg:leading-[68px]'>
+            <h1 className='text-3xl md:text-4xl lg:text-5xl   font-extrabold max-w-[700px] mx-auto lg:leading-[60px]'>
               Celebrate <span className='text-[#f5e6d3]'>Moments</span> with
               Cakes, Flowers, & More.
             </h1>

@@ -66,40 +66,44 @@ const CountUp = ({
 
 export default function StatsSection() {
   return (
-    <div className=' py-16 px-4'>
-      <div className='relative min-h-[200px]'>
-        {/* Wave Pattern */}
+    <div className='w-screen relative overflow-hidden'>
+      {/* Hero section with background */}
+      <div className='relative h-[300px] w-full'>
         <Image
-          src='/assets/images/squiggly-lines-bg.svg'
+          src='/assets/images/2nd-bg.svg'
           alt='Background celebration image'
           fill
-          className='object-cover brightness-50'
+          className='object-cover opacity-50 z-0'
           priority
         />
-        <h2 className='text-red-600 text-center text-3xl md:text-4xl font-bold mb-16'>
-          Your satisfaction is our Priority
-        </h2>
+        <div className='absolute inset-0 flex items-center justify-center'>
+          <h2 className='text-primary mx-auto max-w-lg lg:leading-[54px] text-center text-3xl md:text-4xl font-bold px-4 z-10'>
+            Your satisfaction is our Priority
+          </h2>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className='mt-10 max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8'>
-        {[
-          { label: 'Vendors', value: 1530 },
-          { label: 'Orders', value: 50 },
-          { label: 'Deliveries', value: 1530 },
-          { label: 'Users', value: 50 },
-        ].map((stat, index) => (
-          <div key={index} className='relative text-center'>
-            {/* Red Dot */}
-            <div className='absolute -top-4 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-primary rounded-full' />
+      {/* Stats Grid - Now separate from the background image section */}
+      <div className='mt-10 w-full py-16 px-4'>
+        <div className='max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8'>
+          {[
+            { label: 'Vendors', value: 1530 },
+            { label: 'Orders', value: 50 },
+            { label: 'Deliveries', value: 1530 },
+            { label: 'Users', value: 50 },
+          ].map((stat, index) => (
+            <div key={index} className='relative text-center'>
+              {/* Red Dot */}
+              <div className='absolute -top-4 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-primary rounded-full' />
 
-            {/* White Box */}
-            <div className='bg-white/10 backdrop-blur-sm rounded-lg p-4 relative'>
-              <CountUp end={stat.value} />
-              <div className='text-[#6B6B6F] mt-2'>{stat.label}</div>
+              {/* White Box */}
+              <div className='bg-white/10 backdrop-blur-sm rounded-lg p-4 relative'>
+                <CountUp end={stat.value} />
+                <div className='text-[#6B6B6F] mt-2'>{stat.label}</div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   )

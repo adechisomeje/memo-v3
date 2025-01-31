@@ -129,7 +129,7 @@ const ResultsPage = () => {
             <div className='flex items-center justify-between'>
               <div className='md:flex gap-4 mt-8 hidden'>
                 <Select>
-                  <SelectTrigger className='gap-3'>
+                  <SelectTrigger className='gap-3 p-4'>
                     <SelectValue placeholder='Prize' />
                   </SelectTrigger>
                   <SelectContent>
@@ -139,7 +139,7 @@ const ResultsPage = () => {
                   </SelectContent>
                 </Select>
                 <Select>
-                  <SelectTrigger className='gap-3'>
+                  <SelectTrigger className='gap-3 p-4'>
                     <SelectValue placeholder='Size' />
                   </SelectTrigger>
                   <SelectContent>
@@ -149,7 +149,7 @@ const ResultsPage = () => {
                   </SelectContent>
                 </Select>
                 <Select>
-                  <SelectTrigger className='gap-3'>
+                  <SelectTrigger className='gap-3 p-4'>
                     <SelectValue placeholder='Distance' />
                   </SelectTrigger>
                   <SelectContent>
