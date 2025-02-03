@@ -22,7 +22,7 @@ export default function AccountPage() {
                 </label>
                 <Input
                   type='text'
-                  defaultValue='Ajanlekoko Mariam'
+                  placeholder='Ajanlekoko Mariam'
                   className='py-6 px-3'
                 />
               </div>
@@ -33,7 +33,7 @@ export default function AccountPage() {
                 </label>
                 <Input
                   type='email'
-                  defaultValue='Ajanlekokomotun@gmail.com'
+                  placeholder='Ajanlekokomotun@gmail.com'
                   className='py-6 px-3'
                 />
               </div>
@@ -44,7 +44,7 @@ export default function AccountPage() {
                 </label>
                 <Input
                   type='tel'
-                  defaultValue='09038387621'
+                  placeholder='09038387621'
                   className='py-6 px-3'
                 />
               </div>
@@ -56,14 +56,14 @@ export default function AccountPage() {
                 <div className='relative'>
                   <Input
                     type='password'
-                    defaultValue='e.g lsila25@'
+                    placeholder='e.g lsila25@'
                     className='py-6 px-3'
                   />
                   <Eye className='absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400' />
                 </div>
               </div>
 
-              <Button variant='outline' className='w-full'>
+              <Button variant='outline' className='w-full '>
                 Update
               </Button>
             </form>

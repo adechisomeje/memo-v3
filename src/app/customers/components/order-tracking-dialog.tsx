@@ -1,6 +1,5 @@
 'use client'
 
-import { Check } from 'lucide-react'
 import OrderCheck from '../../../../public/assets/icons/order-check'
 
 export default function OrderTrackingModal() {
