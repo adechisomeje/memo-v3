@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Sidebar } from '../../components/sidebar'
 import { Input } from '@/components/ui/input'

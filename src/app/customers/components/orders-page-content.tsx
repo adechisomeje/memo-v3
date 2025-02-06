@@ -1,10 +1,9 @@
 'use client'
 
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
-
 import { Button } from '@/components/ui/button'
 import { useSearchParams } from 'next/navigation'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { Sidebar } from './sidebar'
 import OrderTrackingModal from './order-tracking-dialog'
 
@@ -43,6 +42,7 @@ const orders: Order[] = [
 ]
 
 export default function OrdersPageContent() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const searchParams = useSearchParams()
   const selectedOrder = searchParams.get('order')
 
@@ -58,7 +58,10 @@ export default function OrdersPageContent() {
 
   return (
     <div className='flex min-h-screen'>
-      <Sidebar />
+      <Sidebar
+        isMobile={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
       <main className='flex-1 p-8'>
         <h1 className='text-2xl font-bold mb-4'>My Account</h1>
         <h2 className='text-xl font-semibold mb-6'>My Orders</h2>
