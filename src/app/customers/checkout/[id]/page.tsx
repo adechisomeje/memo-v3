@@ -47,13 +47,13 @@ const CheckOutPage = () => {
 
   return (
     <>
-      <div className='px-10'>
-        <main className='max-w-7xl mx-auto px-4 py-8'>
+      <div className='px-4 sm:px-6 lg:px-10'>
+        <main className='max-w-7xl mx-auto py-8'>
           <div className='grid lg:grid-cols-2 gap-8 mb-12'>
             <div>
               {cartItems.length === 1 ? (
                 // Single item view - larger but width-constrained image
-                <div className='relative rounded-2xl overflow-hidden h-96 max-w-lg mx-auto'>
+                <div className='relative rounded-2xl overflow-hidden h-72 sm:h-96 max-w-lg mx-auto'>
                   <Image
                     src='/assets/images/cake-sample.svg'
                     alt='Birthday Cake'
@@ -64,7 +64,7 @@ const CheckOutPage = () => {
               ) : (
                 // Multiple items view - grid layout
                 <>
-                  <div className='aspect-w-1  aspect-h-1 relative rounded-2xl overflow-hidden'>
+                  <div className='aspect-w-1 aspect-h-1 relative rounded-2xl overflow-hidden'>
                     <Image
                       src='/assets/images/cake-sample.svg'
                       alt='Birthday Cake'
@@ -102,8 +102,8 @@ const CheckOutPage = () => {
             </div>
             <div className='space-y-6'>
               <div className='space-y-4'>
-                <div className='flex justify-between'>
-                  <div className='flex flex-col '>
+                <div className='flex flex-col sm:flex-row justify-between gap-4'>
+                  <div className='flex flex-col'>
                     <span className='font-semibold text-lg'>
                       Delivery Address:
                     </span>
@@ -129,21 +129,20 @@ const CheckOutPage = () => {
                   </div>
                 </div>
               </div>
-              {/* Rest of the component remains the same */}
               <div className='space-y-4'>
-                <Textarea placeholder='Cake Note...' />
-                <Textarea placeholder='Flower Note...' />
-                <div className='grid grid-cols-2 gap-4'>
-                  <Input placeholder='Recipient Name' />
-                  <Input placeholder='Recipient Phone No' />
+                <Textarea placeholder='Cake Note...' className='w-full' />
+                <Textarea placeholder='Flower Note...' className='w-full' />
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <Input placeholder='Recipient Name' className='w-full' />
+                  <Input placeholder='Recipient Phone No' className='w-full' />
                 </div>
                 <Button className='w-full mt-10' size='lg'>
                   PROCEED TO PAY ({formatPrice(totalPrice)})
                 </Button>
               </div>
-              <div className='space-y-4 bg-[#FFFBFA] p-5'>
+              <div className='space-y-4 bg-[#FFFBFA] p-5 rounded-lg'>
                 <div className='flex items-center gap-2'>
-                  <div className='h-12 w-12 rounded-full mt-10 ' />
+                  <div className='h-12 w-12 rounded-full bg-gray-200' />
                   <div>
                     <div className='font-medium'>Ajasco cakes</div>
                     <div className='flex items-center gap-1'>
@@ -165,7 +164,7 @@ const CheckOutPage = () => {
                 </div>
 
                 <ReviewButton vendorId='ajasco-cakes' reviewCount={5} />
-                <Button variant='outline' className='w-full p-6 '>
+                <Button variant='outline' className='w-full p-4 sm:p-6'>
                   Message Vendor
                 </Button>
               </div>
@@ -173,7 +172,7 @@ const CheckOutPage = () => {
           </div>
           <div className='space-y-6'>
             <h2 className='text-xl font-semibold'>Other Items from Vendor</h2>
-            <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6'>
+            <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6'>
               {products.map((product, index) => (
                 <ProductCard key={index} {...product} onAdd={addToCart} />
               ))}

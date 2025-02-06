@@ -102,10 +102,10 @@ const ResultsPage = () => {
 
   return (
     <>
-      <div className='px-14'>
+      <div className='px-4 sm:px-6 lg:px-14'>
         <main>
-          <div className='flex justify-between'>
-            <h1 className='text-[#640D0D] text-lg'>
+          <div className='flex justify-between items-center mt-8'>
+            <h1 className='text-[#640D0D] text-lg '>
               Choose Your Special <span className='font-semibold'>Treat</span>
             </h1>
             <svg
@@ -129,7 +129,7 @@ const ResultsPage = () => {
             <div className='flex items-center justify-between'>
               <div className='md:flex gap-4 mt-8 hidden'>
                 <Select>
-                  <SelectTrigger className='gap-3 p-4'>
+                  <SelectTrigger className='gap-3 p-4 w-full'>
                     <SelectValue placeholder='Prize' />
                   </SelectTrigger>
                   <SelectContent>
@@ -139,7 +139,7 @@ const ResultsPage = () => {
                   </SelectContent>
                 </Select>
                 <Select>
-                  <SelectTrigger className='gap-3 p-4'>
+                  <SelectTrigger className='gap-3 p-4 w-full'>
                     <SelectValue placeholder='Size' />
                   </SelectTrigger>
                   <SelectContent>
@@ -149,7 +149,7 @@ const ResultsPage = () => {
                   </SelectContent>
                 </Select>
                 <Select>
-                  <SelectTrigger className='gap-3 p-4'>
+                  <SelectTrigger className='gap-3 p-4 w-full'>
                     <SelectValue placeholder='Distance' />
                   </SelectTrigger>
                   <SelectContent>
@@ -163,7 +163,7 @@ const ResultsPage = () => {
 
             <div className='w-full mb-10'>
               <Tabs defaultValue='cakes' className=''>
-                <div className='flex justify-end '>
+                <div className='flex justify-end'>
                   <TabsList>
                     <TabsTrigger value='cakes'>Cakes</TabsTrigger>
                     <TabsTrigger value='gifts'>Gifts</TabsTrigger>
@@ -214,8 +214,8 @@ const ResultsPage = () => {
         </main>
       </div>
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className='overflow-y-auto sm:max-w-[640px] p-10'>
-          <SheetHeader className='lg:flex flex-row space-y-0 gap-8 block'>
+        <SheetContent className='overflow-y-auto sm:max-w-[640px] p-6 sm:p-10'>
+          <SheetHeader className='flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:gap-8'>
             <div className='relative w-full h-48 mb-4'>
               <Image
                 src={selectedCake?.image || '/assets/images/cake-sample.svg'}
@@ -286,7 +286,7 @@ const ResultsPage = () => {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className='p-6'>
+                        <SelectTrigger className='p-4 sm:p-6'>
                           <SelectValue placeholder='Select a flavour' />
                         </SelectTrigger>
                       </FormControl>
@@ -315,7 +315,7 @@ const ResultsPage = () => {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className='p-6'>
+                        <SelectTrigger className='p-4 sm:p-6'>
                           <SelectValue placeholder='Select a size' />
                         </SelectTrigger>
                       </FormControl>
@@ -344,7 +344,7 @@ const ResultsPage = () => {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className='p-6'>
+                        <SelectTrigger className='p-4 sm:p-6'>
                           <SelectValue placeholder='Select number of layers' />
                         </SelectTrigger>
                       </FormControl>
@@ -371,7 +371,7 @@ const ResultsPage = () => {
                       <Input
                         placeholder='Enter icing type'
                         {...field}
-                        className='p-6 border-[#E3E3E3]'
+                        className='p-4 sm:p-6 border-[#E3E3E3]'
                       />
                     </FormControl>
                     <FormMessage />
@@ -382,7 +382,7 @@ const ResultsPage = () => {
               <Button type='submit' className='w-full'>
                 I want this
               </Button>
-              <small className='flex gap-2'>
+              <small className='flex gap-2 items-center'>
                 <Info color='red' size={16} />
                 The total price may change a bit based on the delivery estimate
                 after review by vendor

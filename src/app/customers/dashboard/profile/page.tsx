@@ -1,16 +1,36 @@
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Eye } from 'lucide-react'
+import { useState } from 'react'
 import { Sidebar } from '../../components/sidebar'
+import { Input } from '@/components/ui/input'
+import { Eye, Menu } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function AccountPage() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
   return (
     <div className='min-h-screen flex flex-col'>
+      {/* Mobile Menu Toggle */}
+      <div className='md:hidden p-4 bg-black shadow-sm flex justify-between items-center'>
+        <h1 className='text-2xl font-medium'>My Account</h1>
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className='p-2 bg-black rounded-md'
+        >
+          <Menu className='h-6 w-6' />
+        </button>
+      </div>
+
       <div className='flex-1 container mx-auto flex gap-8 py-8'>
-        <Sidebar />
+        {/* Sidebar (Desktop and Mobile) */}
+        <Sidebar
+          isMobile={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
 
         <main className='flex-1'>
-          <h1 className='text-3xl font-medium mb-8'>My Account</h1>
+          <h1 className='hidden md:block text-3xl font-medium mb-8'>
+            My Account
+          </h1>
 
           <div className='bg-white rounded-lg p-6'>
             <h2 className='text-xl font-medium mb-6'>Account Overview</h2>
@@ -63,7 +83,7 @@ export default function AccountPage() {
                 </div>
               </div>
 
-              <Button variant='outline' className='w-full '>
+              <Button variant='outline' className='w-full'>
                 Update
               </Button>
             </form>

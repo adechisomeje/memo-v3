@@ -30,7 +30,7 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
   const pathname = usePathname()
   const isMobile = useMediaQuery('(max-width: 1023px)')
   return (
-    <nav className='py-6 px-8 border-b border-gray-200'>
+    <nav className=' py-6 px-8 border-b border-gray-200'>
       <div className=' flex  items-center justify-between'>
         <div className='text-3xl'>
           <Link className={dancingScript.className} href='/'>

@@ -1,14 +1,69 @@
 'use client'
-
+import { useState } from 'react'
 import Link from 'next/link'
-import { User, ShoppingBag, FileText, Mail, LogOut, Pencil } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Eye,
+  User,
+  ShoppingBag,
+  FileText,
+  Mail,
+  LogOut,
+  Pencil,
+  Menu,
+  X,
+} from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { usePathname } from 'next/navigation'
 
-export function Sidebar() {
+interface SidebarProps {
+  isMobile: boolean
+  onClose: () => void
+}
+
+export function Sidebar({ isMobile, onClose }: SidebarProps) {
   const pathname = usePathname()
+  const menuItems = [
+    {
+      href: '/customers/dashboard/profile',
+      icon: User,
+      label: 'My Profile',
+    },
+    {
+      href: '/customers/dashboard/orders',
+      icon: ShoppingBag,
+      label: 'My Orders',
+    },
+    {
+      href: '/customers/dashboard/requests',
+      icon: FileText,
+      label: 'My Request',
+    },
+    {
+      href: '/customers/dashboard/messages',
+      icon: Mail,
+      label: 'Messages',
+    },
+    { href: '/', icon: LogOut, label: 'Log Out' },
+  ]
+
   return (
-    <div className='w-64 min-h-screen bg-white'>
+    <div
+      className={`
+        ${
+          isMobile
+            ? 'fixed inset-0 z-50 bg-white overflow-y-auto'
+            : 'w-64 min-h-screen bg-white hidden md:block'
+        }
+      `}
+    >
+      {isMobile && (
+        <button onClick={onClose} className='absolute top-4 right-4 z-60'>
+          <X className='h-6 w-6' />
+        </button>
+      )}
+
       <div className='p-6 bg-[#1d1d1d] text-center'>
         <div className='relative w-24 h-24 mx-auto mb-4'>
           <Avatar className='w-full h-full border-4 border-white'>
@@ -32,29 +87,7 @@ export function Sidebar() {
       </div>
 
       <nav className='p-4'>
-        {[
-          {
-            href: '/customers/dashboard/profile',
-            icon: User,
-            label: 'My Profile',
-          },
-          {
-            href: '/customers/dashboard/orders',
-            icon: ShoppingBag,
-            label: 'My Orders',
-          },
-          {
-            href: '/customers/dashboard/requests',
-            icon: FileText,
-            label: 'My Request',
-          },
-          {
-            href: '/customers/dashboard/messages',
-            icon: Mail,
-            label: 'Messages',
-          },
-          { href: '/', icon: LogOut, label: 'Log Out' },
-        ].map(({ href, icon: Icon, label }) => (
+        {menuItems.map(({ href, icon: Icon, label }) => (
           <Link
             key={href}
             href={href}
@@ -63,6 +96,7 @@ export function Sidebar() {
                 ? 'bg-[#ffeae4] text-primary'
                 : 'text-[#474747] hover:bg-gray-100'
             } ${href === '/logout' ? 'text-primary' : ''}`}
+            onClick={isMobile ? onClose : undefined}
           >
             <Icon className='h-5 w-5' />
             <span>{label}</span>
