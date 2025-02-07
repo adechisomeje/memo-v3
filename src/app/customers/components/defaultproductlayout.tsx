@@ -22,7 +22,6 @@ interface ProductLayoutProps {
 }
 
 const ProductLayout = ({ onProductSelect }: ProductLayoutProps) => {
-  // Updated mock data to match the new interface
   const products: Product[] = [...Array(4)].map((_, index) => ({
     id: (index + 1).toString(), // Convert to string
     image: '/assets/images/cake-sample.svg',
