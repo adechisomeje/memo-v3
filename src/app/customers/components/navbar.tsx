@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { TNavItem } from '../../types'
 import { cn } from '@/lib/utils'
 import { NavbarHoverCard } from './nav-hover-card'
@@ -27,11 +27,29 @@ type Props = {
 
 const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
   const [isOpen, setIsOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const pathname = usePathname()
   const isMobile = useMediaQuery('(max-width: 1023px)')
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY
+      setIsScrolled(scrollPosition > 0)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
-    <nav className=' py-6 px-8 border-b border-gray-200'>
-      <div className=' flex  items-center justify-between'>
+    <nav
+      className={cn(
+        'py-6 px-8 fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 ease-in-out',
+        isScrolled ? 'bg-white shadow-md' : 'bg-white/80 backdrop-blur-sm',
+        'border-b border-gray-200'
+      )}
+    >
+      <div className='flex items-center justify-between max-w-7xl mx-auto'>
         <div className='text-3xl'>
           <Link className={dancingScript.className} href='/'>
             MEMO
@@ -63,7 +81,6 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
                       'text-[#370E06] font-medium hover:text-primary',
                       pathname === item.href ? 'font-bold' : '',
                       classNames?.navItem
-                      // isScrolled ? 'text-gray-400' : ''
                     )}
                   >
                     {item.label}

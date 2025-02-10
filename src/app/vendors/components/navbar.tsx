@@ -12,15 +12,7 @@ import { useMediaQuery } from 'usehooks-ts'
 import { Dancing_Script } from 'next/font/google'
 import { NavbarHoverCard } from '@/app/customers/components/nav-hover-card'
 import { MobileNav } from '@/app/customers/components/mobile-nav'
-import { UserCircle } from 'lucide-react'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
+import VendorSignUp from './vendor-sign-up-sheet'
 
 const dancingScript = Dancing_Script({
   subsets: ['latin'],
@@ -84,26 +76,7 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
           </ul>
 
           <div className='flex flex-row gap-4'>
-            <Sheet>
-              <SheetTrigger>
-                <div className='flex justify-center items-center gap-2'>
-                  <div className=''>
-                    <UserCircle />
-                  </div>
-
-                  <p className=''>Sign in</p>
-                </div>
-              </SheetTrigger>
-              <SheetContent className='w-[400px] sm:w-[540px]'>
-                <SheetHeader>
-                  <SheetTitle>Are you absolutely sure?</SheetTitle>
-                  <SheetDescription>
-                    This action cannot be undone. This will permanently delete
-                    your account and remove your data from our servers.
-                  </SheetDescription>
-                </SheetHeader>
-              </SheetContent>
-            </Sheet>
+            <VendorSignUp />
 
             <Link href={ctaLink}>
               <Button className='hover:bg-[#DE3633]' size='lg'>

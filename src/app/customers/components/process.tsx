@@ -1,6 +1,8 @@
+import Image from 'next/image'
+
 const ProcessSimplified = () => {
   return (
-    <section className='py-16 bg-white'>
+    <section className='py-16 bg-[#FDFCFB]'>
       <div className='container mx-auto px-4 py-12 md:py-24'>
         <div className='grid md:grid-cols-2 gap-8 items-start'>
           {/* Left Column - Process Steps */}
@@ -74,9 +76,11 @@ const ProcessSimplified = () => {
 
           {/* Right Column - Single Grouped Image */}
           <div className='relative'>
-            <div className='relative aspect-[4/3] rounded-3xl overflow-hidden'>
-              <img
-                src='/assets/images/simplified-group.svg'
+            <div className=' rounded-3xl overflow-hidden'>
+              <Image
+                width={500}
+                height={500}
+                src='/assets/images/simp-group.png'
                 alt='Grouped images showing the memo process'
                 className='object-cover w-full h-full'
               />

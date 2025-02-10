@@ -22,6 +22,16 @@ export function validateName(name: string) {
   return regex.test(name)
 }
 
+export function validateBusiness(name: string) {
+  const regex = /^[a-zA-Z '&]+$/
+  return regex.test(name)
+}
+
+export function validateInstagramUsername(username: string) {
+  const regex = /^[a-zA-Z0-9._]{1,30}$/
+  return regex.test(username)
+}
+
 export function validatePassword(password: string) {
   const regex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()-_+=<>?])[A-Za-z\d!@#$%^&*()-_+=<>?]{8,}$/
@@ -39,3 +49,21 @@ export function generateInitials(fullname: string): string {
   const surnameInitial = surname.charAt(0).toUpperCase()
   return `${firstInitial}${surnameInitial}`
 }
+
+export async function validateCountry(country: string): Promise<boolean> {
+  try {
+    const response = await fetch('https://restcountries.com/v3.1/all')
+    const data = await response.json()
+    const countryNames: string[] = data.map(
+      (c: { name: { common: string } }) => c.name.common
+    )
+
+    return countryNames.includes(country)
+  } catch (error) {
+    console.error('Error fetching countries:', error)
+    return false
+  }
+}
+
+validateCountry('Canada').then(console.log) // true
+validateCountry('Wakanda').then(console.log) // false
