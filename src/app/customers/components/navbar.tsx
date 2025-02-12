@@ -4,13 +4,39 @@ import React, { useState, useEffect } from 'react'
 import { TNavItem } from '../../types'
 import { cn } from '@/lib/utils'
 import { NavbarHoverCard } from './nav-hover-card'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Hamburger } from '@/components/icons/hamburger'
 import { useMediaQuery } from 'usehooks-ts'
 import { Dancing_Script } from 'next/font/google'
 import { MobileNav } from './mobile-nav'
+import { signOut, useSession } from 'next-auth/react'
+import { User } from '@/components/icons/User'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  ChevronDown,
+  ListOrderedIcon,
+  LogOut,
+  MessageSquareCodeIcon,
+  User2,
+} from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 const dancingScript = Dancing_Script({
   subsets: ['latin'],
@@ -26,6 +52,24 @@ type Props = {
 }
 
 const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
+  const { data: session, status } = useSession()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  const router = useRouter()
+  const [firstName, setFirstName] = useState('')
+  // ... existing state and hooks ...
+
+  useEffect(() => {
+    if (session?.user) {
+      // If using a separate endpoint, you could fetch here:
+      // const userData = await fetchUserDetails()
+      // setFirstName(userData.firstName)
+
+      // If user data is already in session:
+      setFirstName(session.user.firstName || '')
+    }
+  }, [session])
   const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const pathname = usePathname()
@@ -90,42 +134,77 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
             })}
           </ul>
 
-          <div className='flex flex-row gap-4'>
+          <div className='flex flex-row gap-6'>
             <div className='flex'>
-              <div className='m-3'>
-                <svg
-                  width='24'
-                  height='24'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  xmlns='http://www.w3.org/2000/svg'
-                >
-                  <path
-                    d='M16 15H8C5.79086 15 4 16.7909 4 19V21H12H20V19C20 16.7909 18.2091 15 16 15Z'
-                    stroke='#474747'
-                    strokeWidth='1.5'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                  />
-                  <path
-                    d='M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z'
-                    stroke='#474747'
-                    strokeWidth='1.5'
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                  />
-                </svg>
+              <div className='m-2'>
+                <User />
               </div>
 
-              <div className='flex flex-col'>
-                <p>Hello</p>
-                <p className='font-bold'>SIGN IN</p>
+              <div className='flex flex-col '>
+                <p>Hello,</p>
+                {status === 'authenticated' ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <div className='font-bold flex justify-center items-center gap-1'>
+                        <p className='font-bold hover:text-primary'>
+                          {firstName || 'User'}
+                        </p>
+                        <ChevronDown size={20} />
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {/* <DropdownMenuLabel>My Profile</DropdownMenuLabel> */}
+                      <DropdownMenuSeparator />
+                      <Link href='/customers/dashboard/profile'>
+                        <DropdownMenuItem>
+                          <User2 />
+                          My Profile
+                        </DropdownMenuItem>
+                      </Link>
+                      <DropdownMenuSeparator />
+                      <Link href='/customers/dashboard/orders'>
+                        <DropdownMenuItem>
+                          <ListOrderedIcon />
+                          My Orders
+                        </DropdownMenuItem>
+                      </Link>
+                      <DropdownMenuSeparator />
+                      <Link href='/customers/dashboard/messages'>
+                        <DropdownMenuItem>
+                          <MessageSquareCodeIcon />
+                          Messages
+                        </DropdownMenuItem>
+                      </Link>
+                      <DropdownMenuSeparator />
+                      <Button
+                        onClick={async () => {
+                          setLoading(true)
+                          const data = await signOut({
+                            redirect: false,
+                            callbackUrl: '/',
+                          })
+                          setLoading(false)
+
+                          if (data.url) {
+                            router.push(data.url)
+                          }
+                        }}
+                      >
+                        <DropdownMenuItem className=''>
+                          <LogOut />
+                          Log Out
+                        </DropdownMenuItem>
+                      </Button>
+                      <DropdownMenuSeparator />
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Link href='/sign-in'>SIGN IN</Link>
+                )}
               </div>
             </div>
             <Link href={ctaLink}>
-              <Button className='hover:bg-[#DE3633]' size='lg'>
-                Become A Vendor
-              </Button>
+              <Button size='lg'>Become A Vendor</Button>
             </Link>
           </div>
         </div>

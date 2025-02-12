@@ -8,9 +8,9 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import WhyAndWhatSection from './customers/components/why-and-what-section'
 import ProcessSimplified from './customers/components/process'
 import TrustedCompanies from './customers/components/trusted-companies'
-import { SearchForm } from './customers/components/search-form'
 import { useRouter } from 'next/navigation'
 import StatsSection from './customers/components/memo-stats'
+import { LocationFilter } from './customers/components/location-filter'
 
 const navItems = [
   {
@@ -74,14 +74,6 @@ const mobileNavItems = [
 
 export default function Home() {
   const router = useRouter()
-  const handleSubmit = (formData: FormData) => {
-    // Handle form submission
-    console.log(Object.fromEntries(formData))
-  }
-
-  const handleClick = () => {
-    router.push('/customers/results')
-  }
 
   return (
     <div className=''>
@@ -112,79 +104,21 @@ export default function Home() {
               are
             </p>
 
-            {/* <div className='bg-white hidden rounded-full p-2 md:flex flex-col md:flex-row gap-2 max-w-4xl mx-auto mt-10'>
-              <div className='flex-1 flex items-center gap-2 text-left px-4 text-[#1E1B16]'>
-                <MapPin className='h-5 w-5' />
-                <input
-                  type='text'
-                  placeholder='Input delivery address'
-                  className='w-full bg-transparent focus:outline-none'
-                />
-              </div>
-
-              <button className='md:w-40 px-4 py-2 text-[#1E1B16] flex items-center justify-between hover:bg-gray-100 rounded-full'>
-                <span>Country</span>
-                <ChevronDown className='h-4 w-4' />
-              </button>
-
-              <button className='md:w-40 px-4 py-2 text-[#1E1B16] flex items-center justify-between hover:bg-gray-100 rounded-full'>
-                <span>State</span>
-                <ChevronDown className='h-4 w-4' />
-              </button>
-
-              <button className='md:w-40 px-4 py-2 text-[#1E1B16] flex items-center justify-between hover:bg-gray-100 rounded-full'>
-                <span>City</span>
-                <ChevronDown className='h-4 w-4' />
-              </button>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant='ghost'
-                    className={cn(
-                      'md:w-48 justify-between text-left font-normal hover:bg-gray-100',
-                      !date && 'text-muted-foreground'
-                    )}
-                  >
-                    <div className='flex items-center gap-2'>
-                      <CalendarIcon className='h-4 w-4' />
-                      {date ? format(date, 'PPP') : <span>Delivery date</span>}
-                    </div>
-                    <ChevronDown className='h-4 w-4' />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className='w-auto p-0' align='start'>
-                  <Calendar
-                    mode='single'
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div> */}
-            <SearchForm
-              className='mt-10 hidden md:block'
-              onSubmit={handleSubmit}
-            />
+            <LocationFilter />
             <div className='text-center hidden md:block'>
-              <Button onClick={handleClick} size='lg' className='mt-10'>
+              <Button size='lg' className='mt-10'>
                 Get Started
               </Button>
             </div>
             <div className='md:hidden'>
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button onClick={handleClick} size='lg' className='mt-10'>
+                  <Button size='lg' className='mt-10'>
                     Get Started
                   </Button>
                 </SheetTrigger>
                 <SheetContent side='right' className=' sm:max-w-md'>
-                  <SearchForm
-                    variant='sheet'
-                    onSubmit={handleSubmit}
-                    className='h-full flex flex-col'
-                  />
+                  <LocationFilter />
                 </SheetContent>
               </Sheet>
             </div>

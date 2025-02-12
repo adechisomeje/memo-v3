@@ -70,26 +70,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   session: { strategy: 'jwt' }, // Add this line
   callbacks: {
-    jwt: async ({ token, user }) => {
+    async jwt({ token, user }) {
       if (user) {
+        // Make sure we're storing the token exactly as received from the API
+        token.accessToken = user.token
         token.id = user.id ?? ''
         token.firstName = user.firstName
         token.lastName = user.lastName
         token.email = user.email ?? ''
         token.phone = user.phone
-        token.accessToken = user.token // Store the access token in the JWT
       }
       return token
     },
-    session: async ({ session, token }) => {
-      if (token) {
-        session.user.id = token.id
-        session.user.firstName = token.firstName
-        session.user.lastName = token.lastName
-        session.user.email = token.email
-        session.user.phone = token.phone
-        session.accessToken = token.accessToken // Expose accessToken in the session
-      }
+    async session({ session, token }) {
+      // Make sure we're exposing the token in the session
+      session.accessToken = token.accessToken
+      session.user.id = token.id
+      session.user.firstName = token.firstName
+      session.user.lastName = token.lastName
+      session.user.email = token.email
+      session.user.phone = token.phone
       return session
     },
   },

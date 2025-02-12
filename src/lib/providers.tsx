@@ -16,7 +16,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         {children}
         <AxiosInterceptor />
         <ReactQueryDevtools />
-        <Toaster />
+        <Toaster position='top-right' />
       </QueryClientProvider>
     </SessionProvider>
   )

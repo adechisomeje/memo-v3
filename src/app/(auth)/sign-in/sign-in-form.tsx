@@ -55,7 +55,7 @@ const SignInForm = () => {
 
       if (res?.ok) {
         toast.success('Logged in successfully')
-        router.push('/customers/dashboard/profile')
+        router.push('/')
         router.refresh()
       }
     } catch (error) {
