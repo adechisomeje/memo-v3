@@ -1,24 +1,14 @@
 'use client'
 
+import { format } from 'date-fns'
+
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { useQuery } from '@tanstack/react-query'
-import { format } from 'date-fns'
-import { CalendarIcon, ChevronDown, MapPinIcon } from 'lucide-react'
 import * as z from 'zod'
-import * as React from 'react'
+import { cn } from '@/lib/utils'
 
-import { getCities, getCountry, getStates } from '@/api/public'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import {
   Popover,
   PopoverContent,
@@ -31,15 +21,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { cn } from '@/lib/utils'
-import { Calender } from '@/components/icons/Calender' // Your custom icon
-import { MapPin } from '@/components/icons/MapPin' // Your custom icon
-import { Skeleton } from '@/components/ui/skeleton'
-import { useIsMobile } from '@/hooks/use-mobile'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Calender } from '@/components/icons/Calender'
+import { MapPin } from '@/components/icons/MapPin'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { getCities, getCountry, getStates } from '@/api/public'
 
-// --- Zod Schema ---
-const locationFilterSchema = z.object({
+const searchFormSchema = z.object({
   address: z.string().min(1, { message: 'Address is required' }),
   country: z.string().min(1, { message: 'Country is required' }),
   state: z.string().min(1, { message: 'State is required' }),
@@ -47,14 +43,23 @@ const locationFilterSchema = z.object({
   date: z.date().optional(),
 })
 
-type LocationFilterValues = z.infer<typeof locationFilterSchema>
+type SearchFormValues = z.infer<typeof searchFormSchema>
 
-export function LocationFilter() {
-  const isMobile = useIsMobile()
-  const [open, setOpen] = React.useState(false)
+interface SearchFormProps {
+  onSubmit: (data: Omit<SearchFormValues, 'date'> & { date: string }) => void
+  className?: string
+  variant?: 'default' | 'sheet'
+}
 
-  const form = useForm<LocationFilterValues>({
-    resolver: zodResolver(locationFilterSchema),
+export function SearchForm({
+  onSubmit,
+  className,
+  variant = 'default',
+}: SearchFormProps) {
+  const [selectedCountry, setSelectedCountry] = useState<string>('')
+  const [selectedState, setSelectedState] = useState<string>('')
+  const form = useForm<SearchFormValues>({
+    resolver: zodResolver(searchFormSchema),
     defaultValues: {
       address: '',
       country: '',
@@ -64,510 +69,413 @@ export function LocationFilter() {
     },
   })
 
-  // --- Data Fetching ---
-  const countriesQuery = useQuery({
+  const { data: countries, isLoading: isLoadingCountries } = useQuery({
     queryKey: ['countries'],
     queryFn: getCountry,
   })
 
-  console.log(countriesQuery.data)
-  const selectedCountry = form.watch('country')
-  const selectedState = form.watch('state')
+  console.log(countries?.data)
 
-  const statesQuery = useQuery({
+  const { data: states, isLoading: isLoadingStates } = useQuery({
     queryKey: ['states', selectedCountry],
     queryFn: () => getStates(selectedCountry),
     enabled: !!selectedCountry,
   })
-  const citiesQuery = useQuery({
+
+  const { data: cities, isLoading: isLoadingCities } = useQuery({
     queryKey: ['cities', selectedCountry, selectedState],
     queryFn: () => getCities(selectedCountry, selectedState),
     enabled: !!selectedCountry && !!selectedState,
   })
 
-  // --- Loading and Error States ---
-  const isLoading = countriesQuery.isPending
-  const isError =
-    countriesQuery.isError || statesQuery.isError || citiesQuery.isError
-
-  // --- Submit Handler ---
-  const handleFormSubmit = (values: LocationFilterValues) => {
-    setOpen(false)
+  function handleSubmit(values: SearchFormValues) {
+    const formattedData = {
+      ...values,
+      date: values.date ? format(values.date, 'yyyy-MM-dd') : '',
+    }
+    onSubmit(formattedData)
   }
 
-  // --- Main Return (Fully Inlined) ---
-  if (isMobile) {
-    // Mobile View
-    if (isLoading) {
-      return (
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant='outline'>Open Location Filter</Button>
-          </SheetTrigger>
-          <SheetContent>
-            <div className='mb-8'>
-              <Skeleton className='h-8 w-64' />
-            </div>
-            <div className='grid gap-6 grid-cols-1'>
-              <div className='flex items-center gap-3 rounded-lg border px-4 py-3'>
-                <Skeleton className='h-5 w-5' />
-                <Skeleton className='h-8 flex-grow' />
-              </div>
-              <Skeleton className='h-12 w-full' />
-              <Skeleton className='h-12 w-full' />
-              <Skeleton className='h-12 w-full' />
-              <Skeleton className='h-12 w-full' />
-              <Skeleton className='h-12 w-full mt-8' />
-            </div>
-          </SheetContent>
-        </Sheet>
-      )
-    } else if (isError) {
-      return (
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant='outline'>Open Location Filter</Button>
-          </SheetTrigger>
-          <SheetContent>
-            <div className='text-red-500 p-4 bg-red-100 border border-red-400 rounded-md'>
-              An error occurred while fetching data. Please try again later.
-              {countriesQuery.isError && <p>Error fetching countries.</p>}
-              {statesQuery.isError && <p>Error fetching states.</p>}
-              {citiesQuery.isError && <p>Error fetching cities.</p>}
-            </div>
-          </SheetContent>
-        </Sheet>
-      )
-    } else {
-      return (
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button variant='outline'>Open Location Filter</Button>
-          </SheetTrigger>
-          <SheetContent>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(handleFormSubmit)}
-                className='space-y-4'
-              >
-                <div className='flex items-center justify-between mb-8'>
-                  <h2 className='text-2xl font-bold text-gray-900'>
-                    Find Vendors Near You
-                  </h2>
-                </div>
-                <div className='relative'>
-                  <div className='grid gap-6 grid-cols-1'>
-                    {/* Address Input */}
-                    <FormField
-                      control={form.control}
-                      name='address'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <div className='relative flex items-center'>
-                              <div className='flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border'>
-                                <MapPin />
-                                <Input
-                                  type='text'
-                                  placeholder='Input delivery address'
-                                  {...field}
-                                  className='flex-1 outline-none placeholder:text-black text-black'
-                                />
-                              </div>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+  const handleCountryChange = (value: string) => {
+    setSelectedCountry(value)
+    form.setValue('country', value)
+    form.setValue('state', '')
+    form.setValue('city', '')
+    setSelectedState('')
+  }
 
-                    {/* Location Selects */}
-                    <div className='grid gap-4 grid-cols-1'>
-                      <FormField
-                        control={form.control}
-                        name='country'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                disabled={countriesQuery.isLoading}
-                              >
-                                <SelectTrigger className='w-full'>
-                                  <SelectValue placeholder='Select Country' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {countriesQuery.data?.data.countries.map(
-                                    (country: string) => (
-                                      <SelectItem key={country} value={country}>
-                                        {country}
-                                      </SelectItem>
-                                    )
-                                  )}
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+  const handleStateChange = (value: string) => {
+    setSelectedState(value)
+    form.setValue('state', value)
+    form.setValue('city', '')
+  }
+
+  if (variant === 'sheet') {
+    return (
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className={cn('flex flex-col h-full', className)}
+        >
+          <div className='flex items-center justify-between mb-8'>
+            <h2 className='text-2xl font-bold text-gray-900'>
+              Let&apos;s Find Vendors Near You
+            </h2>
+          </div>
+
+          <div className='space-y-6 flex-1'>
+            {/* Address Input */}
+            <FormField
+              control={form.control}
+              name='address'
+              render={({ field }) => (
+                <FormItem>
+                  <div className='flex items-center gap-3 px-4 py-3 border rounded-lg'>
+                    <MapPin className='h-5 w-5 text-gray-400 flex-shrink-0' />
+                    <FormControl>
+                      <Input
+                        type='text'
+                        placeholder='Input delivery address'
+                        {...field}
+                        className='border-0 focus:ring-0 px-0 placeholder:text-gray-400'
                       />
-
-                      <FormField
-                        control={form.control}
-                        name='state'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                disabled={
-                                  !selectedCountry ||
-                                  statesQuery.isError ||
-                                  statesQuery.isLoading
-                                }
-                              >
-                                <SelectTrigger className='w-full'>
-                                  <SelectValue placeholder='Select State' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {statesQuery.data?.data.states.map(
-                                    (state: string) => (
-                                      <SelectItem key={state} value={state}>
-                                        {state}
-                                      </SelectItem>
-                                    )
-                                  )}
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name='city'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                disabled={
-                                  !selectedState ||
-                                  citiesQuery.isError ||
-                                  citiesQuery.isLoading
-                                }
-                              >
-                                <SelectTrigger className='w-full'>
-                                  <SelectValue placeholder='Select City' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {citiesQuery.data?.data.cities.map(
-                                    (city: string) => (
-                                      <SelectItem key={city} value={city}>
-                                        {city}
-                                      </SelectItem>
-                                    )
-                                  )}
-                                </SelectContent>
-                              </Select>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Date Picker */}
-                    <FormField
-                      control={form.control}
-                      name='date'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant='outline'
-                                  className={cn(
-                                    'w-full h-12 justify-between text-left font-normal',
-                                    !field.value && 'text-gray-500'
-                                  )}
-                                >
-                                  <div className='flex items-center gap-2'>
-                                    <Calender />
-                                    {field.value ? (
-                                      format(field.value, 'PPP')
-                                    ) : (
-                                      <span>Delivery date</span>
-                                    )}
-                                  </div>
-                                  <ChevronDown className='h-4 w-4 opacity-50' />
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                className='w-auto p-0'
-                                align='start'
-                              >
-                                <Calendar
-                                  mode='single'
-                                  selected={field.value}
-                                  onSelect={(date) => {
-                                    field.onChange(date)
-                                  }}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    </FormControl>
                   </div>
-                  <Button
-                    type='submit'
-                    className='w-full mt-8 bg-primary hover:bg-primary/90 text-white h-12'
-                  >
-                    Get Started
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </SheetContent>
-        </Sheet>
-      )
-    }
-  } else {
-    // Desktop View
-    if (isLoading) {
-      return (
-        <div className='w-full max-w-6xl mx-auto'>
-          <div className='relative bg-white rounded-full shadow-lg p-3'>
-            <div className='grid gap-6 md:grid-cols-12 border-2 border-primary rounded-full p-2'>
-              <div className='md:col-span-3'>
-                <div className='flex items-center gap-3 rounded-lg border px-4 py-3'>
-                  <Skeleton className='h-5 w-5' />
-                  <Skeleton className='h-8 flex-grow' />
-                </div>
-              </div>
-              <div className='md:col-span-6 grid-cols-3 grid gap-4'>
-                <Skeleton className='h-12 w-full' />
-                <Skeleton className='h-12 w-full' />
-                <Skeleton className='h-12 w-full' />
-              </div>
-              <div className='md:col-span-1'>
-                <Skeleton className='h-12 w-full' />
-              </div>
+                </FormItem>
+              )}
+            />
+
+            {/* Location Selects */}
+            <div className='md:col-span-7 grid grid-cols-3 gap-2'>
+              {/* Country Select */}
+              <FormField
+                control={form.control}
+                name='country'
+                render={({ field }) => (
+                  <FormItem>
+                    <Select
+                      onValueChange={handleCountryChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className='h-10 border-none bg-transparent focus:ring-0'>
+                          <SelectValue placeholder='Country' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {isLoadingCountries ? (
+                          <SelectItem value=''>Loading...</SelectItem>
+                        ) : (
+                          countries?.data?.countries.map((country) => (
+                            <SelectItem key={country} value={country}>
+                              {country}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+
+              {/* State Select */}
+              <FormField
+                control={form.control}
+                name='state'
+                render={({ field }) => (
+                  <FormItem>
+                    <Select
+                      onValueChange={handleStateChange}
+                      defaultValue={field.value}
+                      disabled={!selectedCountry}
+                    >
+                      <FormControl>
+                        <SelectTrigger className='h-10 border-none bg-transparent focus:ring-0'>
+                          <SelectValue placeholder='State' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {isLoadingStates ? (
+                          <SelectItem value=''>Loading...</SelectItem>
+                        ) : (
+                          states?.data.states.map((state) => (
+                            <SelectItem key={state} value={state}>
+                              {state}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+
+              {/* City Select */}
+              <FormField
+                control={form.control}
+                name='city'
+                render={({ field }) => (
+                  <FormItem>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className='h-11 border-0 bg-transparent focus:ring-0'>
+                          <SelectValue placeholder='City' />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {isLoadingCities ? (
+                          <SelectItem value=''>Loading...</SelectItem>
+                        ) : (
+                          cities?.data.cities.map((city) => (
+                            <SelectItem key={city} value={city}>
+                              {city}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
             </div>
-          </div>
-        </div>
-      )
-    } else if (isError) {
-      return (
-        <div className='w-full max-w-6xl mx-auto'>
-          <div className='text-red-500 p-4 bg-red-100 border border-red-400 rounded-md'>
-            An error occurred while fetching data. Please try again later.
-            {countriesQuery.isError && <p>Error fetching countries.</p>}
-            {statesQuery.isError && <p>Error fetching states.</p>}
-            {citiesQuery.isError && <p>Error fetching cities.</p>}
-          </div>
-        </div>
-      )
-    } else {
-      return (
-        <div className='w-full max-w-6xl mx-auto'>
-          <div className='relative bg-white rounded-full shadow-lg p-3'>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(handleFormSubmit)}
-                className='space-y-4'
-              >
-                <div className='grid gap-6 md:grid-cols-12 border-2 border-primary rounded-full p-2'>
-                  {/* Address Input */}
-                  <FormField
-                    control={form.control}
-                    name='address'
-                    render={({ field }) => (
-                      <FormItem className='md:col-span-3'>
-                        <FormControl>
-                          <div className='relative flex items-center'>
-                            <div className='flex-1 flex items-center gap-3 px-4 py-3 rounded-lg bg-white'>
-                              <MapPin />
-                              <Input
-                                type='text'
-                                placeholder='Input delivery address'
-                                {...field}
-                                className='flex-1 outline-none placeholder:text-black text-black'
-                              />
-                            </div>
+
+            {/* Date Picker */}
+            <FormField
+              control={form.control}
+              name='date'
+              render={({ field }) => (
+                <FormItem>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant='outline'
+                          className='w-full h-12 justify-start text-left font-normal border rounded-lg'
+                        >
+                          <div className='flex items-center gap-2'>
+                            <Calender className='h-5 w-5 text-gray-400' />
+                            <span className='text-gray-500'>
+                              {field.value
+                                ? format(field.value, 'PPP')
+                                : 'Delivery date'}
+                            </span>
                           </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Location Selects */}
-                  <div className='md:col-span-6 grid-cols-3 grid gap-4'>
-                    <FormField
-                      control={form.control}
-                      name='country'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              disabled={countriesQuery.isLoading}
-                            >
-                              <SelectTrigger className='h-12 text-black border-x-1 rounded-none border-y-0'>
-                                <SelectValue placeholder='Select Country' />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {countriesQuery.data?.data.countries.map(
-                                  (country: string) => (
-                                    <SelectItem key={country} value={country}>
-                                      {country}
-                                    </SelectItem>
-                                  )
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name='state'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              disabled={
-                                !selectedCountry ||
-                                statesQuery.isError ||
-                                statesQuery.isLoading
-                              }
-                            >
-                              <SelectTrigger className='h-12 text-black border-x-1 rounded-none border-y-0'>
-                                <SelectValue placeholder='Select State' />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {statesQuery.data?.data.states.map(
-                                  (state: string) => (
-                                    <SelectItem key={state} value={state}>
-                                      {state}
-                                    </SelectItem>
-                                  )
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name='city'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              disabled={
-                                !selectedState ||
-                                citiesQuery.isError ||
-                                citiesQuery.isLoading
-                              }
-                            >
-                              <SelectTrigger className='h-12 text-black border-x-1 rounded-none border-y-0'>
-                                <SelectValue placeholder='Select City' />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {citiesQuery.data?.data.cities.map(
-                                  (city: string) => (
-                                    <SelectItem key={city} value={city}>
-                                      {city}
-                                    </SelectItem>
-                                  )
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  {/* Date Picker */}
-                  <FormField
-                    control={form.control}
-                    name='date'
-                    render={({ field }) => (
-                      <FormItem className='md:col-span-1'>
-                        <FormControl>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button
-                                variant='outline'
-                                className={cn(
-                                  'w-full h-12 justify-between text-left font-normal border-0',
-                                  !field.value && 'text-gray-500'
-                                )}
-                              >
-                                <div className='flex items-center gap-2'>
-                                  <Calender />
-                                  {field.value ? (
-                                    format(field.value, 'PPP')
-                                  ) : (
-                                    <span>Delivery date</span>
-                                  )}
-                                </div>
-                                <ChevronDown className='h-4 w-4 opacity-50' />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className='w-auto p-0'
-                              align='start'
-                            >
-                              <Calendar
-                                mode='single'
-                                selected={field.value}
-                                onSelect={(date) => {
-                                  field.onChange(date)
-                                }}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <Button type='submit' className='hidden md:inline-flex'>
-                  Get Started
-                </Button>
-              </form>
-            </Form>
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className='w-auto p-0' align='start'>
+                      <Calendar
+                        mode='single'
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </FormItem>
+              )}
+            />
           </div>
-        </div>
-      )
-    }
+
+          <Button
+            type='submit'
+            className='w-full mt-8 bg-red-600 hover:bg-red-700 text-white h-12'
+          >
+            Get Started
+          </Button>
+        </form>
+      </Form>
+    )
   }
+
+  return (
+    <div className='w-full px-5 md:px-7 lg:px-9'>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className={cn('max-w-6xl mx-auto relative', className)}
+        >
+          <div className='bg-white rounded-full shadow-lg p-2 md:p-3'>
+            <div className='border-2 border-primary rounded-full  grid md:grid-cols-12 gap-2 md:gap-4 items-center'>
+              {/* Address Input */}
+              <FormField
+                control={form.control}
+                name='address'
+                render={({ field }) => (
+                  <FormItem className='md:col-span-3'>
+                    <div className='flex items-center gap-3 px-4 py-2 bg-white rounded-full'>
+                      <MapPin className='h-5 w-5 text-[#1E1B16] flex-shrink-0' />
+                      <FormControl>
+                        <Input
+                          type='text'
+                          placeholder='Input delivery address'
+                          {...field}
+                          className='border-0 text-black px-0 placeholder:text-[#1E1B16]'
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Location Selects */}
+              <div className='md:col-span-7 grid grid-cols-3 gap-2'>
+                {/* Country Select */}
+                <FormField
+                  control={form.control}
+                  name='country'
+                  render={({ field }) => (
+                    <FormItem>
+                      <Select
+                        onValueChange={handleCountryChange}
+                        value={field.value || 'default'}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
+                            <SelectValue placeholder='Country' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value='default' disabled>
+                            Select a country
+                          </SelectItem>
+                          {isLoadingCountries ? (
+                            <SelectItem value='loading' disabled>
+                              Loading...
+                            </SelectItem>
+                          ) : (
+                            countries?.data.countries.map((country) => (
+                              <SelectItem key={country} value={country}>
+                                {country}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+
+                {/* State Select */}
+                <FormField
+                  control={form.control}
+                  name='state'
+                  render={({ field }) => (
+                    <FormItem>
+                      <Select
+                        onValueChange={handleStateChange}
+                        value={field.value || 'default'}
+                        disabled={!selectedCountry}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
+                            <SelectValue placeholder='State' />
+                          </SelectTrigger>
+                        </FormControl>
+
+                        <SelectContent>
+                          <SelectItem value='default' disabled>
+                            Select a state
+                          </SelectItem>
+                          {isLoadingStates ? (
+                            <SelectItem value='loading'>Loading...</SelectItem>
+                          ) : (
+                            states?.data.states.map((state) => (
+                              <SelectItem key={state} value={state}>
+                                {state}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+
+                {/* City Select */}
+                <FormField
+                  control={form.control}
+                  name='city'
+                  render={({ field }) => (
+                    <FormItem>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || 'default'}
+                        disabled={!selectedState}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
+                            <SelectValue placeholder='City' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value='default' disabled>
+                            Select a city
+                          </SelectItem>
+                          {isLoadingCities ? (
+                            <SelectItem value='loading'>Loading...</SelectItem>
+                          ) : (
+                            cities?.data.cities.map((city) => (
+                              <SelectItem key={city} value={city || 'default'}>
+                                {city || 'Unknown City'}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Date Picker */}
+              <FormField
+                control={form.control}
+                name='date'
+                render={({ field }) => (
+                  <FormItem className='md:col-span-2'>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button className='w-full h-10 border-none shadow-none bg-transparent'>
+                            <div className='flex items-center gap-2'>
+                              <Calender className='h-5 w-5 text-gray-400' />
+                              <span className='text-gray-500'>
+                                {field.value
+                                  ? format(field.value, 'PPP')
+                                  : 'Delivery date'}
+                              </span>
+                            </div>
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className='w-auto p-0' align='start'>
+                        <Calendar
+                          mode='single'
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Get Started Button */}
+          <div className='flex justify-center mt-8'>
+            <Button size='lg' type='submit'>
+              Get Started
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  )
 }

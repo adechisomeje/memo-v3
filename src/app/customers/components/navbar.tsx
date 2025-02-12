@@ -17,7 +17,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -28,15 +27,6 @@ import {
   MessageSquareCodeIcon,
   User2,
 } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 
 const dancingScript = Dancing_Script({
   subsets: ['latin'],
@@ -53,7 +43,7 @@ type Props = {
 
 const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
   const { data: session, status } = useSession()
-  const [dialogOpen, setDialogOpen] = useState(false)
+
   const [loading, setLoading] = useState(false)
 
   const router = useRouter()
@@ -184,6 +174,7 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
                             callbackUrl: '/',
                           })
                           setLoading(false)
+                          console.log(loading)
 
                           if (data.url) {
                             router.push(data.url)

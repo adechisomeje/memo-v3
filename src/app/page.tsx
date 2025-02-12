@@ -10,7 +10,7 @@ import ProcessSimplified from './customers/components/process'
 import TrustedCompanies from './customers/components/trusted-companies'
 import { useRouter } from 'next/navigation'
 import StatsSection from './customers/components/memo-stats'
-import { LocationFilter } from './customers/components/location-filter'
+import { SearchForm } from './customers/components/location-filter'
 
 const navItems = [
   {
@@ -74,6 +74,22 @@ const mobileNavItems = [
 
 export default function Home() {
   const router = useRouter()
+  const handleSubmit = (
+    data: Omit<
+      {
+        address: string
+        country: string
+        state: string
+        city: string
+        date?: Date
+      },
+      'date'
+    > & { date: string }
+  ) => {
+    // Handle form submission
+    console.log(data)
+    router.push('/customers/results')
+  }
 
   return (
     <div className=''>
@@ -104,12 +120,20 @@ export default function Home() {
               are
             </p>
 
-            <LocationFilter />
-            <div className='text-center hidden md:block'>
+            <SearchForm
+              onSubmit={handleSubmit}
+              className='mt-10 hidden md:block'
+              variant='default'
+            />
+
+            {/* Separate Get Started Button (Visible on Mobile) - Remains unchanged */}
+            {/* <div className='text-center md:hidden'>
               <Button size='lg' className='mt-10'>
                 Get Started
               </Button>
-            </div>
+            </div> */}
+
+            {/* Sheet-based Search Form (Mobile Only) */}
             <div className='md:hidden'>
               <Sheet>
                 <SheetTrigger asChild>
@@ -117,8 +141,12 @@ export default function Home() {
                     Get Started
                   </Button>
                 </SheetTrigger>
-                <SheetContent side='right' className=' sm:max-w-md'>
-                  <LocationFilter />
+                <SheetContent side='right' className='sm:max-w-md'>
+                  <SearchForm
+                    variant='sheet'
+                    onSubmit={handleSubmit}
+                    className='h-full flex flex-col'
+                  />
                 </SheetContent>
               </Sheet>
             </div>

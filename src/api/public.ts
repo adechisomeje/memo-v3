@@ -6,27 +6,30 @@ interface Cake {
   price: number
   vendorName: string
   vendorPicture: string
+  vendorCountry: string
+  vendorState: string
+  vendorCity: string
 }
 
-interface CakeResponse {
-  message: string
-  page: number
-  totalPages: number
-  totalCount: number
-  cakes: Cake[]
-}
+// interface CakeResponse {
+//   message: string
+//   page: number
+//   totalPages: number
+//   totalCount: number
+//   cakes: Cake[]
+// }
 
-interface VendorCountriesResponse {
+export interface VendorCountriesResponse {
   message: string
   countries: string[]
 }
 
-interface VendorStatesResponse {
+export interface VendorStatesResponse {
   message: string
   states: string[]
 }
 
-interface VendorCitiesResponse {
+export interface VendorCitiesResponse {
   message: string
   cities: string[]
 }
