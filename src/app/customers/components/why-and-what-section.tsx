@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card'
-import GlobalReach from '@/components/icons/GlobalReach'
+import GlobalReach from '../../../../public/assets/icons/GlobalReach'
 import Image from 'next/image'
-import Unlock from '@/components/icons/Unlock'
+import Unlock from '../../../../public/assets/icons/Unlock'
 
 const features = [
   {

@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
@@ -34,49 +36,77 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import ProductLayout from '../components/defaultproductlayout'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import {
-  cakeCustomizationSchema,
-  type CakeCustomizationSchema,
-} from '../../../../schemas/cake-customization'
+import { Card, CardContent } from '@/components/ui/card'
+import * as z from 'zod'
+import { useQuery } from '@tanstack/react-query'
+import { getCakeProducts } from '@/api/public'
+import CakeCardSkeleton from '../components/cake-card-skeleton'
+import { queryKeys } from '@/lib/queries'
 
-// Define interfaces for our data types
-interface Product {
-  id: string
-  image: string
-  name: string
+const cakeCustomizationSchema = z.object({
+  flavour: z.string({
+    required_error: 'Please select a flavour',
+  }),
+  size: z.string({
+    required_error: 'Please select a size',
+  }),
+  layers: z.string({
+    required_error: 'Please select number of layers',
+  }),
+  icing: z.string({
+    required_error: 'Please select an icing type',
+  }),
+})
+
+export type CakeCustomizationSchema = z.infer<typeof cakeCustomizationSchema>
+
+interface Cake {
+  _id: string
+  thumbnail: string
   price: number
-  vendor: {
-    name: string
-    rating: number
-    reviews: number
-    avatar: string
-  }
+  vendorName: string
+  vendorPicture: string
+  vendorCountry: string
+  vendorState: string
+  vendorCity: string
 }
 
 type ProductType = 'cakes' | 'gifts' | 'flowers'
 
 const ResultsPage = () => {
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [selectedCake, setSelectedCake] = useState<Product | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const router = useRouter()
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [selectedCake, setSelectedCake] = useState<Cake | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const handleProductSelect = (product: Product, type: ProductType) => {
+  const { data: cakeProducts, isLoading } = useQuery({
+    queryKey: queryKeys.cakeProducts,
+    queryFn: getCakeProducts,
+    staleTime: 5 * 60 * 1000, // Match the staleTime from home page
+
+    // If we can't find the data, redirect to home
+    // onError: () => router.push('/'),
+  })
+
+  useEffect(() => {
+    if (!isLoading && !cakeProducts) {
+      router.push('/')
+    }
+  }, [isLoading, cakeProducts, router])
+
+  const handleProductSelect = (product: Cake, type: ProductType) => {
     if (type === 'cakes') {
       setSelectedCake(product)
       setIsSheetOpen(true)
     } else {
-      router.push(`/customers/checkout/${product.id}`)
+      router.push(`/customers/checkout/${product._id}`)
     }
   }
 
   const handleCakeCustomization = async () => {
     if (!selectedCake) return
     setIsSheetOpen(false)
-    router.push(`/customers/checkout/${selectedCake.id}`)
+    router.push(`/customers/checkout/${selectedCake._id}`)
   }
 
   const form = useForm<CakeCustomizationSchema>({
@@ -94,11 +124,13 @@ const ResultsPage = () => {
     handleCakeCustomization()
     setIsModalOpen(true)
 
-    // Wait for 5 seconds
+    // Wait for 10 seconds
     await new Promise((resolve) => setTimeout(resolve, 10000))
     if (!selectedCake) return
-    router.push(`/customers/checkout/${selectedCake.id}`)
+    router.push(`/customers/checkout/${selectedCake._id}`)
   }
+
+  console.log(cakeProducts)
 
   return (
     <>
@@ -125,7 +157,7 @@ const ResultsPage = () => {
               />
             </svg>
           </div>
-          <div className='flex flex-col'>
+          <div className='flex flex-col '>
             <div className='flex items-center justify-between'>
               <div className='md:flex gap-4 mt-8 hidden'>
                 <Select>
@@ -172,25 +204,111 @@ const ResultsPage = () => {
                 </div>
 
                 <TabsContent value='cakes' className='w-full mt-8'>
-                  <ProductLayout
-                    onProductSelect={(product: Product) =>
-                      handleProductSelect(product, 'cakes')
-                    }
-                  />
+                  <div className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+                    {isLoading ? (
+                      Array.from({ length: 4 }).map((_, index) => (
+                        <CakeCardSkeleton key={index} />
+                      ))
+                    ) : cakeProducts && cakeProducts.length > 0 ? (
+                      cakeProducts.map((cake) => (
+                        <div
+                          key={cake._id}
+                          onClick={() => handleProductSelect(cake, 'cakes')}
+                          className='cursor-pointer'
+                        >
+                          <Card className='overflow-hidden'>
+                            <div className='aspect-[4/3] relative overflow-hidden'>
+                              <Image
+                                src={cake.thumbnail || '/placeholder.svg'}
+                                alt={cake.vendorName}
+                                fill
+                                className='object-cover'
+                              />
+                            </div>
+                            <CardContent className='p-4'>
+                              <div className='space-y-3'>
+                                <div className='space-y-1'>
+                                  <div className='flex justify-between items-center'>
+                                    <span className='text-sm text-muted-foreground'>
+                                      Price:
+                                    </span>
+                                    <span className='font-semibold'>
+                                      ${cake.price}
+                                    </span>
+                                  </div>
+                                  <div className='flex justify-between items-center'>
+                                    <span className='text-sm text-muted-foreground'>
+                                      Delivery estimate:
+                                    </span>
+                                    <span className='font-semibold'>$400</span>
+                                  </div>
+                                  <div className='flex justify-between items-center pt-2 border-t'>
+                                    <span className='text-sm font-medium'>
+                                      TOTAL:
+                                    </span>
+                                    <span className='font-bold'>
+                                      ${cake.price + 400}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className='flex items-center gap-3 pt-3 border-t'>
+                                  <Avatar className='h-8 w-8'>
+                                    <AvatarImage
+                                      src={cake.vendorPicture}
+                                      alt={cake.vendorName}
+                                    />
+                                    <AvatarFallback>
+                                      {cake.vendorName
+                                        .split(' ')
+                                        .map((word) => word[0])
+                                        .join('')}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className='flex-1'>
+                                    <h3 className='text-sm font-medium'>
+                                      {cake.vendorName}
+                                    </h3>
+                                    <div className='flex items-center gap-1'>
+                                      <div className='flex'>
+                                        {[...Array(5)].map((_, i) => (
+                                          <Star
+                                            key={i}
+                                            className={`h-4 w-4 ${
+                                              i < 4
+                                                ? 'text-yellow-400 fill-yellow-400'
+                                                : 'text-gray-300'
+                                            }`}
+                                          />
+                                        ))}
+                                      </div>
+                                      <span className='text-sm font-medium'>
+                                        4.9
+                                      </span>
+                                      <span className='text-sm text-muted-foreground'>
+                                        (1k+)
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      ))
+                    ) : (
+                      <div className='col-span-full text-center py-10'>
+                        <p>
+                          No cake products available. Please try again later.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
                 <TabsContent value='gifts'>
-                  <ProductLayout
-                    onProductSelect={(product: Product) =>
-                      handleProductSelect(product, 'gifts')
-                    }
-                  />
+                  {/* Add gifts content here */}
                 </TabsContent>
                 <TabsContent value='flowers'>
-                  <ProductLayout
-                    onProductSelect={(product: Product) =>
-                      handleProductSelect(product, 'flowers')
-                    }
-                  />
+                  {/* Add flowers content here */}
                 </TabsContent>
               </Tabs>
             </div>
@@ -218,7 +336,9 @@ const ResultsPage = () => {
           <SheetHeader className='flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:gap-8'>
             <div className='relative w-full h-48 mb-4'>
               <Image
-                src={selectedCake?.image || '/assets/images/cake-sample.svg'}
+                src={
+                  selectedCake?.thumbnail || '/assets/images/cake-sample.svg'
+                }
                 alt='Selected cake'
                 fill
                 className='object-cover rounded-lg'
@@ -228,7 +348,9 @@ const ResultsPage = () => {
             <div className='space-y-2 mb-4'>
               <div className='flex justify-between items-center'>
                 <span className='text-sm text-muted-foreground'>Price:</span>
-                <span className='font-semibold'>$1200</span>
+                <span className='font-semibold'>
+                  ${/* {selectedCake?.price || 0} */}dummy
+                </span>
               </div>
               <div className='flex justify-between items-center'>
                 <span className='text-sm text-muted-foreground'>
@@ -238,15 +360,22 @@ const ResultsPage = () => {
               </div>
               <div className='flex justify-between items-center pt-2 border-t'>
                 <span className='text-sm font-medium'>TOTAL:</span>
-                <span className='font-bold'>$1600</span>
+                <span className='font-bold'>
+                  ${(selectedCake?.price || 0) + 400}
+                </span>
               </div>
               <div className='flex items-center gap-3 pb-4 border-b'>
                 <Avatar className='h-8 w-8'>
-                  <AvatarImage src='/placeholder.svg' />
-                  <AvatarFallback>AC</AvatarFallback>
+                  <AvatarImage src='/assets/images/naomi.png' />
+                  {selectedCake?.vendorPicture || '/assets/images/naomi.png'}
+                  <AvatarFallback>
+                    {selectedCake?.vendorName.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <div className='flex-1'>
-                  <h3 className='text-sm font-medium'>Ajasco cakes</h3>
+                  <h3 className='text-sm font-medium'>
+                    {selectedCake?.vendorName}
+                  </h3>
                   <div className='flex items-center gap-1'>
                     <div className='flex'>
                       {[...Array(5)].map((_, i) => (

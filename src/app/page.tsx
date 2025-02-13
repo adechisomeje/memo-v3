@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Navbar from './customers/components/navbar'
-import { Footer } from './customers/components/footer'
+import { Footer } from '../components/Footer/footer'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import WhyAndWhatSection from './customers/components/why-and-what-section'
 import ProcessSimplified from './customers/components/process'
@@ -11,6 +11,10 @@ import TrustedCompanies from './customers/components/trusted-companies'
 import { useRouter } from 'next/navigation'
 import StatsSection from './customers/components/memo-stats'
 import { SearchForm } from './customers/components/location-filter'
+import { getCakeProducts } from '@/api/public'
+import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { queryKeys } from '@/lib/queries'
 
 const navItems = [
   {
@@ -20,19 +24,10 @@ const navItems = [
   {
     label: 'About us',
     href: '/about',
-    // subItems: [
-    //   { label: 'Create Shipment', href: '/ship' },
-    //   { label: 'Get a quote', href: '/get-a-quote' },
-    //   { label: 'Track', href: '/track' },
-    // ],
   },
   {
     label: 'Contact us',
     href: '/job-riders',
-    // subItems: [
-    //   { label: 'Riders', href: '/riders' },
-    //   { label: 'Rider scout', href: '/job-riders' },
-    // ],
   },
   {
     label: 'Blogs',
@@ -74,21 +69,24 @@ const mobileNavItems = [
 
 export default function Home() {
   const router = useRouter()
-  const handleSubmit = (
-    data: Omit<
-      {
-        address: string
-        country: string
-        state: string
-        city: string
-        date?: Date
-      },
-      'date'
-    > & { date: string }
-  ) => {
-    // Handle form submission
-    console.log(data)
-    router.push('/customers/results')
+
+  const { refetch, isPending } = useQuery({
+    queryKey: queryKeys.cakeProducts,
+    queryFn: getCakeProducts,
+    enabled: false, // Don't fetch on mount
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+  })
+
+  const handleGetStarted = async () => {
+    try {
+      const { data } = await refetch()
+      if (data) {
+        router.push('/customers/results')
+      }
+    } catch (error) {
+      console.error('Error fetching cake products:', error)
+      toast.error('Failed to load products. Please try again.')
+    }
   }
 
   return (
@@ -100,7 +98,6 @@ export default function Home() {
       />
       <main>
         <div className='relative lg:min-h-[800px] min-h-[450px] flex items-center justify-center'>
-          {/* Background Image */}
           <Image
             src='/assets/images/landing-bg.png'
             alt='Background celebration image'
@@ -110,7 +107,7 @@ export default function Home() {
           />
 
           <div className='relative z-10 container mx-auto px-4 text-center text-white'>
-            <h1 className='text-3xl md:text-4xl lg:text-5xl   font-extrabold max-w-[700px] mx-auto lg:leading-[60px]'>
+            <h1 className='text-3xl md:text-4xl lg:text-5xl font-extrabold max-w-[700px] mx-auto lg:leading-[60px]'>
               Celebrate <span className='text-[#f5e6d3]'>Moments</span> with
               Cakes, Flowers, & More.
             </h1>
@@ -121,30 +118,27 @@ export default function Home() {
             </p>
 
             <SearchForm
-              onSubmit={handleSubmit}
+              onSubmit={handleGetStarted}
               className='mt-10 hidden md:block'
               variant='default'
             />
 
-            {/* Separate Get Started Button (Visible on Mobile) - Remains unchanged */}
-            {/* <div className='text-center md:hidden'>
-              <Button size='lg' className='mt-10'>
-                Get Started
-              </Button>
-            </div> */}
-
-            {/* Sheet-based Search Form (Mobile Only) */}
             <div className='md:hidden'>
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button size='lg' className='mt-10'>
-                    Get Started
+                  <Button
+                    size='lg'
+                    className='mt-10'
+                    onClick={handleGetStarted}
+                    disabled={isPending}
+                  >
+                    {isPending ? 'Loading...' : 'Get Started'}
                   </Button>
                 </SheetTrigger>
                 <SheetContent side='right' className='sm:max-w-md'>
                   <SearchForm
                     variant='sheet'
-                    onSubmit={handleSubmit}
+                    onSubmit={handleGetStarted}
                     className='h-full flex flex-col'
                   />
                 </SheetContent>

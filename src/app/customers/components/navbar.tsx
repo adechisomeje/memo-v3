@@ -7,12 +7,12 @@ import { NavbarHoverCard } from './nav-hover-card'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Hamburger } from '@/components/icons/hamburger'
+import { Hamburger } from '../../../../public/assets/icons/hamburger'
 import { useMediaQuery } from 'usehooks-ts'
 import { Dancing_Script } from 'next/font/google'
 import { MobileNav } from './mobile-nav'
 import { signOut, useSession } from 'next-auth/react'
-import { User } from '@/components/icons/User'
+import { User } from '../../../../public/assets/icons/User'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,7 +78,7 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
   return (
     <nav
       className={cn(
-        'py-6 px-8 fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 ease-in-out',
+        'py-6 px-8  top-0 left-0 right-0 w-full z-50 transition-all duration-300 ease-in-out',
         isScrolled ? 'bg-white shadow-md' : 'bg-white/80 backdrop-blur-sm',
         'border-b border-gray-200'
       )}

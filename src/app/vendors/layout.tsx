@@ -1,4 +1,4 @@
-import { Footer } from '../customers/components/footer'
+import { Footer } from '../../components/Footer/footer'
 import Navbar from './components/navbar'
 
 const navItems = [

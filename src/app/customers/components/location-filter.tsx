@@ -29,8 +29,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Calender } from '@/components/icons/Calender'
-import { MapPin } from '@/components/icons/MapPin'
+import { Calender } from '../../../../public/assets/icons/Calender'
+import { MapPin } from '../../../../public/assets/icons/MapPin'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getCities, getCountry, getStates } from '@/api/public'
@@ -51,6 +51,12 @@ interface SearchFormProps {
   variant?: 'default' | 'sheet'
 }
 
+const LoadingSelectItem = () => (
+  <SelectItem value='loading' disabled>
+    Loading...
+  </SelectItem>
+)
+
 export function SearchForm({
   onSubmit,
   className,
@@ -69,20 +75,20 @@ export function SearchForm({
     },
   })
 
-  const { data: countries, isLoading: isLoadingCountries } = useQuery({
+  const countriesQuery = useQuery({
     queryKey: ['countries'],
     queryFn: getCountry,
   })
 
-  console.log(countries?.data)
+  console.log(countriesQuery.data)
 
-  const { data: states, isLoading: isLoadingStates } = useQuery({
+  const statesQuery = useQuery({
     queryKey: ['states', selectedCountry],
     queryFn: () => getStates(selectedCountry),
     enabled: !!selectedCountry,
   })
 
-  const { data: cities, isLoading: isLoadingCities } = useQuery({
+  const citiesQuery = useQuery({
     queryKey: ['cities', selectedCountry, selectedState],
     queryFn: () => getCities(selectedCountry, selectedState),
     enabled: !!selectedCountry && !!selectedState,
@@ -109,6 +115,8 @@ export function SearchForm({
     form.setValue('state', value)
     form.setValue('city', '')
   }
+
+  const handleSearchResults = () => {}
 
   if (variant === 'sheet') {
     return (
@@ -137,7 +145,7 @@ export function SearchForm({
                         type='text'
                         placeholder='Input delivery address'
                         {...field}
-                        className='border-0 focus:ring-0 px-0 placeholder:text-gray-400'
+                        className='border-none  px-0 placeholder:text-gray-400'
                       />
                     </FormControl>
                   </div>
@@ -155,22 +163,27 @@ export function SearchForm({
                   <FormItem>
                     <Select
                       onValueChange={handleCountryChange}
-                      defaultValue={field.value}
+                      value={field.value || 'default'}
                     >
                       <FormControl>
-                        <SelectTrigger className='h-10 border-none bg-transparent focus:ring-0'>
+                        <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
                           <SelectValue placeholder='Country' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {isLoadingCountries ? (
-                          <SelectItem value=''>Loading...</SelectItem>
+                        <SelectItem value='default' disabled>
+                          Select a country
+                        </SelectItem>
+                        {countriesQuery.isLoading ? (
+                          <LoadingSelectItem />
                         ) : (
-                          countries?.data?.countries.map((country) => (
-                            <SelectItem key={country} value={country}>
-                              {country}
-                            </SelectItem>
-                          ))
+                          countriesQuery.data?.countries.map(
+                            (country: string) => (
+                              <SelectItem key={country} value={country}>
+                                {country}
+                              </SelectItem>
+                            )
+                          )
                         )}
                       </SelectContent>
                     </Select>
@@ -186,19 +199,23 @@ export function SearchForm({
                   <FormItem>
                     <Select
                       onValueChange={handleStateChange}
-                      defaultValue={field.value}
+                      value={field.value || 'default'}
                       disabled={!selectedCountry}
                     >
                       <FormControl>
-                        <SelectTrigger className='h-10 border-none bg-transparent focus:ring-0'>
+                        <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
                           <SelectValue placeholder='State' />
                         </SelectTrigger>
                       </FormControl>
+
                       <SelectContent>
-                        {isLoadingStates ? (
-                          <SelectItem value=''>Loading...</SelectItem>
+                        <SelectItem value='default' disabled>
+                          Select a state
+                        </SelectItem>
+                        {statesQuery.isLoading ? (
+                          <LoadingSelectItem />
                         ) : (
-                          states?.data.states.map((state) => (
+                          statesQuery.data?.states.map((state: string) => (
                             <SelectItem key={state} value={state}>
                               {state}
                             </SelectItem>
@@ -218,18 +235,22 @@ export function SearchForm({
                   <FormItem>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value || 'default'}
+                      disabled={!selectedState}
                     >
                       <FormControl>
-                        <SelectTrigger className='h-11 border-0 bg-transparent focus:ring-0'>
+                        <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
                           <SelectValue placeholder='City' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {isLoadingCities ? (
-                          <SelectItem value=''>Loading...</SelectItem>
+                        <SelectItem value='default' disabled>
+                          Select a city
+                        </SelectItem>
+                        {citiesQuery.isLoading ? (
+                          <LoadingSelectItem />
                         ) : (
-                          cities?.data.cities.map((city) => (
+                          citiesQuery.data?.cities.map((city: string) => (
                             <SelectItem key={city} value={city}>
                               {city}
                             </SelectItem>
@@ -343,16 +364,16 @@ export function SearchForm({
                           <SelectItem value='default' disabled>
                             Select a country
                           </SelectItem>
-                          {isLoadingCountries ? (
-                            <SelectItem value='loading' disabled>
-                              Loading...
-                            </SelectItem>
+                          {countriesQuery.isLoading ? (
+                            <LoadingSelectItem />
                           ) : (
-                            countries?.data.countries.map((country) => (
-                              <SelectItem key={country} value={country}>
-                                {country}
-                              </SelectItem>
-                            ))
+                            countriesQuery.data?.countries.map(
+                              (country: string) => (
+                                <SelectItem key={country} value={country}>
+                                  {country}
+                                </SelectItem>
+                              )
+                            )
                           )}
                         </SelectContent>
                       </Select>
@@ -381,10 +402,10 @@ export function SearchForm({
                           <SelectItem value='default' disabled>
                             Select a state
                           </SelectItem>
-                          {isLoadingStates ? (
-                            <SelectItem value='loading'>Loading...</SelectItem>
+                          {statesQuery.isLoading ? (
+                            <LoadingSelectItem />
                           ) : (
-                            states?.data.states.map((state) => (
+                            statesQuery.data?.states.map((state: string) => (
                               <SelectItem key={state} value={state}>
                                 {state}
                               </SelectItem>
@@ -416,12 +437,12 @@ export function SearchForm({
                           <SelectItem value='default' disabled>
                             Select a city
                           </SelectItem>
-                          {isLoadingCities ? (
-                            <SelectItem value='loading'>Loading...</SelectItem>
+                          {citiesQuery.isLoading ? (
+                            <LoadingSelectItem />
                           ) : (
-                            cities?.data.cities.map((city) => (
-                              <SelectItem key={city} value={city || 'default'}>
-                                {city || 'Unknown City'}
+                            citiesQuery.data?.cities.map((city: string) => (
+                              <SelectItem key={city} value={city}>
+                                {city}
                               </SelectItem>
                             ))
                           )}
@@ -470,7 +491,7 @@ export function SearchForm({
 
           {/* Get Started Button */}
           <div className='flex justify-center mt-8'>
-            <Button size='lg' type='submit'>
+            <Button onSubmit={handleSearchResults} size='lg' type='submit'>
               Get Started
             </Button>
           </div>
