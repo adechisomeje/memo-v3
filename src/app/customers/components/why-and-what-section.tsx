@@ -74,10 +74,10 @@ const WhyAndWhatSection = () => {
                     <feature.icon className='h-6 w-6 text-primary' />
                   </div>
                   <div className='w-full mt-10'>
-                    <h3 className='text-xl font-bold  text-[#370E06] mb-3'>
+                    <h3 className='lg:text-xl font-bold  text-[#370E06] mb-3'>
                       {feature.title}
                     </h3>
-                    <p className='text-[#1E1B16] font-medium mb-10'>
+                    <p className='text-[#1E1B16] lg:text-base text-sm font-medium mb-10'>
                       {feature.description}
                     </p>
                   </div>
@@ -115,10 +115,10 @@ const WhyAndWhatSection = () => {
                       />
                     </div>
                     <div>
-                      <h3 className='font-semibold text-lg text-[#4A2B29]'>
+                      <h3 className='font-semibold lg:text-lg  text-[#4A2B29]'>
                         {testimonial.name}
                       </h3>
-                      <p className='text-#1E1B16 font-medium text-lg'>
+                      <p className='text-#1E1B16 font-medium lg:text-lg'>
                         {testimonial.location}
                       </p>
                     </div>
