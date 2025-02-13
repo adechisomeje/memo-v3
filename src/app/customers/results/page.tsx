@@ -42,6 +42,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getCakeProducts } from '@/api/public'
 import CakeCardSkeleton from '../components/cake-card-skeleton'
 import { queryKeys } from '@/lib/queries'
+import { Filter } from '../../../../public/assets/icons/Filter'
 
 const cakeCustomizationSchema = z.object({
   flavour: z.string({
@@ -140,22 +141,7 @@ const ResultsPage = () => {
             <h1 className='text-[#640D0D] text-lg '>
               Choose Your Special <span className='font-semibold'>Treat</span>
             </h1>
-            <svg
-              className='md:hidden pb-3'
-              width='40'
-              height='40'
-              viewBox='0 0 32 32'
-              fill='none'
-              xmlns='http://www.w3.org/2000/svg'
-            >
-              <path
-                d='M6 9.66669H26M9.84667 16H22.1533M13.6933 22.3334H18.3067'
-                stroke='black'
-                strokeWidth='1.5'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-              />
-            </svg>
+            <Filter />
           </div>
           <div className='flex flex-col '>
             <div className='flex items-center justify-between'>
@@ -195,7 +181,7 @@ const ResultsPage = () => {
 
             <div className='w-full mb-10'>
               <Tabs defaultValue='cakes' className=''>
-                <div className='flex justify-end'>
+                <div className='lg:flex lg:justify-end justify-around'>
                   <TabsList>
                     <TabsTrigger value='cakes'>Cakes</TabsTrigger>
                     <TabsTrigger value='gifts'>Gifts</TabsTrigger>
@@ -296,8 +282,14 @@ const ResultsPage = () => {
                         </div>
                       ))
                     ) : (
-                      <div className='col-span-full text-center py-10'>
-                        <p>
+                      <div className='col-span-full justify-center items-center  py-10 gap-3'>
+                        <Image
+                          src='/assets/icons/no-data.svg'
+                          alt='No results'
+                          width={500}
+                          height={500}
+                        />
+                        <p className='mt-5'>
                           No cake products available. Please try again later.
                         </p>
                       </div>

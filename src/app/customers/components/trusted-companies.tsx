@@ -14,7 +14,7 @@ const TrustedCompanies = () => {
   return (
     <section className='bg-[#FFEAE4] py-16 px-4'>
       <div className='max-w-7xl mx-auto'>
-        <h2 className='text-center text-primary text-3xl md:text-4xl font-bold mb-12'>
+        <h2 className='text-center text-primary text-xl md:text-3xl font-bold mb-12'>
           Companies trusted by MEMO
         </h2>
 

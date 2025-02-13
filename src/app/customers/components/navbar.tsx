@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { TNavItem } from '../../types'
 import { cn } from '@/lib/utils'
 import { NavbarHoverCard } from './nav-hover-card'
 import { usePathname, useRouter } from 'next/navigation'
@@ -10,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Hamburger } from '../../../../public/assets/icons/hamburger'
 import { useMediaQuery } from 'usehooks-ts'
 import { Dancing_Script } from 'next/font/google'
-import { MobileNav } from './mobile-nav'
 import { signOut, useSession } from 'next-auth/react'
 import { User } from '../../../../public/assets/icons/User'
 import {
@@ -27,6 +25,9 @@ import {
   MessageSquareCodeIcon,
   User2,
 } from 'lucide-react'
+import { TNavItem } from '@/types/nav-types'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import MobileMenu from './menu-sheet'
 
 const dancingScript = Dancing_Script({
   subsets: ['latin'],
@@ -41,7 +42,7 @@ type Props = {
   classNames?: Record<string, string>
 }
 
-const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
+const Navbar = ({ navItems, ctaLink, classNames }: Props) => {
   const { data: session, status } = useSession()
 
   const [loading, setLoading] = useState(false)
@@ -49,6 +50,10 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
   const router = useRouter()
   const [firstName, setFirstName] = useState('')
   // ... existing state and hooks ...
+
+  const [isScrolled, setIsScrolled] = useState(false)
+  const pathname = usePathname()
+  const isMobile = useMediaQuery('(max-width: 1023px)')
 
   useEffect(() => {
     if (session?.user) {
@@ -60,10 +65,6 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
       setFirstName(session.user.firstName || '')
     }
   }, [session])
-  const [isOpen, setIsOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-  const pathname = usePathname()
-  const isMobile = useMediaQuery('(max-width: 1023px)')
 
   useEffect(() => {
     const handleScroll = () => {
@@ -143,7 +144,6 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
                       </div>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      {/* <DropdownMenuLabel>My Profile</DropdownMenuLabel> */}
                       <DropdownMenuSeparator />
                       <Link href='/customers/dashboard/profile'>
                         <DropdownMenuItem>
@@ -200,15 +200,15 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
           </div>
         </div>
 
-        <button className='lg:hidden' onClick={() => setIsOpen(true)}>
-          <Hamburger />
-        </button>
         {isMobile && (
-          <MobileNav
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            mobileNavItems={mobileNavItems}
-          />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Hamburger />
+            </SheetTrigger>
+            <SheetContent side='left' className='w-full max-w-xs p-0'>
+              <MobileMenu navItems={navItems} />
+            </SheetContent>
+          </Sheet>
         )}
       </div>
     </nav>

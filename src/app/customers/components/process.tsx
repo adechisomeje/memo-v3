@@ -8,12 +8,9 @@ const ProcessSimplified = () => {
           {/* Left Column - Process Steps */}
           <div className='space-y-12'>
             <div>
-              <h1 className='text-4xl md:text-5xl font-bold text-primary mb-5'>
-                Memo process
+              <h1 className='text-xl md:text-4xl font-bold text-primary mb-5'>
+                Memo process Simplified
               </h1>
-              <h2 className='text-4xl md:text-5xl font-bold text-primary'>
-                Simplified
-              </h2>
             </div>
 
             <div className='space-y-12'>
@@ -23,7 +20,7 @@ const ProcessSimplified = () => {
                   01
                 </span>
                 <div className='space-y-4'>
-                  <h3 className='text-2xl font-bold text-[#675E48]'>
+                  <h3 className='text-xl lg:text-2xl font-bold text-[#675E48]'>
                     Customize and Request
                   </h3>
                   <p className='text-[#675E48]'>
@@ -43,7 +40,7 @@ const ProcessSimplified = () => {
                   02
                 </span>
                 <div className='space-y-4'>
-                  <h3 className='text-2xl font-bold text-[#675E48]'>
+                  <h3 className='text-xl lg:text-2xl font-bold text-[#675E48]'>
                     Vendor Approval and Payment
                   </h3>
                   <p className='text-[#675E48]'>
@@ -60,7 +57,7 @@ const ProcessSimplified = () => {
                   03
                 </span>
                 <div className='space-y-4'>
-                  <h3 className='text-2xl font-bold text-[#675E48]'>
+                  <h3 className='text-xl lg:text-2xl font-bold text-[#675E48]'>
                     Fulfillment and Delivery
                   </h3>
                   <p className='text-[#675E48]'>

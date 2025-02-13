@@ -131,7 +131,7 @@ export function SearchForm({
             </h2>
           </div>
 
-          <div className='space-y-6 flex-1'>
+          <div className='space-y-10 flex-1'>
             {/* Address Input */}
             <FormField
               control={form.control}
@@ -145,16 +145,17 @@ export function SearchForm({
                         type='text'
                         placeholder='Input delivery address'
                         {...field}
-                        className='border-none  px-0 placeholder:text-gray-400'
+                        className='border-none shadow-none  px-0 placeholder:text-gray-400'
                       />
                     </FormControl>
                   </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
             {/* Location Selects */}
-            <div className='md:col-span-7 grid grid-cols-3 gap-2'>
+            <div className='mt-5 flex flex-col  gap-10'>
               {/* Country Select */}
               <FormField
                 control={form.control}
@@ -223,6 +224,8 @@ export function SearchForm({
                         )}
                       </SelectContent>
                     </Select>
+
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -258,6 +261,7 @@ export function SearchForm({
                         )}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -274,11 +278,11 @@ export function SearchForm({
                       <FormControl>
                         <Button
                           variant='outline'
-                          className='w-full h-12 justify-start text-left font-normal border rounded-lg'
+                          className='w-full h-14 justify-start border-gray-200 rounded-lg'
                         >
                           <div className='flex items-center gap-2'>
                             <Calender className='h-5 w-5 text-gray-400' />
-                            <span className='text-gray-500'>
+                            <span className='text-gray-400'>
                               {field.value
                                 ? format(field.value, 'PPP')
                                 : 'Delivery date'}
@@ -296,6 +300,7 @@ export function SearchForm({
                       />
                     </PopoverContent>
                   </Popover>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -377,6 +382,7 @@ export function SearchForm({
                           )}
                         </SelectContent>
                       </Select>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -413,6 +419,7 @@ export function SearchForm({
                           )}
                         </SelectContent>
                       </Select>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -448,6 +455,7 @@ export function SearchForm({
                           )}
                         </SelectContent>
                       </Select>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -483,6 +491,7 @@ export function SearchForm({
                         />
                       </PopoverContent>
                     </Popover>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

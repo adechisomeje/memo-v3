@@ -27,11 +27,11 @@ const navItems = [
   },
   {
     label: 'Contact us',
-    href: '/job-riders',
+    href: '/contact',
   },
   {
     label: 'Blogs',
-    href: '/sign-in',
+    href: '/blogs',
   },
 ]
 
@@ -70,11 +70,11 @@ const mobileNavItems = [
 export default function Home() {
   const router = useRouter()
 
-  const { refetch, isPending } = useQuery({
+  const { refetch } = useQuery({
     queryKey: queryKeys.cakeProducts,
     queryFn: getCakeProducts,
-    enabled: false, // Don't fetch on mount
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    enabled: false,
+    staleTime: 5 * 60 * 1000,
   })
 
   const handleGetStarted = async () => {
@@ -126,13 +126,8 @@ export default function Home() {
             <div className='md:hidden'>
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button
-                    size='lg'
-                    className='mt-10'
-                    onClick={handleGetStarted}
-                    disabled={isPending}
-                  >
-                    {isPending ? 'Loading...' : 'Get Started'}
+                  <Button size='lg' className='mt-10'>
+                    Get Started
                   </Button>
                 </SheetTrigger>
                 <SheetContent side='right' className='sm:max-w-md'>

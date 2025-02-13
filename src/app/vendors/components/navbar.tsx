@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { TNavItem } from '../../types'
+
 import { cn } from '@/lib/utils'
 
 import { usePathname } from 'next/navigation'
@@ -13,6 +13,7 @@ import { Dancing_Script } from 'next/font/google'
 import { NavbarHoverCard } from '@/app/customers/components/nav-hover-card'
 import { MobileNav } from '@/app/customers/components/mobile-nav'
 import VendorSignUp from './vendor-sign-up-sheet'
+import { TNavItem } from '@/types/nav-types'
 
 const dancingScript = Dancing_Script({
   subsets: ['latin'],
