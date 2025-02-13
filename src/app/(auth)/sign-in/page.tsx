@@ -51,7 +51,7 @@ export default function SignInPage() {
       </div>
 
       {/* Right Section */}
-      <div className='flex-1 flex flex-col items-center justify-center px-6 lg:px-16 bg-white'>
+      <div className='flex-1 flex flex-col items-center justify-center px-6 lg:px-16 bg-white my-10'>
         <div className='w-full max-w-md space-y-8'>
           <div className='text-center space-y-6'>
             <div className='text-3xl'>

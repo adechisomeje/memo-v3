@@ -42,7 +42,7 @@ type Props = {
   classNames?: Record<string, string>
 }
 
-const Navbar = ({ navItems, ctaLink, classNames }: Props) => {
+const Navbar = ({ navItems, classNames }: Props) => {
   const { data: session, status } = useSession()
 
   const [loading, setLoading] = useState(false)
@@ -194,7 +194,7 @@ const Navbar = ({ navItems, ctaLink, classNames }: Props) => {
                 )}
               </div>
             </div>
-            <Link href={ctaLink}>
+            <Link href='/vendors'>
               <Button size='lg'>Become A Vendor</Button>
             </Link>
           </div>

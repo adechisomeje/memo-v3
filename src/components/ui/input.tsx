@@ -38,9 +38,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? (
-              <EyeOff className='h-4 w-4' />
+              <EyeOff className='h-4 w-4 text-gray-400' />
             ) : (
-              <Eye className='h-4 w-4 text-black' />
+              <Eye className='h-4 w-4 text-gray-400' />
             )}
           </button>
         )}

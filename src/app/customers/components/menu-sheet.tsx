@@ -1,8 +1,26 @@
 import Link from 'next/link'
-import { User, ChevronRight } from 'lucide-react'
+import {
+  User,
+  ChevronRight,
+  ChevronDown,
+  User2,
+  ListOrderedIcon,
+  MessageSquareCodeIcon,
+  LogOut,
+} from 'lucide-react'
 import { TNavItem } from '@/types/nav-types'
 import { motion, Variants } from 'framer-motion'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { signOut, useSession } from 'next-auth/react'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 
 type Props = {
   navItems: TNavItem[]
@@ -27,13 +45,87 @@ const itemVariants: Variants = {
 }
 
 export default function MobileMenu({ navItems }: Props) {
+  const { data: session, status } = useSession()
+  const [firstName, setFirstName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (session?.user) {
+      // If using a separate endpoint, you could fetch here:
+      // const userData = await fetchUserDetails()
+      // setFirstName(userData.firstName)
+
+      // If user data is already in session:
+      setFirstName(session.user.firstName || '')
+    }
+  }, [session])
   return (
     <div className='min-h-screen bg-[#fffbfa]'>
       {/* Top Header */}
       <div className='flex items-center justify-between px-6 py-4 bg-primary text-white'>
         <div className='flex items-center gap-3'>
           <User className='w-6 h-6' />
-          <span className='text-xl font-bold'>Login/Signup</span>
+          {status === 'authenticated' ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <div className='font-bold flex justify-center items-center gap-1'>
+                  <p className='font-bold hover:text-primary'>
+                    Hello, {''}
+                    {firstName || 'User'}
+                  </p>
+                  <ChevronDown size={20} />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuSeparator />
+                <Link href='/customers/dashboard/profile'>
+                  <DropdownMenuItem>
+                    <User2 />
+                    My Profile
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+                <Link href='/customers/dashboard/orders'>
+                  <DropdownMenuItem>
+                    <ListOrderedIcon />
+                    My Orders
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+                <Link href='/customers/dashboard/messages'>
+                  <DropdownMenuItem>
+                    <MessageSquareCodeIcon />
+                    Messages
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+                <Button
+                  onClick={async () => {
+                    setLoading(true)
+                    const data = await signOut({
+                      redirect: false,
+                      callbackUrl: '/',
+                    })
+                    setLoading(false)
+                    console.log(loading)
+
+                    if (data.url) {
+                      router.push(data.url)
+                    }
+                  }}
+                >
+                  <DropdownMenuItem className=''>
+                    <LogOut />
+                    Log Out
+                  </DropdownMenuItem>
+                </Button>
+                <DropdownMenuSeparator />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href='/sign-in'>Login/Sign Up</Link>
+          )}
         </div>
         <ChevronRight className='w-6 h-6' />
       </div>

@@ -67,7 +67,7 @@ const WhyAndWhatSection = () => {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className='border-none max-w-sm mx-auto h-[400px] bg-[#FFFBFA] shadow-lg hover:bg-[#FDF0D5] cursor-pointer'
+                className='border-none max-w-sm mx-auto lg:h-[400px] bg-[#FFFBFA] shadow-lg hover:bg-[#FDF0D5] cursor-pointer'
               >
                 <CardContent className='pt-6 text-left flex flex-col items-center'>
                   <div className='mb-6 inline-block rounded-full bg-[#FFEAE4] p-4'>
@@ -102,7 +102,7 @@ const WhyAndWhatSection = () => {
             {testimonials.map((testimonial, index) => (
               <Card
                 key={index}
-                className='border-none shadow-lg h-[270px] bg-[#FFFBFA] '
+                className='border-none shadow-lg lg:h-[270px] bg-[#FFFBFA] '
               >
                 <CardContent className='pt-6'>
                   <div className='flex items-center gap-3 mb-4'>
