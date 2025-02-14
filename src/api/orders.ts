@@ -2,8 +2,8 @@ import { axiosClient } from '.'
 
 interface CreateOrderResponse {
   message: string
-  token: string
-  user: string
+  authorization_url: string
+  orderId: string
 }
 
 export async function userCreateOrder(data: {

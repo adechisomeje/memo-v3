@@ -1,6 +1,7 @@
+
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react' // useEffect removed
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -39,7 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
 import * as z from 'zod'
 import { useQuery } from '@tanstack/react-query'
-import { getCakeProducts } from '@/api/public'
+import { Cake, getCakeProducts } from '@/api/public'
 import CakeCardSkeleton from '../components/cake-card-skeleton'
 import { queryKeys } from '@/lib/queries'
 import { Filter } from '../../../../public/assets/icons/Filter'
@@ -55,68 +56,49 @@ const cakeCustomizationSchema = z.object({
 
 export type CakeCustomizationSchema = z.infer<typeof cakeCustomizationSchema>
 
-interface Cake {
-  _id: string
-  thumbnail: string
-  price: number
-  vendorName: string
-  vendorPicture: string
-  vendorCountry: string
-  vendorState: string
-  vendorCity: string
-}
-
 type ProductType = 'cakes' | 'gifts' | 'flowers'
 
 const ResultsPage = () => {
   const router = useRouter()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [selectedCake, setSelectedCake] = useState<Cake | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const setCustomization = useCakeCustomization(
+    (state) => state.setCustomization
+  )
+  const setSelectedCake = useCakeCustomization((state) => state.setSelectedCake)
+  const setSelectedCakeId = useCakeCustomization(
+    (state) => state.setSelectedCakeId
+  )
+  const selectedCake = useCakeCustomization((state) => state.selectedCake) // Get selectedCake for the modal
 
   const { data: cakeProducts, isLoading } = useQuery({
     queryKey: queryKeys.cakeProducts,
     queryFn: getCakeProducts,
-    staleTime: 5 * 60 * 1000, // Match the staleTime from home page
-
-    // If we can't find the data, redirect to home
-    // onError: () => router.push('/'),
+    staleTime: 5 * 60 * 1000,
   })
 
-  const setCustomization = useCakeCustomization(
-    (state) => state.setCustomization
-  )
-  const setSelectedCakeId = useCakeCustomization(
-    (state) => state.setSelectedCakeId
-  )
-
-  useEffect(() => {
-    if (!isLoading && !cakeProducts) {
-      router.push('/')
-    }
-  }, [isLoading, cakeProducts, router])
-
   const handleProductSelect = (product: Cake, type: ProductType) => {
+    console.log('Selecting product:', product) // Keep your logs!
+
+    setSelectedCake(product)
+    setSelectedCakeId(product._id)
+
     if (type === 'cakes') {
-      setSelectedCake(product)
+    
       setIsSheetOpen(true)
     } else {
       router.push(`/customers/checkout/${product._id}`)
     }
+
+ 
   }
 
   const handleCakeCustomization = async (data: CakeCustomizationSchema) => {
-    if (!selectedCake) return
-
-    // Save customization details to Zustand store
     setCustomization(data)
-    setSelectedCakeId(selectedCake._id)
-
+    
     setIsSheetOpen(false)
     setIsModalOpen(true)
-
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    router.push(`/customers/checkout/${selectedCake._id}`)
+    router.push(`/customers/checkout/${selectedCake?._id}`)
   }
 
   const form = useForm<CakeCustomizationSchema>({
@@ -133,7 +115,7 @@ const ResultsPage = () => {
     handleCakeCustomization(data)
   }
 
-  console.log(cakeProducts)
+  // console.log(cakeProducts)
 
   return (
     <>
@@ -364,7 +346,7 @@ const ResultsPage = () => {
               <div className='flex items-center gap-3 pb-4 border-b'>
                 <Avatar className='h-8 w-8'>
                   <AvatarImage src='/assets/images/naomi.png' />
-                  {selectedCake?.vendorPicture || '/assets/images/naomi.png'}
+                  {/* {selectedCake?.vendorPicture || '/assets/images/naomi.png'} */}
                   <AvatarFallback>
                     {selectedCake?.vendorName.slice(0, 2).toUpperCase()}
                   </AvatarFallback>

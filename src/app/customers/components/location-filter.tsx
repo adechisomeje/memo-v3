@@ -34,6 +34,7 @@ import { MapPin } from '../../../../public/assets/icons/MapPin'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getCities, getCountry, getStates } from '@/api/public'
+import { useDeliveryDetails } from '@/store/deliveryDetails'
 
 const searchFormSchema = z.object({
   address: z.string().min(1, { message: 'Address is required' }),
@@ -94,11 +95,16 @@ export function SearchForm({
     enabled: !!selectedCountry && !!selectedState,
   })
 
+  const setDeliveryDetails = useDeliveryDetails(
+    (state) => state.setDeliveryDetails
+  )
+
   function handleSubmit(values: SearchFormValues) {
     const formattedData = {
       ...values,
       date: values.date ? format(values.date, 'yyyy-MM-dd') : '',
     }
+    setDeliveryDetails(formattedData)
     onSubmit(formattedData)
   }
 

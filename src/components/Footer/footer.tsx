@@ -83,7 +83,7 @@ export function Footer() {
             <Link href='/terms'>Terms & Conditions</Link>
           </div>
         </div>
-        <div className='flex justify-center items-center my-5'>
+        <div className='flex justify-center items-center my-5 lg:hidden'>
           <p className='text-[#FDF0D5]'>2024 cc.Ltd | All Rights Reserved</p>
         </div>
       </div>

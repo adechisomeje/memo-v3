@@ -1,3 +1,4 @@
+
 'use client'
 
 import Image from 'next/image'
@@ -6,24 +7,59 @@ import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { CartItem } from '../../components/cart-item'
-import { formatPrice } from '@/lib/utils'
+import { formatPrice, validateName, validatePhone } from '@/lib/utils'
 import { ReviewButton } from '../../components/review-button'
 import { ProductCard } from '../../components/product-card'
 import { StarFill } from '../../../../../public/assets/icons/StarRating'
+import { useMutation } from '@tanstack/react-query'
+import { userCreateOrder } from '@/api/orders'
+import { toast } from 'sonner'
+import * as z from 'zod'
+import { useRouter } from 'next/navigation'
+import { useDeliveryDetails } from '@/store/deliveryDetails'
+import { useCakeCustomization } from '@/store/cakeCustomization'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/form'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const formSchema = z.object({
+  cakeNote: z.string().optional(),
+
+  flowerNote: z.string().optional(),
+
+  recipientName: z
+    .string()
+    .min(2, {
+      message: 'First Name must be at least 2 characters',
+    })
+    .refine(validateName, {
+      message: 'First Name must contain only alphabets',
+    }),
+
+  recipientPhone: z
+    .string()
+    .min(11, {
+      message: 'Phone Number must be at least 11 characters',
+    })
+    .max(11, {
+      message: 'Phone Number must be 11 characters',
+    })
+    .refine(validatePhone, {
+      message: 'Enter a valid phone number (e.g. 08034567890)',
+    }),
+})
 
 interface CartItem {
   image: string
   title: string
   description: string
   price: number
-}
-
-const defaultCartItem = {
-  image: '/assets/images/cake-sample.svg',
-  title: 'Birthday Cake',
-  description: 'A 2 layered, 12 inch buttercream chocolate cake',
-  price: 120,
 }
 
 const products = Array(6).fill({
@@ -34,17 +70,58 @@ const products = Array(6).fill({
 })
 
 const CheckOutPage = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([defaultCartItem])
+  const router = useRouter()
+  const selectedCake = useCakeCustomization((state) => state.selectedCake)
+  const deliveryDetails = useDeliveryDetails((state) => state.deliveryDetails)
+  const cakeCustomization = useCakeCustomization((state) => state.customization)
+
+  const [otherItems, setOtherItems] = useState<CartItem[]>([])
 
   const addToCart = (product: CartItem) => {
-    setCartItems([...cartItems, product])
+    setOtherItems((prevItems) => [...prevItems, product])
   }
 
   const removeFromCart = (index: number) => {
-    setCartItems(cartItems.filter((_, i) => i !== index))
+    setOtherItems((prevItems) => prevItems.filter((_, i) => i !== index))
   }
 
-  const totalPrice = cartItems.reduce((sum, item) => sum + item.price, 0)
+  const totalPrice = selectedCake ? selectedCake.price : 0
+  const totalWithOtherItems =
+    totalPrice + otherItems.reduce((sum, item) => sum + item.price, 0)
+
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      cakeNote: '',
+      flowerNote: '',
+      recipientName: '',
+      recipientPhone: '',
+    },
+  })
+
+  const mutation = useMutation({
+    mutationFn: userCreateOrder,
+    onError: (error) => {
+      toast.error(error.message ?? 'Something went wrong')
+    },
+    onSuccess: () => {
+      router.push('/')
+    },
+  })
+
+  // const onSubmit = () => {
+  //   function handleSumbit(data: z.infer<typeof formSchema>) {
+  //     mutation.mutate({
+  //       cake: selectedCake,
+  //       deliveryDetails: deliveryDetails,
+  //       otherItems: otherItems,
+  //   });
+  // }
+  // }
+
+  if (!selectedCake || !deliveryDetails) {
+    return null
+  }
 
   return (
     <>
@@ -52,56 +129,64 @@ const CheckOutPage = () => {
         <main className='max-w-7xl mx-auto py-8'>
           <div className='grid lg:grid-cols-2 gap-8 mb-12'>
             <div>
-              {cartItems.length === 1 ? (
-                // Single item view - larger but width-constrained image
-                <div className='relative rounded-2xl overflow-hidden h-72 sm:h-96 max-w-lg mx-auto'>
-                  <Image
-                    src='/assets/images/cake-sample.svg'
-                    alt='Birthday Cake'
-                    fill
-                    className='object-cover'
-                  />
-                </div>
-              ) : (
-                // Multiple items view - grid layout
-                <>
-                  <div className='aspect-w-1 aspect-h-1 relative rounded-2xl overflow-hidden'>
+              {/* Main Cake Display - Now OUTSIDE the other items grid */}
+              <div className='relative rounded-2xl overflow-hidden h-72 sm:h-96 max-w-lg mx-auto'>
+                <Image
+                  src={selectedCake.thumbnail}
+                  alt={selectedCake.vendorName}
+                  fill
+                  className='object-cover'
+                />
+              </div>
+
+              {/* Grid Container for ONLY Other Items */}
+              <div className='grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4'>
+                {otherItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className='relative rounded-lg overflow-hidden aspect-square'
+                  >
                     <Image
-                      src='/assets/images/cake-sample.svg'
-                      alt='Birthday Cake'
+                      src={item.image}
+                      alt={item.title}
                       fill
                       className='object-cover'
                     />
+                    <X
+                      onClick={() => removeFromCart(index)}
+                      className='absolute top-1 right-1 bg-primary text-white cursor-pointer rounded-full p-1 text-xs'
+                    />
                   </div>
-                  <div className='mt-4 grid grid-cols-3 sm:grid-cols-4 gap-2 overflow-x-auto'>
-                    {cartItems.map((item, index) => (
-                      <div
-                        key={index}
-                        className='relative rounded-lg overflow-hidden w-full aspect-square'
-                      >
-                        <Image
-                          src={item.image}
-                          alt={item.title}
-                          fill
-                          className='object-cover rounded-lg'
-                        />
-                        {index !== 0 && (
-                          <X
-                            onClick={() => removeFromCart(index)}
-                            className='absolute top-1 right-1 bg-primary text-white cursor-pointer rounded-full p-1 text-xs'
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+                ))}
+              </div>
               <div className='mt-5'>
                 <h2 className='font-bold'>Cake Specs:</h2>
-                <p className='text-sm'>{defaultCartItem.description}</p>
+                <p className='text-sm'>
+                  Classic vanilla cake with buttercream frosting
+                </p>{' '}
+                {/* Example description */}
+                {cakeCustomization && (
+                  <div className='mt-2 text-sm'>
+                    <p className='font-semibold'>
+                      {cakeCustomization.size} inch {cakeCustomization.flavour}{' '}
+                    </p>
+                    <p>
+                      with {cakeCustomization.layers} <strong>Layers:</strong>
+                    </p>
+                    <p>
+                      <strong>Size:</strong>
+                    </p>
+
+                    <p>
+                      <strong>Icing:</strong> {cakeCustomization.icing}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
+
             <div className='space-y-6'>
+              {/* ... (rest of your checkout page content) ... */}
               <div className='space-y-4'>
                 <div className='flex flex-col sm:flex-row justify-between gap-4'>
                   <div className='flex flex-col'>
@@ -109,14 +194,15 @@ const CheckOutPage = () => {
                       Delivery Address:
                     </span>
                     <span className='text-sm'>
-                      Lekki-Epe Express, Km 15, Lagos, Nigeria
+                      {deliveryDetails.address}, {deliveryDetails.city},{' '}
+                      {deliveryDetails.state}, {deliveryDetails.country}
                     </span>
                   </div>
                   <div className='flex flex-col'>
                     <span className='font-semibold text-lg'>
                       Delivery Date:
                     </span>
-                    <span className='text-sm'>23rd of July 2025</span>
+                    <span className='text-sm'>{deliveryDetails.date}</span>
                   </div>
                 </div>
                 <div className='border-t pt-4'>
@@ -126,20 +212,92 @@ const CheckOutPage = () => {
                   </div>
                   <div className='flex justify-between font-semibold'>
                     <span>TOTAL:</span>
-                    <span>{formatPrice(totalPrice)}</span>
+                    <span>{formatPrice(totalWithOtherItems + 120)}</span>
                   </div>
                 </div>
               </div>
               <div className='space-y-4'>
-                <Textarea placeholder='Cake Note...' className='w-full' />
-                <Textarea placeholder='Flower Note...' className='w-full' />
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                  <Input placeholder='Recipient Name' className='w-full' />
-                  <Input placeholder='Recipient Phone No' className='w-full' />
-                </div>
-                <Button className='w-full mt-10' size='lg'>
-                  PROCEED TO PAY ({formatPrice(totalPrice)})
-                </Button>
+                <Form {...form}>
+                  <FormField
+                    control={form.control}
+                    name='cakeNote'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder='Cake Note...'
+                            className='w-full'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name='flowerNote'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder='Flower Note...'
+                            className='w-full'
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                    <FormField
+                      control={form.control}
+                      name='recipientName'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              placeholder='Recipient Name'
+                              className='w-full'
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name='recipientPhone'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              placeholder='Recipient Phone No'
+                              className='w-full'
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <Button
+                    disabled={mutation.isPending}
+                    //  onClick={form.handleSubmit(handleSumbit)}
+                    type='submit'
+                    className='w-full mt-10'
+                    size='lg'
+                  >
+                    PROCEED TO PAY ({formatPrice(totalWithOtherItems + 120)})
+                  </Button>
+                </Form>
               </div>
               <div className='space-y-4 bg-[#FFFBFA] p-5 rounded-lg'>
                 <div className='flex items-center gap-2'>

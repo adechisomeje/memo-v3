@@ -50,7 +50,7 @@ const SignInForm = () => {
       })
 
       if (res?.error) {
-        toast.error(res.error)
+        toast.error('Invalid Credentials')
         return
       }
 
@@ -142,7 +142,12 @@ const SignInForm = () => {
               </Link>
             </div>
 
-            <Button className='w-full' variant='default' type='submit'>
+            <Button
+              disabled={loading}
+              className='w-full'
+              variant='default'
+              type='submit'
+            >
               {loading ? 'Loading...' : 'Login'}
             </Button>
           </form>

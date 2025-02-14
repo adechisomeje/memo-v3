@@ -233,7 +233,12 @@ const SignUpForm = () => {
               )}
             />
 
-            <Button className='w-full' variant='default' type='submit'>
+            <Button
+              disabled={loading}
+              className='w-full'
+              variant='default'
+              type='submit'
+            >
               {loading ? 'Loading...' : 'Register'}
             </Button>
           </form>
