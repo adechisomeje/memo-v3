@@ -4,14 +4,16 @@ import Link from 'next/link'
 import {
   User,
   ShoppingBag,
-  FileText,
   Mail,
   LogOut,
   Pencil,
   X,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import { signOut } from 'next-auth/react'
 
 interface SidebarProps {
   isMobile: boolean
@@ -19,6 +21,9 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isMobile, onClose }: SidebarProps) {
+  const [loading, setLoading] = useState(false)
+
+  const router = useRouter()
   const pathname = usePathname()
   const menuItems = [
     {
@@ -32,16 +37,11 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
       label: 'My Orders',
     },
     {
-      href: '/customers/dashboard/requests',
-      icon: FileText,
-      label: 'My Request',
-    },
-    {
       href: '/customers/dashboard/messages',
       icon: Mail,
       label: 'Messages',
     },
-    { href: '/', icon: LogOut, label: 'Log Out' },
+    // { href: '/', icon: LogOut, label: 'Log Out' },
   ]
 
   return (
@@ -98,6 +98,27 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
             <span>{label}</span>
           </Link>
         ))}
+
+        <Button
+          variant='outline'
+          className='border-none shadow-none'
+          onClick={async () => {
+            setLoading(true)
+            const data = await signOut({
+              redirect: false,
+              callbackUrl: '/',
+            })
+            setLoading(false)
+            console.log(loading)
+
+            if (data.url) {
+              router.push(data.url)
+            }
+          }}
+        >
+          <LogOut className='text-primary' />
+          Log Out
+        </Button>
       </nav>
     </div>
   )

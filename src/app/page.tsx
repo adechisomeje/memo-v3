@@ -15,6 +15,7 @@ import { getCakeProducts } from '@/api/public'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { queryKeys } from '@/lib/queries'
+import { useSession } from 'next-auth/react'
 
 const navItems = [
   {
@@ -68,6 +69,7 @@ const mobileNavItems = [
 ]
 
 export default function Home() {
+  const { data: session, status } = useSession()
   const router = useRouter()
 
   const { refetch } = useQuery({
@@ -88,6 +90,12 @@ export default function Home() {
       toast.error('Failed to load products. Please try again.')
     }
   }
+
+  console.log('Session in profile:', {
+    status,
+    accessToken: session?.accessToken,
+    user: session?.user,
+  })
 
   return (
     <div className=''>

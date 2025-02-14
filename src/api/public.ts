@@ -56,7 +56,6 @@ export async function getCities(country: string, state: string) {
 }
 
 export async function getCakeProducts() {
-  const response = await axiosClient.get<Cake[]>('/public/products/cakes')
-
+  const response = await axiosClient.get<CakeResponse>('/public/products/cakes')
   return response.data
 }

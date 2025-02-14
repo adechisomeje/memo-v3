@@ -43,20 +43,14 @@ import { getCakeProducts } from '@/api/public'
 import CakeCardSkeleton from '../components/cake-card-skeleton'
 import { queryKeys } from '@/lib/queries'
 import { Filter } from '../../../../public/assets/icons/Filter'
+import { StarFill } from '../../../../public/assets/icons/StarRating'
+import { useCakeCustomization } from '@/store/cakeCustomization'
 
 const cakeCustomizationSchema = z.object({
-  flavour: z.string({
-    required_error: 'Please select a flavour',
-  }),
-  size: z.string({
-    required_error: 'Please select a size',
-  }),
-  layers: z.string({
-    required_error: 'Please select number of layers',
-  }),
-  icing: z.string({
-    required_error: 'Please select an icing type',
-  }),
+  flavour: z.string().min(1, { message: 'Please select a flavour' }),
+  size: z.string().min(1, { message: 'Please select a size' }),
+  layers: z.string().min(1, { message: 'Please select number of layers' }),
+  icing: z.string().min(1, { message: 'Please select an icing type' }),
 })
 
 export type CakeCustomizationSchema = z.infer<typeof cakeCustomizationSchema>
@@ -89,6 +83,13 @@ const ResultsPage = () => {
     // onError: () => router.push('/'),
   })
 
+  const setCustomization = useCakeCustomization(
+    (state) => state.setCustomization
+  )
+  const setSelectedCakeId = useCakeCustomization(
+    (state) => state.setSelectedCakeId
+  )
+
   useEffect(() => {
     if (!isLoading && !cakeProducts) {
       router.push('/')
@@ -104,9 +105,17 @@ const ResultsPage = () => {
     }
   }
 
-  const handleCakeCustomization = async () => {
+  const handleCakeCustomization = async (data: CakeCustomizationSchema) => {
     if (!selectedCake) return
+
+    // Save customization details to Zustand store
+    setCustomization(data)
+    setSelectedCakeId(selectedCake._id)
+
     setIsSheetOpen(false)
+    setIsModalOpen(true)
+
+    await new Promise((resolve) => setTimeout(resolve, 2000))
     router.push(`/customers/checkout/${selectedCake._id}`)
   }
 
@@ -121,14 +130,7 @@ const ResultsPage = () => {
   })
 
   async function onSubmit(data: CakeCustomizationSchema) {
-    console.log(data)
-    handleCakeCustomization()
-    setIsModalOpen(true)
-
-    // Wait for 10 seconds
-    await new Promise((resolve) => setTimeout(resolve, 10000))
-    if (!selectedCake) return
-    router.push(`/customers/checkout/${selectedCake._id}`)
+    handleCakeCustomization(data)
   }
 
   console.log(cakeProducts)
@@ -195,8 +197,8 @@ const ResultsPage = () => {
                       Array.from({ length: 4 }).map((_, index) => (
                         <CakeCardSkeleton key={index} />
                       ))
-                    ) : cakeProducts && cakeProducts.length > 0 ? (
-                      cakeProducts.map((cake) => (
+                    ) : cakeProducts?.cakes && cakeProducts.cakes.length > 0 ? (
+                      cakeProducts.cakes.map((cake) => (
                         <div
                           key={cake._id}
                           onClick={() => handleProductSelect(cake, 'cakes')}
@@ -205,7 +207,10 @@ const ResultsPage = () => {
                           <Card className='overflow-hidden'>
                             <div className='aspect-[4/3] relative overflow-hidden'>
                               <Image
-                                src={cake.thumbnail || '/placeholder.svg'}
+                                src={
+                                  cake.thumbnail ||
+                                  '/assets/images/cake-sample.svg'
+                                }
                                 alt={cake.vendorName}
                                 fill
                                 className='object-cover'
@@ -238,7 +243,7 @@ const ResultsPage = () => {
                                   </div>
                                 </div>
                                 <div className='flex items-center gap-3 pt-3 border-t'>
-                                  <Avatar className='h-8 w-8'>
+                                  <Avatar className='h-10 w-10'>
                                     <AvatarImage
                                       src={cake.vendorPicture}
                                       alt={cake.vendorName}
@@ -257,10 +262,10 @@ const ResultsPage = () => {
                                     <div className='flex items-center gap-1'>
                                       <div className='flex'>
                                         {[...Array(5)].map((_, i) => (
-                                          <Star
+                                          <StarFill
                                             key={i}
-                                            className={`h-4 w-4 ${
-                                              i < 4
+                                            className={` ${
+                                              i < 5
                                                 ? 'text-yellow-400 fill-yellow-400'
                                                 : 'text-gray-300'
                                             }`}
@@ -341,7 +346,7 @@ const ResultsPage = () => {
               <div className='flex justify-between items-center'>
                 <span className='text-sm text-muted-foreground'>Price:</span>
                 <span className='font-semibold'>
-                  ${/* {selectedCake?.price || 0} */}dummy
+                  ${selectedCake?.price || 0}
                 </span>
               </div>
               <div className='flex justify-between items-center'>
@@ -470,9 +475,9 @@ const ResultsPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='2'>2 Layers</SelectItem>
-                        <SelectItem value='3'>3 Layers</SelectItem>
-                        <SelectItem value='4'>4 Layers</SelectItem>
+                        <SelectItem value='2'>1 Layers</SelectItem>
+                        <SelectItem value='3'>2 Layers</SelectItem>
+                        <SelectItem value='4'>3 Layers</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

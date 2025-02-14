@@ -5,28 +5,41 @@ import { useEffect } from 'react'
 import { axiosClient } from '../api'
 
 export default function AxiosInterceptor() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
 
   useEffect(() => {
     const requestInterceptor = axiosClient.interceptors.request.use(
       async (config) => {
-        if (!config.headers['Authorization'] && session?.accessToken) {
-          console.log('Setting auth header with token:', session.accessToken)
+        // Add some debugging
+        console.log('Session state:', {
+          status,
+          accessToken: session?.accessToken,
+        })
+
+        if (status === 'authenticated' && session?.accessToken) {
+          // Make sure to set the header for every request
           config.headers['Authorization'] = `Bearer ${session.accessToken}`
+          console.log('Added auth header:', config.headers['Authorization'])
+        } else {
+          console.log('No token available for request')
         }
         return config
+      },
+      (error) => {
+        return Promise.reject(error)
       }
     )
 
-    // Add response interceptor to handle 401 errors
     const responseInterceptor = axiosClient.interceptors.response.use(
       (response) => response,
       async (error) => {
-        console.error(
-          'API Error:',
-          error.response?.status,
-          error.response?.data
-        )
+        if (error.response?.status === 401) {
+          console.error('Authorization error:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            headers: error.config?.headers, // Log the headers that were sent
+          })
+        }
         return Promise.reject(error)
       }
     )
@@ -35,7 +48,7 @@ export default function AxiosInterceptor() {
       axiosClient.interceptors.request.eject(requestInterceptor)
       axiosClient.interceptors.response.eject(responseInterceptor)
     }
-  }, [session])
+  }, [session, status])
 
   return null
 }

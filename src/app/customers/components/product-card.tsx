@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { formatPrice } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface ProductCardProps {
   image: string
@@ -28,11 +28,18 @@ export function ProductCard({
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
 
+  const handleAdd = () => {
+    onAdd({ image, title, description, price })
+    toast.success(`${title} added to cart`)
+  }
+  console.log(isHovered)
+
   return (
     <div
-      className='relative group'
+      className='relative group cursor-pointer transform transition-transform duration-200 hover:scale-105'
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleAdd}
     >
       <div className='aspect-square relative overflow-hidden rounded-xl'>
         <Image
@@ -42,21 +49,15 @@ export function ProductCard({
           height={300}
           className='object-cover w-full h-full'
         />
+        <div className='absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center'>
+          <Plus className='text-white w-8 h-8' />
+          <span className='text-white ml-2 font-medium'>Add</span>
+        </div>
       </div>
       <div className='mt-2'>
         <h3 className='font-medium text-sm'>{title}</h3>
         <p className='text-sm text-gray-500'>{description}</p>
         <p className='font-semibold mt-1'>{formatPrice(price)}</p>
-        {isHovered && (
-          <Button
-            onClick={() => onAdd({ image, title, description, price })}
-            className='w-full bg-primary hover:bg-primary/90'
-            size='icon'
-          >
-            Add
-            <Plus className='h-5 w-5' />
-          </Button>
-        )}
       </div>
     </div>
   )

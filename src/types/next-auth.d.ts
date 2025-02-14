@@ -1,8 +1,10 @@
 import { DefaultSession } from 'next-auth'
 import { JWT } from 'next-auth/jwt'
+import 'next-auth'
 
 declare module 'next-auth' {
   interface Session {
+    accessToken?: string
     user: {
       id: string
       firstName: string
@@ -10,7 +12,6 @@ declare module 'next-auth' {
       email: string
       phone: string
     } & DefaultSession['user']
-    accessToken?: string // Make accessToken optional
   }
 
   interface User {

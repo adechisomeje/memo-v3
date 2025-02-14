@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
-import { Star, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -10,6 +10,7 @@ import { CartItem } from '../../components/cart-item'
 import { formatPrice } from '@/lib/utils'
 import { ReviewButton } from '../../components/review-button'
 import { ProductCard } from '../../components/product-card'
+import { StarFill } from '../../../../../public/assets/icons/StarRating'
 
 interface CartItem {
   image: string
@@ -149,9 +150,9 @@ const CheckOutPage = () => {
                       {Array(5)
                         .fill(null)
                         .map((_, i) => (
-                          <Star
+                          <StarFill
                             key={i}
-                            className={`h-4 w-4 ${
+                            className={` ${
                               i < 4
                                 ? 'fill-primary'
                                 : 'fill-muted stroke-muted-foreground'
