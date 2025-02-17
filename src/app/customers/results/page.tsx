@@ -1,12 +1,11 @@
-
 'use client'
 
-import { useState } from 'react' // useEffect removed
+import { useEffect, useState } from 'react' // useEffect removed
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Sheet, SheetContent, SheetHeader } from '@/components/ui/sheet'
 import {
   Form,
@@ -62,6 +61,7 @@ const ResultsPage = () => {
   const router = useRouter()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0) // Store the price for the selected layer
   const setCustomization = useCakeCustomization(
     (state) => state.setCustomization
   )
@@ -83,22 +83,18 @@ const ResultsPage = () => {
     setSelectedCake(product)
     setSelectedCakeId(product._id)
 
+    // Set initial layer price based on the base price, or the first layer price if available.
+    setSelectedLayerPrice(
+      product.layerPrices
+        ? product.layerPrices['1'] ?? product.price
+        : product.price
+    )
+
     if (type === 'cakes') {
-    
       setIsSheetOpen(true)
     } else {
       router.push(`/customers/checkout/${product._id}`)
     }
-
- 
-  }
-
-  const handleCakeCustomization = async (data: CakeCustomizationSchema) => {
-    setCustomization(data)
-    
-    setIsSheetOpen(false)
-    setIsModalOpen(true)
-    router.push(`/customers/checkout/${selectedCake?._id}`)
   }
 
   const form = useForm<CakeCustomizationSchema>({
@@ -110,6 +106,48 @@ const ResultsPage = () => {
       icing: 'Buttercream',
     },
   })
+
+  useEffect(() => {
+    if (selectedCake) {
+      // Set default values for the form, pulling from `selectedCake`
+      form.reset({
+        flavour: selectedCake.flavours[0] || '', // Pick the first flavor as a default
+        size: selectedCake.size,
+        layers: String(selectedCake.layers), // Default to cake's layers
+        icing: selectedCake.topping,
+      })
+      //Update the displayed total price
+      setSelectedLayerPrice(
+        selectedCake.layerPrices
+          ? selectedCake.layerPrices[String(selectedCake.layers)] ??
+              selectedCake.price
+          : selectedCake.price
+      )
+    }
+  }, [selectedCake, form])
+
+  const handleCakeCustomization = async (data: CakeCustomizationSchema) => {
+    // Create a new object with the correct type.  This is key!
+    const dataWithPrice: CakeCustomizationSchema & { price?: number } = {
+      ...data,
+      price: selectedLayerPrice,
+    }
+
+    setCustomization(dataWithPrice) // Now it matches the store's type
+
+    setIsSheetOpen(false)
+    setIsModalOpen(true)
+    router.push(`/customers/checkout/${selectedCake?._id}`)
+  }
+
+  // Function to handle layer changes and update the price.
+  const handleLayerChange = (layer: string) => {
+    if (selectedCake && selectedCake.layerPrices) {
+      const priceForLayer = selectedCake.layerPrices[layer]
+      setSelectedLayerPrice(priceForLayer ?? selectedCake.price) // Fallback to base price if not found
+    }
+    form.setValue('layers', layer) // Update the form value
+  }
 
   async function onSubmit(data: CakeCustomizationSchema) {
     handleCakeCustomization(data)
@@ -269,14 +307,14 @@ const ResultsPage = () => {
                         </div>
                       ))
                     ) : (
-                      <div className='col-span-full justify-center items-center  py-10 gap-3'>
+                      <div className='flex flex-col justify-center items-center  py-10 gap-3'>
                         <Image
                           src='/assets/icons/no-data.svg'
                           alt='No results'
                           width={500}
                           height={500}
                         />
-                        <p className='mt-5'>
+                        <p className='mt-8'>
                           No cake products available. Please try again later.
                         </p>
                       </div>
@@ -313,6 +351,7 @@ const ResultsPage = () => {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className='overflow-y-auto sm:max-w-[640px] p-6 sm:p-10'>
           <SheetHeader className='flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:gap-8'>
+            {/* ... (your Image and initial price display) ... */}
             <div className='relative w-full h-48 mb-4'>
               <Image
                 src={
@@ -328,7 +367,8 @@ const ResultsPage = () => {
               <div className='flex justify-between items-center'>
                 <span className='text-sm text-muted-foreground'>Price:</span>
                 <span className='font-semibold'>
-                  ${selectedCake?.price || 0}
+                  {/* Display selectedLayerPrice, not the base price */}$
+                  {selectedLayerPrice}
                 </span>
               </div>
               <div className='flex justify-between items-center'>
@@ -340,9 +380,11 @@ const ResultsPage = () => {
               <div className='flex justify-between items-center pt-2 border-t'>
                 <span className='text-sm font-medium'>TOTAL:</span>
                 <span className='font-bold'>
-                  ${(selectedCake?.price || 0) + 400}
+                  {/* Calculate based on selectedLayerPrice */}$
+                  {selectedLayerPrice + 400}
                 </span>
               </div>
+              {/* ... (Vendor info) ... */}
               <div className='flex items-center gap-3 pb-4 border-b'>
                 <Avatar className='h-8 w-8'>
                   <AvatarImage src='/assets/images/naomi.png' />
@@ -399,10 +441,12 @@ const ResultsPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='chocolate'>Chocolate</SelectItem>
-                        <SelectItem value='vanilla'>Vanilla</SelectItem>
-                        <SelectItem value='velvet'>Red Velvet</SelectItem>
-                        <SelectItem value='strawberry'>Strawberry</SelectItem>
+                        {/* Map through selectedCake.flavours */}
+                        {selectedCake?.flavours.map((flavour) => (
+                          <SelectItem key={flavour} value={flavour}>
+                            {flavour}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -428,6 +472,7 @@ const ResultsPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        {/*  Ideally, sizes should also come from an API or be consistent */}
                         <SelectItem value='6'>6 inch</SelectItem>
                         <SelectItem value='8'>8 inch</SelectItem>
                         <SelectItem value='10'>10 inch</SelectItem>
@@ -448,7 +493,7 @@ const ResultsPage = () => {
                       Layers
                     </FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={handleLayerChange} // Use the layer change handler
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -457,9 +502,14 @@ const ResultsPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value='2'>1 Layers</SelectItem>
-                        <SelectItem value='3'>2 Layers</SelectItem>
-                        <SelectItem value='4'>3 Layers</SelectItem>
+                        {/* Dynamically create options based on layerPrices */}
+                        {selectedCake &&
+                          selectedCake.layerPrices &&
+                          Object.keys(selectedCake.layerPrices).map((layer) => (
+                            <SelectItem key={layer} value={layer}>
+                              {layer} Layers
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -500,12 +550,14 @@ const ResultsPage = () => {
 
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogContent className='sm:max-w-md flex flex-col items-center justify-center py-12'>
-              <div className='flex flex-col items-center gap-4'>
-                <Loader2 className='h-8 w-8 animate-spin text-primary' />
-                <p className='text-center text-lg'>
-                  The vendor is reviewing your request.
-                </p>
-              </div>
+              <DialogTitle>
+                <div className='flex flex-col items-center gap-4'>
+                  <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                  <p className='text-center text-lg'>
+                    The vendor is reviewing your request.
+                  </p>
+                </div>
+              </DialogTitle>
             </DialogContent>
           </Dialog>
         </SheetContent>

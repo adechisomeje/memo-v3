@@ -1,4 +1,3 @@
-
 'use client'
 
 import Image from 'next/image'
@@ -12,7 +11,7 @@ import { ReviewButton } from '../../components/review-button'
 import { ProductCard } from '../../components/product-card'
 import { StarFill } from '../../../../../public/assets/icons/StarRating'
 import { useMutation } from '@tanstack/react-query'
-import { userCreateOrder } from '@/api/orders'
+import { CreateOrderResponse, userCreateOrder } from '@/api/orders'
 import { toast } from 'sonner'
 import * as z from 'zod'
 import { useRouter } from 'next/navigation'
@@ -27,6 +26,7 @@ import {
 } from '@/components/ui/form'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import axios from 'axios'
 
 const formSchema = z.object({
   cakeNote: z.string().optional(),
@@ -70,6 +70,7 @@ const products = Array(6).fill({
 })
 
 const CheckOutPage = () => {
+  const [loading] = useState(false)
   const router = useRouter()
   const selectedCake = useCakeCustomization((state) => state.selectedCake)
   const deliveryDetails = useDeliveryDetails((state) => state.deliveryDetails)
@@ -85,9 +86,13 @@ const CheckOutPage = () => {
     setOtherItems((prevItems) => prevItems.filter((_, i) => i !== index))
   }
 
-  const totalPrice = selectedCake ? selectedCake.price : 0
+  const totalPrice = cakeCustomization
+    ? cakeCustomization.price
+    : selectedCake
+    ? selectedCake.price
+    : 0 // Use customization price, fallback to selectedCake, then 0
   const totalWithOtherItems =
-    totalPrice + otherItems.reduce((sum, item) => sum + item.price, 0)
+    (totalPrice ?? 0) + otherItems.reduce((sum, item) => sum + item.price, 0)
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -102,25 +107,68 @@ const CheckOutPage = () => {
   const mutation = useMutation({
     mutationFn: userCreateOrder,
     onError: (error) => {
-      toast.error(error.message ?? 'Something went wrong')
+      // Handle Axios errors specifically.  Very important!
+      if (axios.isAxiosError(error)) {
+        toast.error(
+          error.response?.data?.message ||
+            'Something went wrong with the request.'
+        )
+      } else {
+        toast.error(error.message ?? 'Something went wrong')
+      }
     },
-    onSuccess: () => {
-      router.push('/')
+    onSuccess: (data: CreateOrderResponse) => {
+      // Use the correct response type
+      // Open the Paystack authorization URL in a new window/tab
+      window.open(data.authorization_url, '_blank') // Open in a new tab/window
+
+      // Optionally, you can redirect to a success page AFTER the user has *potentially* paid.
+      // router.push(`/order-success/${data.orderId}`);
+      // Consider a success page
+
+      toast.success(data.message)
     },
   })
-
-  // const onSubmit = () => {
-  //   function handleSumbit(data: z.infer<typeof formSchema>) {
-  //     mutation.mutate({
-  //       cake: selectedCake,
-  //       deliveryDetails: deliveryDetails,
-  //       otherItems: otherItems,
-  //   });
-  // }
-  // }
+  const handleSubmit = (data: z.infer<typeof formSchema>) => {
+    if (!selectedCake || !deliveryDetails || !cakeCustomization) {
+      toast.error(
+        'Missing required data. Please go back and select a cake and delivery details.'
+      )
+      return
+    }
+    mutation.mutate({
+      productId: selectedCake._id,
+      note: data.cakeNote || '', // Handle optional notes
+      recipientName: data.recipientName,
+      recipientPhone: data.recipientPhone,
+      layers: cakeCustomization.layers,
+      size: cakeCustomization.size,
+      topping: cakeCustomization.icing,
+      flavours: cakeCustomization.flavour, // Assuming you want a single flavor, as per your form.
+      deliveryDate: deliveryDetails.date,
+    })
+  }
 
   if (!selectedCake || !deliveryDetails) {
-    return null
+    // Option 1: Redirect back to the cake selection page
+    router.push('/customers/results')
+
+    // OR Option 2: Show a message
+    return (
+      <div className='p-8 text-center'>
+        <h2 className='text-xl font-semibold mb-4'>Missing Information</h2>
+        <p>
+          Please select a cake and delivery details before proceeding to
+          checkout.
+        </p>
+        <Button
+          onClick={() => router.push('/customers/results')}
+          className='mt-4'
+        >
+          Return to Cake Selection
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -290,12 +338,13 @@ const CheckOutPage = () => {
 
                   <Button
                     disabled={mutation.isPending}
-                    //  onClick={form.handleSubmit(handleSumbit)}
+                    onClick={form.handleSubmit(handleSubmit)}
                     type='submit'
                     className='w-full mt-10'
                     size='lg'
                   >
-                    PROCEED TO PAY ({formatPrice(totalWithOtherItems + 120)})
+                    {loading ? 'Loading...' : ' PROCEED TO PAY '}(
+                    {formatPrice(totalWithOtherItems + 120)})
                   </Button>
                 </Form>
               </div>

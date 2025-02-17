@@ -1,6 +1,6 @@
 import { axiosClient } from '.'
 
-interface CreateOrderResponse {
+export interface CreateOrderResponse {
   message: string
   authorization_url: string
   orderId: string

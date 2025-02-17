@@ -9,6 +9,11 @@ export interface Cake {
   vendorCountry: string
   vendorState: string
   vendorCity: string
+  size: string
+  flavours: string[]
+  topping: string
+  layers: number
+  layerPrices: Record<string, number>
 }
 
 export interface CakeResponse {

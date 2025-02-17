@@ -1,13 +1,16 @@
+// store/cakeCustomization.ts
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { CakeCustomizationSchema } from '@/app/customers/results/page'
 import { Cake } from '@/api/public'
 
 interface CakeCustomizationState {
-  customization: CakeCustomizationSchema | null
+  customization: (CakeCustomizationSchema & { price?: number }) | null // Add price here, keep optional
   selectedCakeId: string | null
   selectedCake: Cake | null
-  setCustomization: (customization: CakeCustomizationSchema) => void
+  setCustomization: (
+    customization: CakeCustomizationSchema & { price?: number }
+  ) => void // Update type here
   setSelectedCakeId: (id: string) => void
   setSelectedCake: (cake: Cake) => void
   reset: () => void
@@ -16,7 +19,7 @@ interface CakeCustomizationState {
 export const useCakeCustomization = create<CakeCustomizationState>()(
   persist(
     (set) => ({
-      customization: null,
+      customization: { flavour: '', size: '', layers: '', icing: '', price: 0 }, // Initialize with price
       selectedCakeId: null,
       selectedCake: null,
       setCustomization: (customization) => set(() => ({ customization })),
@@ -24,7 +27,13 @@ export const useCakeCustomization = create<CakeCustomizationState>()(
       setSelectedCake: (cake) => set(() => ({ selectedCake: cake })),
       reset: () =>
         set(() => ({
-          customization: null,
+          customization: {
+            flavour: '',
+            size: '',
+            layers: '',
+            icing: '',
+            price: 0,
+          }, // Reset with price
           selectedCakeId: null,
           selectedCake: null,
         })),

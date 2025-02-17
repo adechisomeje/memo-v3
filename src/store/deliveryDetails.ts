@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { createJSONStorage, persist } from 'zustand/middleware'
 
 interface DeliveryDetails {
   address: string
@@ -14,8 +15,17 @@ interface DeliveryDetailsState {
   resetDeliveryDetails: () => void
 }
 
-export const useDeliveryDetails = create<DeliveryDetailsState>((set) => ({
-  deliveryDetails: null,
-  setDeliveryDetails: (details) => set(() => ({ deliveryDetails: details })),
-  resetDeliveryDetails: () => set(() => ({ deliveryDetails: null })),
-}))
+export const useDeliveryDetails = create<DeliveryDetailsState>()(
+  persist(
+    (set) => ({
+      deliveryDetails: null,
+      setDeliveryDetails: (details) =>
+        set(() => ({ deliveryDetails: details })),
+      resetDeliveryDetails: () => set(() => ({ deliveryDetails: null })),
+    }),
+    {
+      name: 'delivery-storage',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+)
