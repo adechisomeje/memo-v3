@@ -55,9 +55,16 @@ const SignInForm = () => {
       }
 
       if (res?.ok) {
-        toast.success('Logged in successfully')
-        router.push('/')
-        router.refresh()
+        // Get the stored redirect URL
+        const redirectUrl = localStorage.getItem('redirectAfterSignIn')
+        // Clear the stored URL
+        localStorage.removeItem('redirectAfterSignIn')
+        if (redirectUrl) {
+          router.push(redirectUrl)
+        } else {
+          router.push('/')
+          router.refresh() // or whatever your default redirect is
+        }
       }
     } catch (error) {
       toast.error('An unexpected error occurred')

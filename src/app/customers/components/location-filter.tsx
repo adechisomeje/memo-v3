@@ -31,8 +31,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Calender } from '../../../../public/assets/icons/Calender'
 import { MapPin } from '../../../../public/assets/icons/MapPin'
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect } from 'react' // Import useEffect
+import { useQuery, useQueryClient } from '@tanstack/react-query' // Import useQueryClient
 import { getCities, getCountry, getStates } from '@/api/public'
 import { useDeliveryDetails } from '@/store/deliveryDetails'
 
@@ -65,6 +65,8 @@ export function SearchForm({
 }: SearchFormProps) {
   const [selectedCountry, setSelectedCountry] = useState<string>('')
   const [selectedState, setSelectedState] = useState<string>('')
+  const queryClient = useQueryClient() // Get the query client
+
   const form = useForm<SearchFormValues>({
     resolver: zodResolver(searchFormSchema),
     defaultValues: {
@@ -81,8 +83,6 @@ export function SearchForm({
     queryFn: getCountry,
   })
 
-  console.log(countriesQuery.data)
-
   const statesQuery = useQuery({
     queryKey: ['states', selectedCountry],
     queryFn: () => getStates(selectedCountry),
@@ -94,6 +94,31 @@ export function SearchForm({
     queryFn: () => getCities(selectedCountry, selectedState),
     enabled: !!selectedCountry && !!selectedState,
   })
+
+  // Prefetching logic
+  useEffect(() => {
+    // Prefetch countries on component mount
+    queryClient.prefetchQuery({
+      queryKey: ['countries'],
+      queryFn: getCountry,
+    })
+
+    // Prefetch states when selectedCountry changes
+    if (selectedCountry) {
+      queryClient.prefetchQuery({
+        queryKey: ['states', selectedCountry],
+        queryFn: () => getStates(selectedCountry),
+      })
+    }
+
+    // Prefetch cities when selectedCountry and selectedState change
+    if (selectedCountry && selectedState) {
+      queryClient.prefetchQuery({
+        queryKey: ['cities', selectedCountry, selectedState],
+        queryFn: () => getCities(selectedCountry, selectedState),
+      })
+    }
+  }, [selectedCountry, selectedState, queryClient])
 
   const setDeliveryDetails = useDeliveryDetails(
     (state) => state.setDeliveryDetails

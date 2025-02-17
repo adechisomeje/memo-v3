@@ -109,6 +109,12 @@ const CheckOutPage = () => {
     onError: (error) => {
       // Handle Axios errors specifically.  Very important!
       if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          // Store the current URL before redirecting
+          localStorage.setItem('redirectAfterSignIn', window.location.pathname)
+          router.push('/sign-in')
+          return
+        }
         toast.error(
           error.response?.data?.message ||
             'Something went wrong with the request.'
@@ -116,6 +122,7 @@ const CheckOutPage = () => {
       } else {
         toast.error(error.message ?? 'Something went wrong')
       }
+      toast.error(error.message || 'Something went wrong with the request.')
     },
     onSuccess: (data: CreateOrderResponse) => {
       // Use the correct response type
