@@ -96,7 +96,7 @@ const SignUpForm = () => {
       toast.error(res?.error || 'Something went wrong')
       setLoading(false)
     } else {
-      router.push('/customers/dashboard/profile')
+      router.push('/')
     }
   }
 
@@ -188,7 +188,11 @@ const SignUpForm = () => {
                 <FormItem>
                   <FormLabel className='sr-only'>Phone Number</FormLabel>
                   <FormControl>
-                    <Input className='h-12' placeholder='+234..' {...field} />
+                    <Input
+                      className='h-12'
+                      placeholder='Phone Number'
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -30,8 +30,7 @@ import axios from 'axios'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 const formSchema = z.object({
-  cakeNote: z.string().optional(),
-  flowerNote: z.string().optional(),
+  note: z.string().optional(),
   recipientName: z
     .string()
     .min(2, {
@@ -96,8 +95,7 @@ const CheckOutPage = () => {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      cakeNote: '',
-      flowerNote: '',
+      note: '',
       recipientName: '',
       recipientPhone: '',
     },
@@ -142,7 +140,7 @@ const CheckOutPage = () => {
     }
     mutation.mutate({
       productId: selectedCake._id,
-      note: data.cakeNote || '',
+      note: data.note || '',
       recipientName: data.recipientName,
       recipientPhone: data.recipientPhone,
       layers: cakeCustomization.layers,
@@ -209,10 +207,10 @@ const CheckOutPage = () => {
               <div className='mt-5'>
                 <h2 className='font-bold'>Cake Specs:</h2>
                 <p className='text-sm'>
-                  Classic vanilla cake with {selectedCake.topping} frosting
-                </p>{' '}
+                  Classic cake with {selectedCake.topping} frosting
+                </p>
                 {cakeCustomization && (
-                  <div className='mt-2 text-sm'>
+                  <div className='mt-1 text-sm'>
                     <p className='font-semibold'>
                       {selectedCake.size} {cakeCustomization.flavour}{' '}
                     </p>
@@ -258,29 +256,12 @@ const CheckOutPage = () => {
                 <Form {...form}>
                   <FormField
                     control={form.control}
-                    name='cakeNote'
+                    name='note'
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
                           <Textarea
-                            placeholder='Cake Note...'
-                            className='w-full'
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name='flowerNote'
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Textarea
-                            placeholder='Flower Note...'
+                            placeholder='Note...'
                             className='w-full'
                             {...field}
                           />

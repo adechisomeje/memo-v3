@@ -241,9 +241,8 @@ const ResultsPage = () => {
                                   </div>
                                   <div className='flex justify-between items-center'>
                                     <span>Layers:</span>
-
                                     <span className='font-semibold'>
-                                      {cake.layers} Layers
+                                      {cake.layerPrices[0]} Layers
                                     </span>
                                   </div>
                                   <div className='flex justify-between items-center'>
