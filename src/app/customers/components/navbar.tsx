@@ -42,6 +42,26 @@ type Props = {
   classNames?: Record<string, string>
 }
 
+const authenticatedNavItems = [
+  {
+    label: 'My Profile',
+    href: '/customers/dashboard/profile',
+    subItems: [
+      { label: 'Create Shipment', href: '/ship' },
+      { label: 'Get a quote', href: '/get-a-quote' },
+      { label: 'Track', href: '/track' },
+    ],
+  },
+  {
+    label: 'My Orders',
+    href: '/customers/dashboard/orders',
+  },
+  {
+    label: 'Messages',
+    href: '/customers/dashboard/messages',
+  },
+]
+
 const Navbar = ({ navItems, classNames }: Props) => {
   const { data: session, status } = useSession()
 
@@ -92,7 +112,10 @@ const Navbar = ({ navItems, classNames }: Props) => {
         </div>
         <div className='hidden gap-[85px] lg:flex'>
           <ul className='flex items-center gap-8'>
-            {navItems.map((item) => {
+            {(status === 'authenticated'
+              ? authenticatedNavItems
+              : navItems
+            ).map((item) => {
               if (item.subItems) {
                 return (
                   <NavbarHoverCard
@@ -194,9 +217,11 @@ const Navbar = ({ navItems, classNames }: Props) => {
                 )}
               </div>
             </div>
-            <Link href='/vendors'>
-              <Button size='lg'>Become A Vendor</Button>
-            </Link>
+            {status !== 'authenticated' && (
+              <Link href='/vendors'>
+                <Button size='lg'>Become A Vendor</Button>
+              </Link>
+            )}
           </div>
         </div>
 

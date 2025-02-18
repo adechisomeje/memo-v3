@@ -1,4 +1,3 @@
-import { Footer } from '../../components/Footer/footer'
 import Navbar from './components/navbar'
 
 const navItems = [
@@ -74,8 +73,6 @@ export default function RootLayout({
         ctaLink='/get-started'
       />
       <div className=''>{children}</div>
-
-      <Footer />
     </div>
   )
 }

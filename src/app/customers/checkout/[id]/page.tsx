@@ -27,12 +27,11 @@ import {
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 const formSchema = z.object({
   cakeNote: z.string().optional(),
-
   flowerNote: z.string().optional(),
-
   recipientName: z
     .string()
     .min(2, {
@@ -107,11 +106,11 @@ const CheckOutPage = () => {
   const mutation = useMutation({
     mutationFn: userCreateOrder,
     onError: (error) => {
-      // Handle Axios errors specifically.  Very important!
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
           // Store the current URL before redirecting
           localStorage.setItem('redirectAfterSignIn', window.location.pathname)
+          toast.info('You have to be signed in first')
           router.push('/sign-in')
           return
         }
@@ -125,9 +124,7 @@ const CheckOutPage = () => {
       toast.error(error.message || 'Something went wrong with the request.')
     },
     onSuccess: (data: CreateOrderResponse) => {
-      // Use the correct response type
-      // Open the Paystack authorization URL in a new window/tab
-      window.open(data.authorization_url, '_blank') // Open in a new tab/window
+      window.open(data.authorization_url, '_blank')
 
       // Optionally, you can redirect to a success page AFTER the user has *potentially* paid.
       // router.push(`/order-success/${data.orderId}`);
@@ -145,22 +142,19 @@ const CheckOutPage = () => {
     }
     mutation.mutate({
       productId: selectedCake._id,
-      note: data.cakeNote || '', // Handle optional notes
+      note: data.cakeNote || '',
       recipientName: data.recipientName,
       recipientPhone: data.recipientPhone,
       layers: cakeCustomization.layers,
-      size: cakeCustomization.size,
-      topping: cakeCustomization.icing,
-      flavours: cakeCustomization.flavour, // Assuming you want a single flavor, as per your form.
+      size: selectedCake.size,
+      topping: selectedCake.topping,
+      flavours: cakeCustomization.flavour,
       deliveryDate: deliveryDetails.date,
     })
   }
 
   if (!selectedCake || !deliveryDetails) {
-    // Option 1: Redirect back to the cake selection page
     router.push('/customers/results')
-
-    // OR Option 2: Show a message
     return (
       <div className='p-8 text-center'>
         <h2 className='text-xl font-semibold mb-4'>Missing Information</h2>
@@ -170,7 +164,7 @@ const CheckOutPage = () => {
         </p>
         <Button
           onClick={() => router.push('/customers/results')}
-          className='mt-4'
+          className='mt-8'
         >
           Return to Cake Selection
         </Button>
@@ -184,7 +178,6 @@ const CheckOutPage = () => {
         <main className='max-w-7xl mx-auto py-8'>
           <div className='grid lg:grid-cols-2 gap-8 mb-12'>
             <div>
-              {/* Main Cake Display - Now OUTSIDE the other items grid */}
               <div className='relative rounded-2xl overflow-hidden h-72 sm:h-96 max-w-lg mx-auto'>
                 <Image
                   src={selectedCake.thumbnail}
@@ -194,7 +187,6 @@ const CheckOutPage = () => {
                 />
               </div>
 
-              {/* Grid Container for ONLY Other Items */}
               <div className='grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4'>
                 {otherItems.map((item, index) => (
                   <div
@@ -217,23 +209,15 @@ const CheckOutPage = () => {
               <div className='mt-5'>
                 <h2 className='font-bold'>Cake Specs:</h2>
                 <p className='text-sm'>
-                  Classic vanilla cake with buttercream frosting
+                  Classic vanilla cake with {selectedCake.topping} frosting
                 </p>{' '}
-                {/* Example description */}
                 {cakeCustomization && (
                   <div className='mt-2 text-sm'>
                     <p className='font-semibold'>
-                      {cakeCustomization.size} inch {cakeCustomization.flavour}{' '}
+                      {selectedCake.size} {cakeCustomization.flavour}{' '}
                     </p>
                     <p>
-                      with {cakeCustomization.layers} <strong>Layers:</strong>
-                    </p>
-                    <p>
-                      <strong>Size:</strong>
-                    </p>
-
-                    <p>
-                      <strong>Icing:</strong> {cakeCustomization.icing}
+                      {cakeCustomization.layers} layered <strong></strong>
                     </p>
                   </div>
                 )}
@@ -241,7 +225,6 @@ const CheckOutPage = () => {
             </div>
 
             <div className='space-y-6'>
-              {/* ... (rest of your checkout page content) ... */}
               <div className='space-y-4'>
                 <div className='flex flex-col sm:flex-row justify-between gap-4'>
                   <div className='flex flex-col'>
@@ -357,9 +340,17 @@ const CheckOutPage = () => {
               </div>
               <div className='space-y-4 bg-[#FFFBFA] p-5 rounded-lg'>
                 <div className='flex items-center gap-2'>
-                  <div className='h-12 w-12 rounded-full bg-gray-200' />
+                  <Avatar className='h-8 w-8'>
+                    <AvatarImage className='p-4'>
+                      {selectedCake?.vendorPicture ||
+                        '/assets/images/naomi.png'}
+                    </AvatarImage>
+                    <AvatarFallback>
+                      {selectedCake?.vendorName.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
-                    <div className='font-medium'>Ajasco cakes</div>
+                    <div className='font-medium'>{selectedCake.vendorName}</div>
                     <div className='flex items-center gap-1'>
                       {Array(5)
                         .fill(null)

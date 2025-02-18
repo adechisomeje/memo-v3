@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react' // useEffect removed
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -22,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import Image from 'next/image'
 import { Info, Loader2, Star } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -48,9 +47,7 @@ import { useCakeCustomization } from '@/store/cakeCustomization'
 
 const cakeCustomizationSchema = z.object({
   flavour: z.string().min(1, { message: 'Please select a flavour' }),
-  size: z.string().min(1, { message: 'Please select a size' }),
   layers: z.string().min(1, { message: 'Please select number of layers' }),
-  icing: z.string().min(1, { message: 'Please select an icing type' }),
 })
 
 export type CakeCustomizationSchema = z.infer<typeof cakeCustomizationSchema>
@@ -61,7 +58,7 @@ const ResultsPage = () => {
   const router = useRouter()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0) // Store the price for the selected layer
+  const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0)
   const setCustomization = useCakeCustomization(
     (state) => state.setCustomization
   )
@@ -69,7 +66,7 @@ const ResultsPage = () => {
   const setSelectedCakeId = useCakeCustomization(
     (state) => state.setSelectedCakeId
   )
-  const selectedCake = useCakeCustomization((state) => state.selectedCake) // Get selectedCake for the modal
+  const selectedCake = useCakeCustomization((state) => state.selectedCake)
 
   const { data: cakeProducts, isLoading } = useQuery({
     queryKey: queryKeys.cakeProducts,
@@ -78,7 +75,7 @@ const ResultsPage = () => {
   })
 
   const handleProductSelect = (product: Cake, type: ProductType) => {
-    console.log('Selecting product:', product) // Keep your logs!
+    console.log('Selecting product:', product)
 
     setSelectedCake(product)
     setSelectedCakeId(product._id)
@@ -101,33 +98,32 @@ const ResultsPage = () => {
     resolver: zodResolver(cakeCustomizationSchema),
     defaultValues: {
       flavour: '',
-      size: '',
       layers: '',
-      icing: 'Buttercream',
+      // icing: 'Buttercream',
     },
   })
 
   useEffect(() => {
     if (selectedCake) {
-      // Set default values for the form, pulling from `selectedCake`
+      const firstLayer = selectedCake.layerPrices
+        ? Object.keys(selectedCake.layerPrices)[0]
+        : String(selectedCake.layers)
+
+      // Set default values for the form
       form.reset({
-        flavour: selectedCake.flavours[0] || '', // Pick the first flavor as a default
-        size: selectedCake.size,
-        layers: String(selectedCake.layers), // Default to cake's layers
-        icing: selectedCake.topping,
+        flavour: selectedCake.flavours[0] || '',
+        layers: firstLayer,
       })
-      //Update the displayed total price
+
       setSelectedLayerPrice(
         selectedCake.layerPrices
-          ? selectedCake.layerPrices[String(selectedCake.layers)] ??
-              selectedCake.price
+          ? selectedCake.layerPrices[firstLayer] ?? selectedCake.price
           : selectedCake.price
       )
     }
   }, [selectedCake, form])
 
   const handleCakeCustomization = async (data: CakeCustomizationSchema) => {
-    // Create a new object with the correct type.  This is key!
     const dataWithPrice: CakeCustomizationSchema & { price?: number } = {
       ...data,
       price: selectedLayerPrice,
@@ -144,7 +140,7 @@ const ResultsPage = () => {
   const handleLayerChange = (layer: string) => {
     if (selectedCake && selectedCake.layerPrices) {
       const priceForLayer = selectedCake.layerPrices[layer]
-      setSelectedLayerPrice(priceForLayer ?? selectedCake.price) // Fallback to base price if not found
+      setSelectedLayerPrice(priceForLayer ?? selectedCake.price)
     }
     form.setValue('layers', layer) // Update the form value
   }
@@ -152,8 +148,6 @@ const ResultsPage = () => {
   async function onSubmit(data: CakeCustomizationSchema) {
     handleCakeCustomization(data)
   }
-
-  // console.log(cakeProducts)
 
   return (
     <>
@@ -239,6 +233,19 @@ const ResultsPage = () => {
                             <CardContent className='p-4'>
                               <div className='space-y-3'>
                                 <div className='space-y-1'>
+                                  <div className='flex justify-between items-center'>
+                                    <span>Size:</span>
+                                    <span className='font-semibold'>
+                                      {cake.size}
+                                    </span>
+                                  </div>
+                                  <div className='flex justify-between items-center'>
+                                    <span>Layers:</span>
+
+                                    <span className='font-semibold'>
+                                      {cake.layers} Layers
+                                    </span>
+                                  </div>
                                   <div className='flex justify-between items-center'>
                                     <span className='text-sm text-muted-foreground'>
                                       Price:
@@ -384,7 +391,7 @@ const ResultsPage = () => {
                   {selectedLayerPrice + 400}
                 </span>
               </div>
-              {/* ... (Vendor info) ... */}
+
               <div className='flex items-center gap-3 pb-4 border-b'>
                 <Avatar className='h-8 w-8'>
                   <AvatarImage src='/assets/images/naomi.png' />
@@ -456,36 +463,6 @@ const ResultsPage = () => {
 
               <FormField
                 control={form.control}
-                name='size'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='text-primary font-medium text-lg'>
-                      Size
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className='p-4 sm:p-6'>
-                          <SelectValue placeholder='Select a size' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {/*  Ideally, sizes should also come from an API or be consistent */}
-                        <SelectItem value='6'>6 inch</SelectItem>
-                        <SelectItem value='8'>8 inch</SelectItem>
-                        <SelectItem value='10'>10 inch</SelectItem>
-                        <SelectItem value='12'>12 inch</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name='layers'
                 render={({ field }) => (
                   <FormItem>
@@ -493,7 +470,7 @@ const ResultsPage = () => {
                       Layers
                     </FormLabel>
                     <Select
-                      onValueChange={handleLayerChange} // Use the layer change handler
+                      onValueChange={handleLayerChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -502,7 +479,6 @@ const ResultsPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {/* Dynamically create options based on layerPrices */}
                         {selectedCake &&
                           selectedCake.layerPrices &&
                           Object.keys(selectedCake.layerPrices).map((layer) => (
@@ -512,26 +488,6 @@ const ResultsPage = () => {
                           ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='icing'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='text-primary font-medium text-lg'>
-                      Icing
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='Enter icing type'
-                        {...field}
-                        className='p-4 sm:p-6 border-[#E3E3E3]'
-                      />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
