@@ -19,7 +19,7 @@ interface CakeCustomizationState {
 export const useCakeCustomization = create<CakeCustomizationState>()(
   persist(
     (set) => ({
-      customization: { flavour: '', size: '', layers: '', icing: '', price: 0 }, // Initialize with price
+      customization: { flavour: [], size: '', layers: '', icing: '', price: 0 }, // Initialize with price
       selectedCakeId: null,
       selectedCake: null,
       setCustomization: (customization) => set(() => ({ customization })),
@@ -28,7 +28,7 @@ export const useCakeCustomization = create<CakeCustomizationState>()(
       reset: () =>
         set(() => ({
           customization: {
-            flavour: '',
+            flavour: [],
             size: '',
             layers: '',
             icing: '',

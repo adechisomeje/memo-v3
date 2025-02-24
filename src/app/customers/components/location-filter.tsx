@@ -33,7 +33,13 @@ import { Calender } from '../../../../public/assets/icons/Calender'
 import { MapPin } from '../../../../public/assets/icons/MapPin'
 import { useState, useEffect } from 'react' // Import useEffect
 import { useQuery, useQueryClient } from '@tanstack/react-query' // Import useQueryClient
-import { getCities, getCountry, getStates } from '@/api/public'
+import {
+  getCities,
+  getCountry,
+  getLocations,
+  getStates,
+  LocationResponse,
+} from '@/api/public'
 import { useDeliveryDetails } from '@/store/deliveryDetails'
 
 const searchFormSchema = z.object({
@@ -41,7 +47,7 @@ const searchFormSchema = z.object({
   country: z.string().min(1, { message: 'Country is required' }),
   state: z.string().min(1, { message: 'State is required' }),
   city: z.string().min(1, { message: 'City is required' }),
-  date: z.date().optional(),
+  date: z.date(),
 })
 
 type SearchFormValues = z.infer<typeof searchFormSchema>
@@ -50,6 +56,23 @@ interface SearchFormProps {
   onSubmit: (data: Omit<SearchFormValues, 'date'> & { date: string }) => void
   className?: string
   variant?: 'default' | 'sheet'
+}
+
+// Helper functions to extract location data
+const extractCountries = (data: LocationResponse['data']) => {
+  return Object.keys(data)
+}
+
+const extractStates = (data: LocationResponse['data'], country: string) => {
+  return Object.keys(data[country]?.states || {})
+}
+
+const extractCities = (
+  data: LocationResponse['data'],
+  country: string,
+  state: string
+) => {
+  return data[country]?.states[state]?.cities || []
 }
 
 const LoadingSelectItem = () => (
@@ -65,7 +88,9 @@ export function SearchForm({
 }: SearchFormProps) {
   const [selectedCountry, setSelectedCountry] = useState<string>('')
   const [selectedState, setSelectedState] = useState<string>('')
-  const queryClient = useQueryClient() // Get the query client
+  const setDeliveryDetails = useDeliveryDetails(
+    (state) => state.setDeliveryDetails
+  )
 
   const form = useForm<SearchFormValues>({
     resolver: zodResolver(searchFormSchema),
@@ -78,60 +103,23 @@ export function SearchForm({
     },
   })
 
-  const countriesQuery = useQuery({
-    queryKey: ['countries'],
-    queryFn: getCountry,
+  // Single query for all location data
+  const locationsQuery = useQuery({
+    queryKey: ['locations'],
+    queryFn: getLocations,
   })
 
-  const statesQuery = useQuery({
-    queryKey: ['states', selectedCountry],
-    queryFn: () => getStates(selectedCountry),
-    enabled: !!selectedCountry,
-  })
+  console.log(locationsQuery)
 
-  const citiesQuery = useQuery({
-    queryKey: ['cities', selectedCountry, selectedState],
-    queryFn: () => getCities(selectedCountry, selectedState),
-    enabled: !!selectedCountry && !!selectedState,
-  })
-
-  // Prefetching logic
-  useEffect(() => {
-    // Prefetch countries on component mount
-    queryClient.prefetchQuery({
-      queryKey: ['countries'],
-      queryFn: getCountry,
-    })
-
-    // Prefetch states when selectedCountry changes
-    if (selectedCountry) {
-      queryClient.prefetchQuery({
-        queryKey: ['states', selectedCountry],
-        queryFn: () => getStates(selectedCountry),
-      })
-    }
-
-    // Prefetch cities when selectedCountry and selectedState change
-    if (selectedCountry && selectedState) {
-      queryClient.prefetchQuery({
-        queryKey: ['cities', selectedCountry, selectedState],
-        queryFn: () => getCities(selectedCountry, selectedState),
-      })
-    }
-  }, [selectedCountry, selectedState, queryClient])
-
-  const setDeliveryDetails = useDeliveryDetails(
-    (state) => state.setDeliveryDetails
-  )
-
-  function handleSubmit(values: SearchFormValues) {
-    const formattedData = {
-      ...values,
-      date: values.date ? format(values.date, 'yyyy-MM-dd') : '',
-    }
-    setDeliveryDetails(formattedData)
-    onSubmit(formattedData)
-  }
+  const locationData = locationsQuery.data?.data || {}
+  const countries = extractCountries(locationData)
+  const states = selectedCountry
+    ? extractStates(locationData, selectedCountry)
+    : []
+  const cities =
+    selectedCountry && selectedState
+      ? extractCities(locationData, selectedCountry, selectedState)
+      : []
 
   const handleCountryChange = (value: string) => {
     setSelectedCountry(value)
@@ -147,7 +135,117 @@ export function SearchForm({
     form.setValue('city', '')
   }
 
-  const handleSearchResults = () => {}
+  function handleSubmit(values: SearchFormValues) {
+    const formattedData = {
+      ...values,
+      date: values.date ? format(values.date, 'yyyy-MM-dd') : '',
+    }
+    setDeliveryDetails(formattedData)
+    onSubmit(formattedData)
+  }
+
+  const renderLocationSelects = () => (
+    <>
+      {/* Country Select */}
+      <FormField
+        control={form.control}
+        name='country'
+        render={({ field }) => (
+          <FormItem>
+            <Select
+              onValueChange={handleCountryChange}
+              value={field.value || 'default'}
+            >
+              <FormControl>
+                <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
+                  <SelectValue placeholder='Country' />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value='default' disabled>
+                  Select a country
+                </SelectItem>
+                {locationsQuery.isLoading ? (
+                  <LoadingSelectItem />
+                ) : (
+                  countries.map((country) => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* State Select */}
+      <FormField
+        control={form.control}
+        name='state'
+        render={({ field }) => (
+          <FormItem>
+            <Select
+              onValueChange={handleStateChange}
+              value={field.value || 'default'}
+              disabled={!selectedCountry}
+            >
+              <FormControl>
+                <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
+                  <SelectValue placeholder='State' />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value='default' disabled>
+                  Select a state
+                </SelectItem>
+                {states.map((state) => (
+                  <SelectItem key={state} value={state}>
+                    {state}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* City Select */}
+      <FormField
+        control={form.control}
+        name='city'
+        render={({ field }) => (
+          <FormItem>
+            <Select
+              onValueChange={field.onChange}
+              value={field.value || 'default'}
+              disabled={!selectedState}
+            >
+              <FormControl>
+                <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
+                  <SelectValue placeholder='City' />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value='default' disabled>
+                  Select a city
+                </SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
+  )
 
   if (variant === 'sheet') {
     return (
@@ -176,7 +274,7 @@ export function SearchForm({
                         type='text'
                         placeholder='Input delivery address'
                         {...field}
-                        className='border-none shadow-none  px-0 placeholder:text-gray-400'
+                        className='border-none shadow-none px-0 placeholder:text-gray-400'
                       />
                     </FormControl>
                   </div>
@@ -186,116 +284,8 @@ export function SearchForm({
             />
 
             {/* Location Selects */}
-            <div className='mt-5 flex flex-col  gap-10'>
-              {/* Country Select */}
-              <FormField
-                control={form.control}
-                name='country'
-                render={({ field }) => (
-                  <FormItem>
-                    <Select
-                      onValueChange={handleCountryChange}
-                      value={field.value || 'default'}
-                    >
-                      <FormControl>
-                        <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
-                          <SelectValue placeholder='Country' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value='default' disabled>
-                          Select a country
-                        </SelectItem>
-                        {countriesQuery.isLoading ? (
-                          <LoadingSelectItem />
-                        ) : (
-                          countriesQuery.data?.countries.map(
-                            (country: string) => (
-                              <SelectItem key={country} value={country}>
-                                {country}
-                              </SelectItem>
-                            )
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </FormItem>
-                )}
-              />
-
-              {/* State Select */}
-              <FormField
-                control={form.control}
-                name='state'
-                render={({ field }) => (
-                  <FormItem>
-                    <Select
-                      onValueChange={handleStateChange}
-                      value={field.value || 'default'}
-                      disabled={!selectedCountry}
-                    >
-                      <FormControl>
-                        <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
-                          <SelectValue placeholder='State' />
-                        </SelectTrigger>
-                      </FormControl>
-
-                      <SelectContent>
-                        <SelectItem value='default' disabled>
-                          Select a state
-                        </SelectItem>
-                        {statesQuery.isLoading ? (
-                          <LoadingSelectItem />
-                        ) : (
-                          statesQuery.data?.states.map((state: string) => (
-                            <SelectItem key={state} value={state}>
-                              {state}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* City Select */}
-              <FormField
-                control={form.control}
-                name='city'
-                render={({ field }) => (
-                  <FormItem>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || 'default'}
-                      disabled={!selectedState}
-                    >
-                      <FormControl>
-                        <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
-                          <SelectValue placeholder='City' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value='default' disabled>
-                          Select a city
-                        </SelectItem>
-                        {citiesQuery.isLoading ? (
-                          <LoadingSelectItem />
-                        ) : (
-                          citiesQuery.data?.cities.map((city: string) => (
-                            <SelectItem key={city} value={city}>
-                              {city}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className='mt-5 flex flex-col gap-10'>
+              {renderLocationSelects()}
             </div>
 
             {/* Date Picker */}
@@ -356,7 +346,7 @@ export function SearchForm({
           className={cn('max-w-6xl mx-auto relative', className)}
         >
           <div className='bg-white rounded-full shadow-lg p-2 md:p-3'>
-            <div className='border-2 border-primary rounded-full  grid md:grid-cols-12 gap-2 md:gap-4 items-center'>
+            <div className='border-2 border-primary rounded-full grid md:grid-cols-12 gap-2 md:gap-4 items-center'>
               {/* Address Input */}
               <FormField
                 control={form.control}
@@ -381,115 +371,7 @@ export function SearchForm({
 
               {/* Location Selects */}
               <div className='md:col-span-7 grid grid-cols-3 gap-2'>
-                {/* Country Select */}
-                <FormField
-                  control={form.control}
-                  name='country'
-                  render={({ field }) => (
-                    <FormItem>
-                      <Select
-                        onValueChange={handleCountryChange}
-                        value={field.value || 'default'}
-                      >
-                        <FormControl>
-                          <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
-                            <SelectValue placeholder='Country' />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value='default' disabled>
-                            Select a country
-                          </SelectItem>
-                          {countriesQuery.isLoading ? (
-                            <LoadingSelectItem />
-                          ) : (
-                            countriesQuery.data?.countries.map(
-                              (country: string) => (
-                                <SelectItem key={country} value={country}>
-                                  {country}
-                                </SelectItem>
-                              )
-                            )
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* State Select */}
-                <FormField
-                  control={form.control}
-                  name='state'
-                  render={({ field }) => (
-                    <FormItem>
-                      <Select
-                        onValueChange={handleStateChange}
-                        value={field.value || 'default'}
-                        disabled={!selectedCountry}
-                      >
-                        <FormControl>
-                          <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
-                            <SelectValue placeholder='State' />
-                          </SelectTrigger>
-                        </FormControl>
-
-                        <SelectContent>
-                          <SelectItem value='default' disabled>
-                            Select a state
-                          </SelectItem>
-                          {statesQuery.isLoading ? (
-                            <LoadingSelectItem />
-                          ) : (
-                            statesQuery.data?.states.map((state: string) => (
-                              <SelectItem key={state} value={state}>
-                                {state}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* City Select */}
-                <FormField
-                  control={form.control}
-                  name='city'
-                  render={({ field }) => (
-                    <FormItem>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value || 'default'}
-                        disabled={!selectedState}
-                      >
-                        <FormControl>
-                          <SelectTrigger className='h-10 text-black border-x-1 rounded-none border-y-0'>
-                            <SelectValue placeholder='City' />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value='default' disabled>
-                            Select a city
-                          </SelectItem>
-                          {citiesQuery.isLoading ? (
-                            <LoadingSelectItem />
-                          ) : (
-                            citiesQuery.data?.cities.map((city: string) => (
-                              <SelectItem key={city} value={city}>
-                                {city}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {renderLocationSelects()}
               </div>
 
               {/* Date Picker */}
@@ -531,7 +413,7 @@ export function SearchForm({
 
           {/* Get Started Button */}
           <div className='flex justify-center mt-8'>
-            <Button onSubmit={handleSearchResults} size='lg' type='submit'>
+            <Button size='lg' type='submit'>
               Get Started
             </Button>
           </div>

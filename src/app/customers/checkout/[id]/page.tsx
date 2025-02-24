@@ -28,6 +28,10 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getCakeProductsByVendor } from '@/api/public'
+import { useVendorStore } from '@/store/vendorStore'
+import { useQuery } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/queries'
 
 const formSchema = z.object({
   note: z.string().optional(),
@@ -60,19 +64,13 @@ interface CartItem {
   price: number
 }
 
-const products = Array(6).fill({
-  image: '/assets/images/cake-sample.svg',
-  title: 'Bouquet Flower',
-  description: 'A fruity rich wine any day',
-  price: 150,
-})
-
 const CheckOutPage = () => {
   const [loading] = useState(false)
   const router = useRouter()
   const selectedCake = useCakeCustomization((state) => state.selectedCake)
   const deliveryDetails = useDeliveryDetails((state) => state.deliveryDetails)
   const cakeCustomization = useCakeCustomization((state) => state.customization)
+  const vendorId = useVendorStore((state) => state.selectedVendorId)
 
   const [otherItems, setOtherItems] = useState<CartItem[]>([])
 
@@ -84,13 +82,19 @@ const CheckOutPage = () => {
     setOtherItems((prevItems) => prevItems.filter((_, i) => i !== index))
   }
 
-  const totalPrice = cakeCustomization
-    ? cakeCustomization.price
-    : selectedCake
-    ? selectedCake.price
-    : 0 // Use customization price, fallback to selectedCake, then 0
+  // Calculate total price based on selected layers
+  const calculateTotalPrice = () => {
+    if (!selectedCake || !cakeCustomization) return 0
+
+    const layersNumber = parseInt(cakeCustomization.layers.toString())
+    const layerPrice = selectedCake.layerPrices[layersNumber]
+
+    return layerPrice || selectedCake.price
+  }
+
+  const totalPrice = calculateTotalPrice()
   const totalWithOtherItems =
-    (totalPrice ?? 0) + otherItems.reduce((sum, item) => sum + item.price, 0)
+    totalPrice + otherItems.reduce((sum, item) => sum + item.price, 0)
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -106,7 +110,6 @@ const CheckOutPage = () => {
     onError: (error) => {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
-          // Store the current URL before redirecting
           localStorage.setItem('redirectAfterSignIn', window.location.pathname)
           toast.info('You have to be signed in first')
           router.push('/sign-in')
@@ -122,15 +125,16 @@ const CheckOutPage = () => {
       toast.error(error.message || 'Something went wrong with the request.')
     },
     onSuccess: (data: CreateOrderResponse) => {
-      window.open(data.authorization_url, '_blank')
+      window.open(data.data.authorization_url, '_blank')
 
       // Optionally, you can redirect to a success page AFTER the user has *potentially* paid.
       // router.push(`/order-success/${data.orderId}`);
       // Consider a success page
 
-      toast.success(data.message)
+      toast.success(data.data.message)
     },
   })
+
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
     if (!selectedCake || !deliveryDetails || !cakeCustomization) {
       toast.error(
@@ -138,17 +142,42 @@ const CheckOutPage = () => {
       )
       return
     }
+
+    // Convert layers to number before sending to API
+    const layersNumber = parseInt(cakeCustomization.layers.toString())
+
     mutation.mutate({
       productId: selectedCake._id,
       note: data.note || '',
       recipientName: data.recipientName,
       recipientPhone: data.recipientPhone,
-      layers: cakeCustomization.layers,
+      layers: layersNumber, // Send the parsed number
       size: selectedCake.size,
       topping: selectedCake.topping,
       flavours: cakeCustomization.flavour,
       deliveryDate: deliveryDetails.date,
     })
+  }
+
+  const { data: vendorProducts } = useQuery({
+    queryKey: [queryKeys.vendorProducts, vendorId],
+    queryFn: () => {
+      console.log('Fetching products for vendorId:', vendorId) // Log the vendorId
+      return vendorId ? getCakeProductsByVendor(vendorId) : null
+    },
+    enabled: !!vendorId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+
+  console.log('vendorProducts:', vendorProducts?.data.cakes)
+
+  if (vendorProducts) {
+    console.log('Number of cakes:', vendorProducts.data.cakes?.length) // Log the number of cakes
+    if (vendorProducts.data.cakes) {
+      vendorProducts.data.cakes.forEach((cake) =>
+        console.log('Cake ID:', cake._id)
+      ) // Log each cake's ID
+    }
   }
 
   if (!selectedCake || !deliveryDetails) {
@@ -212,10 +241,10 @@ const CheckOutPage = () => {
                 {cakeCustomization && (
                   <div className='mt-1 text-sm'>
                     <p className='font-semibold'>
-                      {selectedCake.size} {cakeCustomization.flavour}{' '}
+                      {selectedCake.size} {cakeCustomization.flavour}
                     </p>
                     <p>
-                      {cakeCustomization.layers} layered <strong></strong>
+                      {parseInt(cakeCustomization.layers.toString())} layered
                     </p>
                   </div>
                 )}
@@ -360,9 +389,25 @@ const CheckOutPage = () => {
           <div className='space-y-6'>
             <h2 className='text-xl font-semibold'>Other Items from Vendor</h2>
             <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6'>
-              {products.map((product, index) => (
-                <ProductCard key={index} {...product} onAdd={addToCart} />
-              ))}
+              {vendorProducts?.data.cakes
+                ?.filter((cake) => cake._id !== selectedCake?._id) // Filter out the current cake
+                .map((cake) => (
+                  <ProductCard
+                    key={cake._id}
+                    image={cake.thumbnail}
+                    title={cake.vendorName}
+                    description={`${cake.size} - ${cake.topping}`}
+                    price={cake.price}
+                    onAdd={() =>
+                      addToCart({
+                        image: cake.thumbnail,
+                        title: cake.vendorName,
+                        description: `${cake.size} - ${cake.topping}`,
+                        price: cake.price,
+                      })
+                    }
+                  />
+                ))}
             </div>
           </div>
         </main>

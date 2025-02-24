@@ -44,9 +44,10 @@ import { queryKeys } from '@/lib/queries'
 import { Filter } from '../../../../public/assets/icons/Filter'
 import { StarFill } from '../../../../public/assets/icons/StarRating'
 import { useCakeCustomization } from '@/store/cakeCustomization'
+import { useVendorStore } from '@/store/vendorStore'
 
 const cakeCustomizationSchema = z.object({
-  flavour: z.string().min(1, { message: 'Please select a flavour' }),
+  flavour: z.array(z.string()),
   layers: z.string().min(1, { message: 'Please select number of layers' }),
 })
 
@@ -67,18 +68,31 @@ const ResultsPage = () => {
     (state) => state.setSelectedCakeId
   )
   const selectedCake = useCakeCustomization((state) => state.selectedCake)
+  const setVendorInfo = useVendorStore((state) => state.setVendorInfo)
 
-  const { data: cakeProducts, isLoading } = useQuery({
+  const { data: cakeProductsResponse, isLoading } = useQuery({
     queryKey: queryKeys.cakeProducts,
     queryFn: getCakeProducts,
     staleTime: 5 * 60 * 1000,
   })
 
+  // Access the cakes data through the response structure
+  const cakeProducts = cakeProductsResponse?.data
+
   const handleProductSelect = (product: Cake, type: ProductType) => {
     console.log('Selecting product:', product)
-
     setSelectedCake(product)
     setSelectedCakeId(product._id)
+
+    //x save vendor information
+    setVendorInfo({
+      vendorId: product._id,
+      name: product.vendorName,
+      picture: product.vendorPicture,
+      country: product.vendorCountry,
+      state: product.vendorState,
+      city: product.vendorCity,
+    })
 
     // Set initial layer price based on the base price, or the first layer price if available.
     setSelectedLayerPrice(
@@ -97,7 +111,7 @@ const ResultsPage = () => {
   const form = useForm<CakeCustomizationSchema>({
     resolver: zodResolver(cakeCustomizationSchema),
     defaultValues: {
-      flavour: '',
+      flavour: [],
       layers: '',
       // icing: 'Buttercream',
     },
@@ -111,13 +125,15 @@ const ResultsPage = () => {
 
       // Set default values for the form
       form.reset({
-        flavour: selectedCake.flavours[0] || '',
+        flavour: selectedCake.flavours,
         layers: firstLayer,
       })
 
+      // Convert string to number for layerPrices access
+      const layerNumber = parseInt(firstLayer)
       setSelectedLayerPrice(
         selectedCake.layerPrices
-          ? selectedCake.layerPrices[firstLayer] ?? selectedCake.price
+          ? selectedCake.layerPrices[layerNumber] ?? selectedCake.price
           : selectedCake.price
       )
     }
@@ -139,10 +155,11 @@ const ResultsPage = () => {
   // Function to handle layer changes and update the price.
   const handleLayerChange = (layer: string) => {
     if (selectedCake && selectedCake.layerPrices) {
-      const priceForLayer = selectedCake.layerPrices[layer]
+      const layerNumber = parseInt(layer)
+      const priceForLayer = selectedCake.layerPrices[layerNumber]
       setSelectedLayerPrice(priceForLayer ?? selectedCake.price)
     }
-    form.setValue('layers', layer) // Update the form value
+    form.setValue('layers', layer)
   }
 
   async function onSubmit(data: CakeCustomizationSchema) {
@@ -242,7 +259,7 @@ const ResultsPage = () => {
                                   <div className='flex justify-between items-center'>
                                     <span>Layers:</span>
                                     <span className='font-semibold'>
-                                      {cake.layerPrices[0]} Layers
+                                      {Object.keys(cake.layerPrices)[0]} Layers
                                     </span>
                                   </div>
                                   <div className='flex justify-between items-center'>
@@ -437,24 +454,30 @@ const ResultsPage = () => {
                     <FormLabel className='text-primary font-medium text-lg'>
                       Flavour
                     </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className='p-4 sm:p-6'>
-                          <SelectValue placeholder='Select a flavour' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {/* Map through selectedCake.flavours */}
-                        {selectedCake?.flavours.map((flavour) => (
-                          <SelectItem key={flavour} value={flavour}>
+                    <FormControl>
+                      <div className='flex flex-wrap gap-2'>
+                        {selectedCake?.flavours.map((flavour: string) => (
+                          <Button
+                            key={flavour}
+                            type='button'
+                            variant={
+                              field.value.includes(flavour)
+                                ? 'default'
+                                : 'outline'
+                            }
+                            onClick={() => {
+                              const newValue = field.value.includes(flavour)
+                                ? field.value.filter((f) => f !== flavour)
+                                : [...field.value, flavour]
+                              field.onChange(newValue)
+                              console.log(flavour)
+                            }}
+                          >
                             {flavour}
-                          </SelectItem>
+                          </Button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -480,11 +503,13 @@ const ResultsPage = () => {
                       <SelectContent>
                         {selectedCake &&
                           selectedCake.layerPrices &&
-                          Object.keys(selectedCake.layerPrices).map((layer) => (
-                            <SelectItem key={layer} value={layer}>
-                              {layer} Layers
-                            </SelectItem>
-                          ))}
+                          Object.entries(selectedCake.layerPrices).map(
+                            ([layer, price]) => (
+                              <SelectItem key={layer} value={layer}>
+                                {layer} Layers (${price})
+                              </SelectItem>
+                            )
+                          )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

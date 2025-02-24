@@ -102,7 +102,6 @@ const SignUpForm = () => {
 
   return (
     <div className='space-y-6'>
-      {/* Social Login Buttons */}
       <div className='flex justify-center items-center'>
         <Button variant='outline' className='border-input'>
           <Google />
@@ -119,7 +118,6 @@ const SignUpForm = () => {
         </div>
       </div>
 
-      {/* Login Form */}
       <div className='space-y-4'>
         <Form {...form}>
           <form

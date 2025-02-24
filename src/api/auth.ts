@@ -1,4 +1,4 @@
-import { axiosClient } from '.'
+import { ApiResponse, axiosClient } from '.'
 
 interface Buyer {
   id: string
@@ -10,15 +10,20 @@ interface Buyer {
 
 interface AuthResponse {
   message: string
-  token: string
-  user: Buyer
+  data: {
+    token: string
+    user: Buyer
+  }
 }
 
 type SignUpResponse = AuthResponse
 type SignInResponse = AuthResponse
 
 export async function buyerLogin(data: { email: string; password: string }) {
-  const response = await axiosClient.post<SignInResponse>('/auth/signin', data)
+  const response = await axiosClient.post<ApiResponse<SignInResponse>>(
+    '/auth/signin',
+    data
+  )
 
   return response.data
 }
@@ -30,7 +35,10 @@ export async function register(data: {
   phone: string
   password: string
 }) {
-  const response = await axiosClient.post<SignUpResponse>('/auth/signup', data)
+  const response = await axiosClient.post<ApiResponse<SignInResponse>>(
+    '/auth/signup',
+    data
+  )
 
   return response.data
 }

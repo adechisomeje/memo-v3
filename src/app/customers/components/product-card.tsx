@@ -32,7 +32,7 @@ export function ProductCard({
     onAdd({ image, title, description, price })
     toast.success(`${title} added to cart`)
   }
-  console.log(isHovered)
+  // console.log(isHovered) // Remove or comment out if not needed
 
   return (
     <div
@@ -43,15 +43,14 @@ export function ProductCard({
     >
       <div className='aspect-square relative overflow-hidden rounded-xl'>
         <Image
-          src={'/assets/images/cake-sample.svg'}
+          src={image} // Use the image prop, not a hardcoded path
           alt={title}
-          width={300}
-          height={300}
-          className='object-cover w-full h-full'
+          fill // Use fill for responsive images, remove width and height
+          className='object-cover' // object-cover is usually sufficient
         />
         <div className='absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center'>
           <Plus className='text-white w-8 h-8' />
-          <span className='text-white ml-2 font-medium'>Add</span>
+          {/* Removed extra span, added directly to the button */}
         </div>
       </div>
       <div className='mt-2'>

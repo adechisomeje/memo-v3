@@ -1,9 +1,17 @@
-import { axiosClient } from '.'
+import { axiosClient, ApiResponse } from '.'
 
+interface CakeResponseData {
+  message: string
+  page: number
+  totalPages: number
+  totalCount: number
+  cakes: Cake[]
+}
 export interface Cake {
   _id: string
   thumbnail: string
   price: number
+  vendorId: string
   vendorName: string
   vendorPicture: string
   vendorCountry: string
@@ -13,54 +21,80 @@ export interface Cake {
   flavours: string[]
   topping: string
   layers: number
-  layerPrices: Record<string, number>
+  layerPrices: {
+    [key: number]: number
+  }
 }
 
-export interface CakeResponse {
+export type LocationResponse = {
+  statusCode: number
+  data: {
+    [country: string]: {
+      states: {
+        [state: string]: {
+          cities: string[]
+        }
+      }
+    }
+  }
   message: string
-  page: number
-  totalPages: number
-  totalCount: number
-  cakes: Cake[]
 }
 
 export interface VendorCountriesResponse {
-  message: string
   countries: string[]
 }
 
 export interface VendorStatesResponse {
-  message: string
   states: string[]
 }
 
 export interface VendorCitiesResponse {
-  message: string
   cities: string[]
 }
 
-export async function getCountry() {
-  const response = await axiosClient.get<VendorCountriesResponse>(
-    '/public/vendors/countries'
+export async function getLocations() {
+  console.log('hisjsjsksj djksdnjdn')
+  const response = await axiosClient.get<LocationResponse>(
+    '/vendors/public/location-hierarchy'
   )
+
+  console.log(response.data)
+
+  return response.data
+}
+
+export async function getCountry() {
+  const response = await axiosClient.get<ApiResponse<VendorCountriesResponse>>(
+    '/vendors/public/countries'
+  )
+
   return response.data
 }
 
 export async function getStates(country: string) {
-  const response = await axiosClient.get<VendorStatesResponse>(
-    `/public/vendors/states?country=${country}`
+  const response = await axiosClient.get<ApiResponse<VendorStatesResponse>>(
+    `/vendors/public/states?country=${country}`
   )
   return response.data
 }
 
 export async function getCities(country: string, state: string) {
-  const response = await axiosClient.get<VendorCitiesResponse>(
-    `/public/vendors/cities?country=${country}&state=${state}`
+  const response = await axiosClient.get<ApiResponse<VendorCitiesResponse>>(
+    `/vendors/public/cities?country=${country}&state=${state}`
   )
   return response.data
 }
 
 export async function getCakeProducts() {
-  const response = await axiosClient.get<CakeResponse>('/public/products/cakes')
+  const response = await axiosClient.get<ApiResponse<CakeResponseData>>(
+    '/cakes/public'
+  )
+  return response.data
+}
+
+export async function getCakeProductsByVendor(vendorId: string) {
+  const response = await axiosClient.get<ApiResponse<CakeResponseData>>(
+    `/cakes/vendor/${vendorId}/public`
+  )
   return response.data
 }
