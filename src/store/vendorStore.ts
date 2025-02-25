@@ -37,6 +37,7 @@ export const useVendorStore = create<VendorState>()(
         vendorState: info.state,
         vendorCity: info.city,
       }),
+
     clearVendorInfo: () =>
       set({
         selectedVendorId: null,

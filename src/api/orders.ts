@@ -1,4 +1,4 @@
-import { ApiResponse, axiosClient } from '.'
+import { axiosClient } from '.'
 
 export interface CreateOrderResponse {
   data: {
@@ -10,6 +10,7 @@ export interface CreateOrderResponse {
 
 export async function userCreateOrder(data: {
   productId: string
+  productCategory: string
   note: string
   recipientName: string
   recipientPhone: string

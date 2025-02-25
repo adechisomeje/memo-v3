@@ -23,8 +23,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           })
           // Return the full user object, including the token
           return {
-            ...res.data?.data.user, // Spread the user properties
-            token: res.data?.data.token, // Include the access token
+            ...res.data.user, // Spread the user properties
+            token: res.data.token, // Include the access token
           } as User
         } catch (error) {
           console.log(error)

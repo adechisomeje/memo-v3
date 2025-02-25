@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Sheet, SheetContent, SheetHeader } from '@/components/ui/sheet'
 import {
   Form,
@@ -23,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import Image from 'next/image'
-import { Info, Loader2, Star } from 'lucide-react'
+import { Info, Star } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Pagination,
@@ -58,7 +57,6 @@ type ProductType = 'cakes' | 'gifts' | 'flowers'
 const ResultsPage = () => {
   const router = useRouter()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0)
   const setCustomization = useCakeCustomization(
     (state) => state.setCustomization
@@ -84,9 +82,8 @@ const ResultsPage = () => {
     setSelectedCake(product)
     setSelectedCakeId(product._id)
 
-    //x save vendor information
     setVendorInfo({
-      vendorId: product._id,
+      vendorId: product.vendorId,
       name: product.vendorName,
       picture: product.vendorPicture,
       country: product.vendorCountry,
@@ -148,7 +145,6 @@ const ResultsPage = () => {
     setCustomization(dataWithPrice) // Now it matches the store's type
 
     setIsSheetOpen(false)
-    setIsModalOpen(true)
     router.push(`/customers/checkout/${selectedCake?._id}`)
   }
 
@@ -527,19 +523,6 @@ const ResultsPage = () => {
               </small>
             </form>
           </Form>
-
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent className='sm:max-w-md flex flex-col items-center justify-center py-12'>
-              <DialogTitle>
-                <div className='flex flex-col items-center gap-4'>
-                  <Loader2 className='h-8 w-8 animate-spin text-primary' />
-                  <p className='text-center text-lg'>
-                    The vendor is reviewing your request.
-                  </p>
-                </div>
-              </DialogTitle>
-            </DialogContent>
-          </Dialog>
         </SheetContent>
       </Sheet>
     </>

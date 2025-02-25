@@ -20,10 +20,7 @@ type SignUpResponse = AuthResponse
 type SignInResponse = AuthResponse
 
 export async function buyerLogin(data: { email: string; password: string }) {
-  const response = await axiosClient.post<ApiResponse<SignInResponse>>(
-    '/auth/signin',
-    data
-  )
+  const response = await axiosClient.post<SignInResponse>('/auth/signin', data)
 
   return response.data
 }

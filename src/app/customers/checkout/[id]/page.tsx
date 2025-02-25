@@ -28,7 +28,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getCakeProductsByVendor } from '@/api/public'
+import { CakeData, getCakeProductsByVendor } from '@/api/public'
 import { useVendorStore } from '@/store/vendorStore'
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queries'
@@ -73,6 +73,8 @@ const CheckOutPage = () => {
   const vendorId = useVendorStore((state) => state.selectedVendorId)
 
   const [otherItems, setOtherItems] = useState<CartItem[]>([])
+
+  console.log(vendorId)
 
   const addToCart = (product: CartItem) => {
     setOtherItems((prevItems) => [...prevItems, product])
@@ -148,6 +150,7 @@ const CheckOutPage = () => {
 
     mutation.mutate({
       productId: selectedCake._id,
+      productCategory: 'cake',
       note: data.note || '',
       recipientName: data.recipientName,
       recipientPhone: data.recipientPhone,
@@ -169,16 +172,16 @@ const CheckOutPage = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
-  console.log('vendorProducts:', vendorProducts?.data.cakes)
+  console.log('vendorProducts:', vendorProducts)
 
-  if (vendorProducts) {
-    console.log('Number of cakes:', vendorProducts.data.cakes?.length) // Log the number of cakes
-    if (vendorProducts.data.cakes) {
-      vendorProducts.data.cakes.forEach((cake) =>
-        console.log('Cake ID:', cake._id)
-      ) // Log each cake's ID
-    }
-  }
+  // if (vendorProducts) {
+  //   console.log('Number of cakes:', vendorProducts.data) // Log the number of cakes
+  //   if (vendorProducts.data) {
+  //     vendorProducts.data.forEach((cake: string) =>
+  //       console.log('Cake ID:', cake._id)
+  //     ) // Log each cake's ID
+  //   }
+  // }
 
   if (!selectedCake || !deliveryDetails) {
     router.push('/customers/results')
@@ -389,23 +392,25 @@ const CheckOutPage = () => {
           <div className='space-y-6'>
             <h2 className='text-xl font-semibold'>Other Items from Vendor</h2>
             <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6'>
-              {vendorProducts?.data.cakes
-                ?.filter((cake) => cake._id !== selectedCake?._id) // Filter out the current cake
-                .map((cake) => (
+              {vendorProducts
+                ?.filter((data: CakeData) => data._id !== selectedCake?._id) // Filter out the current cake
+                .map((data: CakeData) => (
                   <ProductCard
-                    key={cake._id}
-                    image={cake.thumbnail}
-                    title={cake.vendorName}
-                    description={`${cake.size} - ${cake.topping}`}
-                    price={cake.price}
+                    key={data._id}
+                    image={data.thumbnail}
+                    title={data.vendorName}
+                    description={`${data.size} - ${data.topping}`}
+                    price={data.price}
                     onAdd={() =>
                       addToCart({
-                        image: cake.thumbnail,
-                        title: cake.vendorName,
-                        description: `${cake.size} - ${cake.topping}`,
-                        price: cake.price,
+                        image: data.thumbnail,
+                        title: data.vendorName,
+                        description: `${data.size} - ${data.topping}`,
+                        price: data.price,
                       })
                     }
+                    // Add this if you want to make cakes selectable
+                    // onClick={() => setSelectedCake(data)}
                   />
                 ))}
             </div>

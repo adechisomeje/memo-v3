@@ -31,15 +31,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { Calender } from '../../../../public/assets/icons/Calender'
 import { MapPin } from '../../../../public/assets/icons/MapPin'
-import { useState, useEffect } from 'react' // Import useEffect
-import { useQuery, useQueryClient } from '@tanstack/react-query' // Import useQueryClient
-import {
-  getCities,
-  getCountry,
-  getLocations,
-  getStates,
-  LocationResponse,
-} from '@/api/public'
+import { useState } from 'react' // Import useEffect
+import { useQuery } from '@tanstack/react-query' // Import useQueryClient
+import { getLocations, LocationResponse } from '@/api/public'
 import { useDeliveryDetails } from '@/store/deliveryDetails'
 
 const searchFormSchema = z.object({

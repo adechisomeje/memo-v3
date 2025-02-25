@@ -7,6 +7,24 @@ interface CakeResponseData {
   totalCount: number
   cakes: Cake[]
 }
+
+export interface CakeData {
+  // filter: any
+  _id: string
+  thumbnail: string
+  price: number
+  vendorId: string
+  vendorName: string
+  vendorPicture: string
+  vendorCountry: string
+  vendorState: string
+  vendorCity: string
+  size: string
+  flavours: string[]
+  topping: string
+  layers: number
+  layerPrices: Record<string, number>
+}
 export interface Cake {
   _id: string
   thumbnail: string
@@ -26,6 +44,11 @@ export interface Cake {
   }
 }
 
+export interface VendorProductsResponse {
+  statusCode: number
+  data: CakeData[] // This is your array of products
+  message: string
+}
 export type LocationResponse = {
   statusCode: number
   data: {
@@ -93,8 +116,8 @@ export async function getCakeProducts() {
 }
 
 export async function getCakeProductsByVendor(vendorId: string) {
-  const response = await axiosClient.get<ApiResponse<CakeResponseData>>(
+  const response = await axiosClient.get<ApiResponse<CakeData[]>>(
     `/cakes/vendor/${vendorId}/public`
   )
-  return response.data
+  return response.data.data
 }

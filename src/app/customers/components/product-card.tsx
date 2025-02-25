@@ -27,6 +27,7 @@ export function ProductCard({
   onAdd,
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
+  console.log(isHovered)
 
   const handleAdd = () => {
     onAdd({ image, title, description, price })
