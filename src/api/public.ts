@@ -46,7 +46,7 @@ export interface Cake {
 
 export interface VendorProductsResponse {
   statusCode: number
-  data: CakeData[] // This is your array of products
+  data: CakeData[]
   message: string
 }
 export type LocationResponse = {
@@ -76,7 +76,6 @@ export interface VendorCitiesResponse {
 }
 
 export async function getLocations() {
-  console.log('hisjsjsksj djksdnjdn')
   const response = await axiosClient.get<LocationResponse>(
     '/vendors/public/location-hierarchy'
   )
@@ -118,6 +117,13 @@ export async function getCakeProducts() {
 export async function getCakeProductsByVendor(vendorId: string) {
   const response = await axiosClient.get<ApiResponse<CakeData[]>>(
     `/cakes/vendor/${vendorId}/public`
+  )
+  return response.data.data
+}
+
+export async function getVendorReviews(vendorId: string) {
+  const response = await axiosClient.get<ApiResponse<CakeData[]>>(
+    `/reviews/vendor/${vendorId}`
   )
   return response.data.data
 }

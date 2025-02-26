@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,6 +32,12 @@ import { CakeData, getCakeProductsByVendor } from '@/api/public'
 import { useVendorStore } from '@/store/vendorStore'
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queries'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 const formSchema = z.object({
   note: z.string().optional(),
@@ -58,26 +64,71 @@ const formSchema = z.object({
 })
 
 interface CartItem {
+  id: string
   image: string
   title: string
   description: string
   price: number
+  quantity: number
 }
 
 const CheckOutPage = () => {
-  const [loading] = useState(false)
+  const [otherItems, setOtherItems] = useState<CartItem[]>([])
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const router = useRouter()
   const selectedCake = useCakeCustomization((state) => state.selectedCake)
   const deliveryDetails = useDeliveryDetails((state) => state.deliveryDetails)
   const cakeCustomization = useCakeCustomization((state) => state.customization)
   const vendorId = useVendorStore((state) => state.selectedVendorId)
 
-  const [otherItems, setOtherItems] = useState<CartItem[]>([])
+  // Set up payment success listener using window events
+  useEffect(() => {
+    // Function to handle payment success message from the payment iframe
+    const handlePaymentMessage = (event: MessageEvent) => {
+      // Check if the message is from your payment provider
+      // You might need to adjust this based on the payment provider's domain
+      if (event.data && typeof event.data === 'string') {
+        if (
+          event.data.includes('success') ||
+          event.data.includes('status=successful') ||
+          event.data.includes('payment_successful')
+        ) {
+          handlePaymentSuccess()
+        }
+      }
+    }
 
-  console.log(vendorId)
+    // Listen for messages from the iframe
+    window.addEventListener('message', handlePaymentMessage)
 
-  const addToCart = (product: CartItem) => {
-    setOtherItems((prevItems) => [...prevItems, product])
+    // Clean up the event listener
+    return () => {
+      window.removeEventListener('message', handlePaymentMessage)
+    }
+  }, [])
+
+  // Function to handle successful payment
+  const handlePaymentSuccess = () => {
+    handleClosePayment()
+    router.replace('/customers/success')
+  }
+
+  const addToCart = (product: Omit<CartItem, 'quantity'>) => {
+    setOtherItems((prevItems) => {
+      const existingItem = prevItems.find((item) => item.id === product.id)
+
+      if (existingItem) {
+        return prevItems.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        )
+      }
+
+      // Add new item with quantity 1
+      return [...prevItems, { ...product, quantity: 1 }]
+    })
   }
 
   const removeFromCart = (index: number) => {
@@ -107,6 +158,32 @@ const CheckOutPage = () => {
     },
   })
 
+  const handleClosePayment = () => {
+    setPaymentUrl(null)
+    setIsPaymentOpen(false)
+  }
+
+  // Check URL changes in the iframe
+  const handleIframeLoad = (e: React.SyntheticEvent<HTMLIFrameElement>) => {
+    try {
+      // Try to get the current URL of the iframe
+      const iframe = e.target as HTMLIFrameElement
+      const iframeUrl = iframe.contentWindow?.location.href
+
+      if (iframeUrl) {
+        if (
+          iframeUrl.includes('success') ||
+          iframeUrl.includes('status=successful')
+        ) {
+          handlePaymentSuccess()
+        }
+      }
+    } catch (error) {
+      // Cross-origin error is expected for security reasons
+      console.log('Cannot access iframe URL due to same-origin policy', error)
+    }
+  }
+
   const mutation = useMutation({
     mutationFn: userCreateOrder,
     onError: (error) => {
@@ -124,15 +201,10 @@ const CheckOutPage = () => {
       } else {
         toast.error(error.message ?? 'Something went wrong')
       }
-      toast.error(error.message || 'Something went wrong with the request.')
     },
     onSuccess: (data: CreateOrderResponse) => {
-      window.open(data.data.authorization_url, '_blank')
-
-      // Optionally, you can redirect to a success page AFTER the user has *potentially* paid.
-      // router.push(`/order-success/${data.orderId}`);
-      // Consider a success page
-
+      setPaymentUrl(data.data.authorization_url)
+      setIsPaymentOpen(true)
       toast.success(data.data.message)
     },
   })
@@ -145,8 +217,14 @@ const CheckOutPage = () => {
       return
     }
 
-    // Convert layers to number before sending to API
     const layersNumber = parseInt(cakeCustomization.layers.toString())
+
+    // Transform otherItems into the required additionalProducts format
+    const additionalProducts = otherItems.map((item) => ({
+      productId: item.id,
+      productCategory: 'cake',
+      quantity: item.quantity,
+    }))
 
     mutation.mutate({
       productId: selectedCake._id,
@@ -154,34 +232,23 @@ const CheckOutPage = () => {
       note: data.note || '',
       recipientName: data.recipientName,
       recipientPhone: data.recipientPhone,
-      layers: layersNumber, // Send the parsed number
+      layers: layersNumber,
       size: selectedCake.size,
       topping: selectedCake.topping,
       flavours: cakeCustomization.flavour,
       deliveryDate: deliveryDetails.date,
+      additionalProducts,
     })
   }
 
   const { data: vendorProducts } = useQuery({
     queryKey: [queryKeys.vendorProducts, vendorId],
     queryFn: () => {
-      console.log('Fetching products for vendorId:', vendorId) // Log the vendorId
       return vendorId ? getCakeProductsByVendor(vendorId) : null
     },
     enabled: !!vendorId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
-
-  console.log('vendorProducts:', vendorProducts)
-
-  // if (vendorProducts) {
-  //   console.log('Number of cakes:', vendorProducts.data) // Log the number of cakes
-  //   if (vendorProducts.data) {
-  //     vendorProducts.data.forEach((cake: string) =>
-  //       console.log('Cake ID:', cake._id)
-  //     ) // Log each cake's ID
-  //   }
-  // }
 
   if (!selectedCake || !deliveryDetails) {
     router.push('/customers/results')
@@ -206,7 +273,9 @@ const CheckOutPage = () => {
     <>
       <div className='px-4 sm:px-6 lg:px-10'>
         <main className='max-w-7xl mx-auto py-8'>
+          {/* Content remains the same */}
           <div className='grid lg:grid-cols-2 gap-8 mb-12'>
+            {/* Left column with cake image */}
             <div>
               <div className='relative rounded-2xl overflow-hidden h-72 sm:h-96 max-w-lg mx-auto'>
                 <Image
@@ -254,6 +323,7 @@ const CheckOutPage = () => {
               </div>
             </div>
 
+            {/* Right column with checkout form */}
             <div className='space-y-6'>
               <div className='space-y-4'>
                 <div className='flex flex-col sm:flex-row justify-between gap-4'>
@@ -346,8 +416,16 @@ const CheckOutPage = () => {
                     className='w-full mt-10'
                     size='lg'
                   >
-                    {loading ? 'Loading...' : ' PROCEED TO PAY '}(
-                    {formatPrice(totalWithOtherItems + 120)})
+                    {mutation.isPending ? (
+                      <div className='flex items-center justify-center'>
+                        <span className='animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full'></span>
+                      </div>
+                    ) : (
+                      <>
+                        PROCEED TO PAY ({formatPrice(totalWithOtherItems + 120)}
+                        )
+                      </>
+                    )}
                   </Button>
                 </Form>
               </div>
@@ -383,9 +461,6 @@ const CheckOutPage = () => {
                 </div>
 
                 <ReviewButton vendorId='ajasco-cakes' reviewCount={5} />
-                <Button variant='outline' className='w-full p-4 sm:p-6'>
-                  Message Vendor
-                </Button>
               </div>
             </div>
           </div>
@@ -393,30 +468,93 @@ const CheckOutPage = () => {
             <h2 className='text-xl font-semibold'>Other Items from Vendor</h2>
             <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6'>
               {vendorProducts
-                ?.filter((data: CakeData) => data._id !== selectedCake?._id) // Filter out the current cake
+                ?.filter((data: CakeData) => data._id !== selectedCake?._id)
                 .map((data: CakeData) => (
                   <ProductCard
                     key={data._id}
+                    id={data._id}
                     image={data.thumbnail}
                     title={data.vendorName}
                     description={`${data.size} - ${data.topping}`}
                     price={data.price}
                     onAdd={() =>
                       addToCart({
+                        id: data._id,
                         image: data.thumbnail,
                         title: data.vendorName,
                         description: `${data.size} - ${data.topping}`,
                         price: data.price,
                       })
                     }
-                    // Add this if you want to make cakes selectable
-                    // onClick={() => setSelectedCake(data)}
                   />
                 ))}
             </div>
           </div>
         </main>
       </div>
+
+      {paymentUrl && (
+        <Dialog
+          open={isPaymentOpen}
+          onOpenChange={(open) => !open && handleClosePayment()}
+        >
+          <DialogContent className='max-w-3xl h-[80vh] p-0 flex flex-col'>
+            <DialogHeader className='p-4 flex justify-between items-center border-b'>
+              <DialogTitle className='font-semibold'>
+                Complete Payment
+              </DialogTitle>
+            </DialogHeader>
+            <div className='flex-1 relative'>
+              <iframe
+                src={paymentUrl}
+                className='w-full h-full'
+                frameBorder='0'
+                allow='payment'
+                onLoad={handleIframeLoad}
+                // Add this script to attempt to communicate with parent window
+                srcDoc={`
+                  <html>
+                    <head>
+                      <script>
+                        // Listen for URL changes
+                        function checkForSuccessAndNotify() {
+                          if (window.location.href.includes('success') || 
+                              window.location.href.includes('status=successful')) {
+                            // Send message to parent
+                            window.parent.postMessage('payment_successful', '*');
+                          }
+                        }
+                        
+                        // Check on page load
+                        window.addEventListener('load', checkForSuccessAndNotify);
+                        
+                        // Check on URL changes
+                        const originalPushState = history.pushState;
+                        history.pushState = function() {
+                          originalPushState.apply(this, arguments);
+                          checkForSuccessAndNotify();
+                        };
+                        
+                        const originalReplaceState = history.replaceState;
+                        history.replaceState = function() {
+                          originalReplaceState.apply(this, arguments);
+                          checkForSuccessAndNotify();
+                        };
+                      </script>
+                    </head>
+                    <body>
+                      <script>
+                        // Redirect to the payment URL
+                        window.location.href = "${paymentUrl}";
+                      </script>
+                    </body>
+                  </html>
+                `}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   )
 }

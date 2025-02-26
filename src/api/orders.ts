@@ -19,6 +19,11 @@ export async function userCreateOrder(data: {
   topping: string
   flavours: string[]
   deliveryDate: string
+  additionalProducts: {
+    productId: string
+    productCategory: string
+    quantity: number
+  }[]
 }) {
   const response = await axiosClient.post<CreateOrderResponse>('/orders', data)
 

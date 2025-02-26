@@ -270,14 +270,14 @@ const ResultsPage = () => {
                                     <span className='text-sm text-muted-foreground'>
                                       Delivery estimate:
                                     </span>
-                                    <span className='font-semibold'>$400</span>
+                                    <span className='font-semibold'>$120</span>
                                   </div>
                                   <div className='flex justify-between items-center pt-2 border-t'>
                                     <span className='text-sm font-medium'>
                                       TOTAL:
                                     </span>
                                     <span className='font-bold'>
-                                      ${cake.price + 400}
+                                      ${cake.price + 120}
                                     </span>
                                   </div>
                                 </div>
@@ -394,13 +394,13 @@ const ResultsPage = () => {
                 <span className='text-sm text-muted-foreground'>
                   Delivery estimate:
                 </span>
-                <span className='font-semibold'>$400</span>
+                <span className='font-semibold'>$120</span>
               </div>
               <div className='flex justify-between items-center pt-2 border-t'>
                 <span className='text-sm font-medium'>TOTAL:</span>
                 <span className='font-bold'>
                   {/* Calculate based on selectedLayerPrice */}$
-                  {selectedLayerPrice + 400}
+                  {selectedLayerPrice + 120}
                 </span>
               </div>
 

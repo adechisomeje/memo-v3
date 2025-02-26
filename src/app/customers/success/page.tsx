@@ -2,6 +2,7 @@ import React from 'react'
 
 import Link from 'next/link'
 import { CheckCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 const SuccessPage = () => {
   return (
@@ -13,13 +14,10 @@ const SuccessPage = () => {
         </h1>
         <p className='text-gray-600 mb-8'>
           Thank you for your payment. Your transaction has been completed
-          successfully.
+          successfully, to see your order timeline, please go to your dashboard
         </p>
-        <Link
-          href='/customers/dashboard/orders'
-          className='inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors'
-        >
-          Go to Dashboard
+        <Link href='/customers/dashboard/orders'>
+          <Button size='lg'> Go to Dashboard</Button>
         </Link>
       </div>
     </div>
