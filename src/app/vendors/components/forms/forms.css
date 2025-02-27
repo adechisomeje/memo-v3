@@ -1,0 +1,17 @@
+/* Override Radix Popover Wrapper */
+[data-radix-popper-content-wrapper] {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  min-width: auto !important;
+  z-index: 50 !important;
+}
+
+/* Override Radix Popover Content */
+[data-side][data-state="open"] {
+  width: 500px !important; /* Adjust as needed */
+  background-color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1) !important;
+}

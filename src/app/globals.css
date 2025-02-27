@@ -56,6 +56,7 @@
     --chart-5: 340 75% 55%
   }
 }
+
 @layer base {
   * {
     @apply border-border;
@@ -81,5 +82,75 @@
 /* Optional: Pause animation on hover */
 .animate-carousel:hover {
   animation-play-state: paused;
+}
+
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 2;
+  background: #4e3a3b4b;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+
+
+
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 300ms ease-out forwards;
+}
+
+.animate-slide-out {
+  animation: slideOut 300ms ease-in forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 300ms ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: fadeOut 300ms ease-in forwards;
 }
 

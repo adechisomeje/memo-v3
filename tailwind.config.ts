@@ -12,6 +12,19 @@ const config: Config = {
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
+			"neutral-30": "#474747",
+			"accent-primary": "#C1121F",
+			"accent-0": "#1D1D1D",
+			"accent-99": "#FFFBFA",
+			"accent-90": "#FFD5CB",
+			"accent-95": "#FFEAE4",
+			"accent-30": "#900A14",
+			"accent-20": "#640D0D",
+			"SEC-80": "#CDC6B6",
+			"SEC-10": "#1E1B16",
+			"SEC-99": "#FDFCFB",
+			"SEC-95": "#F3F0EC",
+			"SEC-Main": "#FDF0D5",
   			card: {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
@@ -34,7 +47,8 @@ const config: Config = {
   			},
   			accent: {
   				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
+  				foreground: 'hsl(var(--accent-foreground))',
+				10: "#370E06"
   			},
   			destructive: {
   				DEFAULT: 'hsl(var(--destructive))',
