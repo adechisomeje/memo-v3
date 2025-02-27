@@ -41,9 +41,11 @@ import { Cake, getCakeProducts } from '@/api/public'
 import CakeCardSkeleton from '../components/cake-card-skeleton'
 import { queryKeys } from '@/lib/queries'
 import { Filter } from '../../../../public/assets/icons/Filter'
-import { StarFill } from '../../../../public/assets/icons/StarRating'
+import { StarEmpty } from '../../../../public/assets/icons/StarRating'
 import { useCakeCustomization } from '@/store/cakeCustomization'
 import { useVendorStore } from '@/store/vendorStore'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const cakeCustomizationSchema = z.object({
   flavour: z.array(z.string()),
@@ -255,7 +257,8 @@ const ResultsPage = () => {
                                   <div className='flex justify-between items-center'>
                                     <span>Layers:</span>
                                     <span className='font-semibold'>
-                                      {Object.keys(cake.layerPrices)[0]} Layers
+                                      {Object.keys(cake.layerPrices)[0]}{' '}
+                                      Layer(s)
                                     </span>
                                   </div>
                                   <div className='flex justify-between items-center'>
@@ -301,7 +304,7 @@ const ResultsPage = () => {
                                     <div className='flex items-center gap-1'>
                                       <div className='flex'>
                                         {[...Array(5)].map((_, i) => (
-                                          <StarFill
+                                          <StarEmpty
                                             key={i}
                                             className={` ${
                                               i < 5
@@ -312,10 +315,7 @@ const ResultsPage = () => {
                                         ))}
                                       </div>
                                       <span className='text-sm font-medium'>
-                                        4.9
-                                      </span>
-                                      <span className='text-sm text-muted-foreground'>
-                                        (1k+)
+                                        {cake.vendorAverageRating}
                                       </span>
                                     </div>
                                   </div>
@@ -429,8 +429,9 @@ const ResultsPage = () => {
                         />
                       ))}
                     </div>
-                    <span className='text-sm font-medium'>4.9</span>
-                    <span className='text-sm text-muted-foreground'>(1k+)</span>
+                    <span className='text-sm font-medium'>
+                      {selectedCake?.vendorAverageRating}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -442,43 +443,6 @@ const ResultsPage = () => {
               onSubmit={form.handleSubmit(onSubmit)}
               className='space-y-4 mt-8'
             >
-              <FormField
-                control={form.control}
-                name='flavour'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='text-primary font-medium text-lg'>
-                      Flavour
-                    </FormLabel>
-                    <FormControl>
-                      <div className='flex flex-wrap gap-2'>
-                        {selectedCake?.flavours.map((flavour: string) => (
-                          <Button
-                            key={flavour}
-                            type='button'
-                            variant={
-                              field.value.includes(flavour)
-                                ? 'default'
-                                : 'outline'
-                            }
-                            onClick={() => {
-                              const newValue = field.value.includes(flavour)
-                                ? field.value.filter((f) => f !== flavour)
-                                : [...field.value, flavour]
-                              field.onChange(newValue)
-                              console.log(flavour)
-                            }}
-                          >
-                            {flavour}
-                          </Button>
-                        ))}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name='layers'
@@ -512,8 +476,47 @@ const ResultsPage = () => {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name='flavour'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className='text-primary font-medium text-lg'>
+                      Flavour
+                    </FormLabel>
+                    <FormControl>
+                      <div className='flex flex-wrap gap-3'>
+                        {selectedCake?.flavours.map((flavour: string) => (
+                          <div
+                            key={flavour}
+                            className='flex items-center space-x-2'
+                          >
+                            <Checkbox
+                              id={`flavour-${flavour}`}
+                              checked={field.value.includes(flavour)}
+                              onCheckedChange={(checked) => {
+                                const newValue = checked
+                                  ? [...field.value, flavour]
+                                  : field.value.filter((f) => f !== flavour)
+                                field.onChange(newValue)
+                              }}
+                            />
+                            <Label
+                              htmlFor={`flavour-${flavour}`}
+                              className='text-sm font-medium cursor-pointer'
+                            >
+                              {flavour}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <Button type='submit' className='w-full'>
+              <Button type='submit' className='w-full mt-10'>
                 I want this
               </Button>
               <small className='flex gap-2 items-center'>

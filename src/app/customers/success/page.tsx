@@ -6,13 +6,16 @@ import { Button } from '@/components/ui/button'
 
 const SuccessPage = () => {
   return (
-    <div className='min-h-screen flex flex-col items-center justify-center bg-gray-50'>
+    <div className='min-h-screen flex flex-col items-center justify-center '>
       <div className='text-center p-8 rounded-lg'>
-        <CheckCircle className='text-green-500 text-7xl mb-6 mx-auto animate-bounce' />
-        <h1 className='text-3xl font-bold text-gray-800 mb-4'>
+        <CheckCircle
+          size={50}
+          className='text-green-500 text-7xl mb-6 mx-auto animate-bounce'
+        />
+        <h1 className='text-3xl font-bold text-primary mb-4'>
           Payment Successful!
         </h1>
-        <p className='text-gray-600 mb-8'>
+        <p className='text-gray-600 max-w-96 mb-8'>
           Thank you for your payment. Your transaction has been completed
           successfully, to see your order timeline, please go to your dashboard
         </p>

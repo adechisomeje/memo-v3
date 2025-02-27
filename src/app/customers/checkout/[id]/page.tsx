@@ -496,9 +496,15 @@ const CheckOutPage = () => {
       {paymentUrl && (
         <Dialog
           open={isPaymentOpen}
-          onOpenChange={(open) => !open && handleClosePayment()}
+          onOpenChange={(open) =>
+            open ? setIsPaymentOpen(true) : handleClosePayment()
+          }
         >
-          <DialogContent className='max-w-3xl h-[80vh] p-0 flex flex-col'>
+          <DialogContent
+            onEscapeKeyDown={(e) => e.preventDefault()}
+            onInteractOutside={(e) => e.preventDefault()}
+            className='max-w-3xl h-[80vh] p-0 flex flex-col'
+          >
             <DialogHeader className='p-4 flex justify-between items-center border-b'>
               <DialogTitle className='font-semibold'>
                 Complete Payment

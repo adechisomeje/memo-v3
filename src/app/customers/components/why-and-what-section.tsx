@@ -50,7 +50,29 @@ const testimonials = [
 
 const WhyAndWhatSection = () => {
   return (
-    <div className=''>
+    <div className='relative'>
+      {/* Left edge image */}
+      <div className='hidden lg:block absolute left-0 top-[90%]'>
+        <Image
+          src='/assets/images/left-circle.png'
+          alt='Decorative left image'
+          width={65}
+          height={65}
+          className='object-cover'
+        />
+      </div>
+
+      {/* Right edge image */}
+      <div className='hidden lg:block absolute right-0 top-[50%] '>
+        <Image
+          src='/assets/images/right-circle.png'
+          alt='Decorative right image'
+          width={80}
+          height={80}
+          className='object-cover'
+        />
+      </div>
+
       <section className='py-16'>
         <div className='container mx-auto px-4'>
           <div className='text-center mb-12'>

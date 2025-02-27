@@ -19,6 +19,7 @@ export interface CakeData {
   vendorCountry: string
   vendorState: string
   vendorCity: string
+  vendorAverageRating: number
   size: string
   flavours: string[]
   topping: string
@@ -34,6 +35,7 @@ export interface Cake {
   vendorPicture: string
   vendorCountry: string
   vendorState: string
+  vendorAverageRating: number
   vendorCity: string
   size: string
   flavours: string[]

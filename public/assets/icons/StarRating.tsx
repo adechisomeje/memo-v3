@@ -44,21 +44,40 @@ export const StarFill = (props: React.SVGProps<SVGSVGElement>) => {
 export const StarEmpty = (props: React.SVGProps<SVGSVGElement>) => {
   return (
     <svg
-      className='md:hidden pb-3'
-      width='40'
-      height='40'
-      viewBox='0 0 32 32'
+      {...props}
+      width='16'
+      height='17'
+      viewBox='0 0 16 17'
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
-      {...props}
     >
-      <path
-        d='M6 9.66669H26M9.84667 16H22.1533M13.6933 22.3334H18.3067'
-        stroke='black'
-        strokeWidth='1.5'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
+      <g clip-path='url(#clip0_2547_870)'>
+        <path
+          d='M15.5 6.34688H9.775L8 0.796875L6.225 6.34688H0.5L5.125 9.77188L3.375 15.2969L8 11.8719L12.625 15.2969L10.85 9.74687L15.5 6.34688Z'
+          fill='url(#paint0_linear_2547_870)'
+        />
+      </g>
+      <defs>
+        <linearGradient
+          id='paint0_linear_2547_870'
+          x1='7.5'
+          y1='9.54688'
+          x2='15.5'
+          y2='9.54688'
+          gradientUnits='userSpaceOnUse'
+        >
+          <stop stop-color='#B99E48' stop-opacity='0.46' />
+          <stop offset='1' stop-color='#352B0C' stop-opacity='0.37' />
+        </linearGradient>
+        <clipPath id='clip0_2547_870'>
+          <rect
+            width='16'
+            height='16'
+            fill='white'
+            transform='translate(0 0.046875)'
+          />
+        </clipPath>
+      </defs>
     </svg>
   )
 }
