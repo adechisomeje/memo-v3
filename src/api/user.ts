@@ -1,13 +1,18 @@
 import { axiosClient } from '.'
 
-export interface User {
+type UserResponse = {
+  statusCode: number
+  data: User
+  message: string
+}
+
+type User = {
   _id: string
   firstName: string
   lastName: string
   email: string
   phone: string
-  profilePicture: string
-  __v: number
+  role: 'CUSTOMER' | 'ADMIN' | 'VENDOR' // Extend roles if needed
 }
 
 export interface UserSettingsResponse {
@@ -55,9 +60,21 @@ type Pagination = {
   totalPages: number
 }
 
-export async function getUserProfile() {
-  const response = await axiosClient.get<UserSettingsResponse>(
-    '/users/settings'
+export async function updateUserProfile(data: {
+  firstName: string
+  lastName: string
+  phone: string
+}) {
+  const response = await axiosClient.patch<UserResponse>(
+    '/users/profile',
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem(
+          'next-auth.session-token'
+        )}`,
+      },
+    }
   )
 
   return response.data
