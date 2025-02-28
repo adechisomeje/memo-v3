@@ -144,13 +144,12 @@ const ResultsPage = () => {
       price: selectedLayerPrice,
     }
 
-    setCustomization(dataWithPrice) // Now it matches the store's type
+    setCustomization(dataWithPrice)
 
     setIsSheetOpen(false)
     router.push(`/customers/checkout/${selectedCake?._id}`)
   }
 
-  // Function to handle layer changes and update the price.
   const handleLayerChange = (layer: string) => {
     if (selectedCake && selectedCake.layerPrices) {
       const layerNumber = parseInt(layer)
