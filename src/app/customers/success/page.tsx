@@ -24,7 +24,7 @@ const SuccessPage = () => {
           size={50}
           className='text-green-500 text-7xl mb-6 mx-auto animate-bounce'
         />
-        <h1 className='text-3xl font-bold text-primary mb-4'>
+        <h1 className='text-3xl font-bold text-primary mb-5'>
           Payment Successful!
         </h1>
         <p className='text-gray-600 max-w-96 mb-8'>
