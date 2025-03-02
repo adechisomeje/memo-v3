@@ -19,7 +19,7 @@ const SuccessPage = () => {
 
   return (
     <div className='min-h-screen flex flex-col items-center justify-center '>
-      <div className='text-center p-8 rounded-lg'>
+      <div className='text-center p-9 rounded-lg'>
         <CheckCircle
           size={50}
           className='text-green-500 text-7xl mb-6 mx-auto animate-bounce'
