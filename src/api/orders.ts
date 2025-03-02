@@ -18,6 +18,12 @@ export async function userCreateOrder(data: {
   size: string
   topping: string
   flavours: string[]
+  deliveryAddress: {
+    address: string
+    city: string
+    state: string
+    country: string
+  }
   deliveryDate: string
   additionalProducts: {
     productId: string

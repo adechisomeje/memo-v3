@@ -12,45 +12,67 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { zodResolver } from '@hookform/resolvers/zod'
-// import { validateName, validatePhone } from '@/lib/utils'
+import { updateUserProfile } from '@/api/user'
+import { toast } from 'sonner'
+import { useMutation } from '@tanstack/react-query'
+import { useSession } from 'next-auth/react'
+import { validateName, validatePhone } from '@/lib/utils'
 
 const schema = z.object({
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  phoneNumber: z.string().optional(),
+  firstName: z
+    .string()
+    .optional()
+    .refine((value) => !value || validateName(value), {
+      message: 'First Name must contain only alphabets',
+    }),
+  lastName: z
+    .string()
+    .optional()
+    .refine((value) => !value || validateName(value), {
+      message: 'Last Name must contain only alphabets',
+    }),
+  phoneNumber: z
+    .string()
+    .optional()
+    .refine((value) => !value || validatePhone(value), {
+      message: 'First Name must contain only alphabets',
+    }),
 })
 
 export type EditProfileValues = z.infer<typeof schema>
 
 export default function ProfilePage() {
-  // const { data: session, status } = useSession()
+  const { data: session, status } = useSession()
   const form = useForm<EditProfileValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      phoneNumber: '',
+      firstName: session?.user?.firstName || '',
+      lastName: session?.user?.lastName || '',
+      phoneNumber: session?.user?.phone || '',
     },
   })
 
-  // const getUserDetailsQuery = useQuery({
-  //   queryKey: ['userProfile'],
-  //   queryFn: getUserProfile,
-  //   enabled: status === 'authenticated' && !!session?.accessToken,
-  //   retry: 1,
-  // })
+  console.log(status)
 
-  // if (status === 'loading') {
-  //   return <div>Loading session...</div>
-  // }
-
-  // if (status !== 'authenticated' || !session) {
-  //   return <div>Please sign in to view your profile</div>
-  // }
-  // console.log(getUserDetailsQuery.data?.data)
+  const mutation = useMutation({
+    mutationFn: updateUserProfile,
+    onSuccess: () => {
+      toast.success('User Profile Updated Successfully')
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    },
+  })
+  function onSubmit(values: z.infer<typeof schema>) {
+    mutation.mutate({
+      firstName: values.firstName || '',
+      lastName: values.lastName || '',
+      phone: values.phoneNumber || '',
+    })
+  }
 
   return (
-    <div className='flex min-h-screen b'>
+    <div className='flex min-h-screen'>
       <div className='flex-1'>
         <main className='px-8 py-8 md:ml-64'>
           <h1 className='hidden md:block text-3xl font-medium mb-8'>
@@ -61,7 +83,10 @@ export default function ProfilePage() {
             <h2 className='text-xl font-medium mb-6'>Account Overview</h2>
 
             <Form {...form}>
-              <form className='space-y-6'>
+              <form
+                className='space-y-6'
+                onSubmit={form.handleSubmit(onSubmit)}
+              >
                 <div className='grid grid-cols-2 gap-3'>
                   <FormField
                     control={form.control}
@@ -106,6 +131,9 @@ export default function ProfilePage() {
                 />
 
                 <Button variant='outline' className='w-full py-6'>
+                  {mutation.isPending && (
+                    <div className='h-4 w-4 animate-spinner rounded-full border-2 border-t-2 border-t-white ease-linear'></div>
+                  )}
                   Update
                 </Button>
               </form>
