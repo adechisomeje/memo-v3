@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   Form,
@@ -32,10 +31,21 @@ export type FeedbackInput = z.infer<typeof feedbackSchema>
 
 interface FeedbackDialogProps {
   vendorName: string
+  isOpen?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function FeedbackDialog({ vendorName }: FeedbackDialogProps) {
-  const [open, setOpen] = React.useState(false)
+export function FeedbackDialog({
+  vendorName,
+  isOpen,
+  onOpenChange,
+}: FeedbackDialogProps) {
+  // Use internal state if external control props are not provided
+  const [internalOpen, setInternalOpen] = React.useState(false)
+
+  // Determine if we're using external or internal state control
+  const open = isOpen !== undefined ? isOpen : internalOpen
+  const setOpen = onOpenChange || setInternalOpen
 
   const form = useForm<FeedbackInput>({
     resolver: zodResolver(feedbackSchema),
@@ -44,6 +54,16 @@ export function FeedbackDialog({ vendorName }: FeedbackDialogProps) {
       remarks: '',
     },
   })
+
+  // Reset form when dialog opens
+  React.useEffect(() => {
+    if (open) {
+      form.reset({
+        rating: 0,
+        remarks: '',
+      })
+    }
+  }, [open, form])
 
   const onSubmit = async (data: FeedbackInput) => {
     try {
@@ -54,7 +74,7 @@ export function FeedbackDialog({ vendorName }: FeedbackDialogProps) {
       form.reset()
     } catch (error) {
       console.error('Error submitting feedback:', error)
-      toast('Errr occured.')
+      toast('Error occurred.')
     }
   }
 
@@ -64,14 +84,6 @@ export function FeedbackDialog({ vendorName }: FeedbackDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant='destructive'
-          className='bg-primary hover:bg-primary/90'
-        >
-          Leave Feedback
-        </Button>
-      </DialogTrigger>
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
           <DialogTitle className='text-center text-xl'>
@@ -84,7 +96,7 @@ export function FeedbackDialog({ vendorName }: FeedbackDialogProps) {
             className='space-y-6 mt-5'
           >
             <div className='space-y-2 bg-[#FFFBFA] p-3'>
-              <p className='text-center'>How was your experience ?</p>
+              <p className='text-center'>How was your experience?</p>
               <div className='flex justify-center gap-1'>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button

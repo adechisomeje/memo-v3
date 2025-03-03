@@ -1,11 +1,11 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import { format } from 'date-fns'
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -26,8 +26,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { MoreHorizontal, Eye } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 import OrderTrackingModal from './order-tracking-dialog'
+import { FeedbackDialog } from './feedback-dialog'
 import { queryKeys } from '@/lib/queries'
 import { getUserOrders } from '@/api/user'
 
@@ -42,16 +43,48 @@ export default function OrdersPageContent() {
 
   const searchParams = useSearchParams()
   const selectedOrderIndex = searchParams.get('orderIndex')
+  const modalType = searchParams.get('modalType')
 
-  const updateURL = useCallback((orderIndex: string | null) => {
-    const url = new URL(window.location.href)
-    if (orderIndex) {
-      url.searchParams.set('orderIndex', orderIndex)
-    } else {
-      url.searchParams.delete('orderIndex')
-    }
-    window.history.pushState({}, '', url)
-  }, [])
+  // State to track which modal is open
+  const [openModalType, setOpenModalType] = useState<
+    'tracking' | 'feedback' | null
+  >(
+    modalType === 'feedback'
+      ? 'feedback'
+      : modalType === 'tracking'
+      ? 'tracking'
+      : null
+  )
+  const [selectedOrder, setSelectedOrder] = useState<number | null>(
+    selectedOrderIndex ? Number.parseInt(selectedOrderIndex) : null
+  )
+
+  const updateURL = useCallback(
+    (orderIndex: number | null, type: 'tracking' | 'feedback' | null) => {
+      const url = new URL(window.location.href)
+      if (orderIndex !== null && type) {
+        url.searchParams.set('orderIndex', orderIndex.toString())
+        url.searchParams.set('modalType', type)
+      } else {
+        url.searchParams.delete('orderIndex')
+        url.searchParams.delete('modalType')
+      }
+      window.history.pushState({}, '', url)
+    },
+    []
+  )
+
+  const handleOpenModal = (index: number, type: 'tracking' | 'feedback') => {
+    setSelectedOrder(index)
+    setOpenModalType(type)
+    updateURL(index, type)
+  }
+
+  const handleCloseModal = () => {
+    setSelectedOrder(null)
+    setOpenModalType(null)
+    updateURL(null, null)
+  }
 
   const formatDate = (dateString: string) => {
     try {
@@ -87,7 +120,7 @@ export default function OrdersPageContent() {
   }
 
   const orders = ordersResponse?.data.orders || []
-
+  console.log(ordersResponse?.data.orders)
   return (
     <div className='flex min-h-screen'>
       <main className='flex-1 p-8'>
@@ -187,34 +220,31 @@ export default function OrdersPageContent() {
                     <TableCell>{getStatusBadge(order.status)}</TableCell>
                     <TableCell>{formatDate(order.deliveryDate)}</TableCell>
                     <TableCell className='text-right'>
-                      <Dialog
-                        open={selectedOrderIndex === index.toString()}
-                        onOpenChange={(open) => {
-                          updateURL(open ? index.toString() : null)
-                        }}
-                      >
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant='ghost' size='icon'>
-                              <MoreHorizontal className='h-4 w-4' />
-                              <span className='sr-only'>Open menu</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align='end'>
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DialogTrigger asChild>
-                              <DropdownMenuItem>
-                                <Eye className='mr-2 h-4 w-4' />
-                                View Timeline
-                              </DropdownMenuItem>
-                            </DialogTrigger>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <DialogContent>
-                          <OrderTrackingModal index={index} />
-                        </DialogContent>
-                      </Dialog>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant='ghost' size='icon'>
+                            <MoreHorizontal className='h-4 w-4' />
+                            <span className='sr-only'>Open menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align='end'
+                          className='p-4 cursor-pointer'
+                        >
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleOpenModal(index, 'tracking')}
+                          >
+                            View Timeline
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleOpenModal(index, 'feedback')}
+                          >
+                            Drop Feedback
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -222,6 +252,33 @@ export default function OrdersPageContent() {
             </TableBody>
           </Table>
         </div>
+
+        <Dialog
+          open={openModalType === 'tracking' && selectedOrder !== null}
+          onOpenChange={(open) => {
+            if (!open) handleCloseModal()
+          }}
+        >
+          <DialogContent>
+            {selectedOrder !== null && orders[selectedOrder] && (
+              <OrderTrackingModal
+                index={selectedOrder}
+                orderId={orders[selectedOrder]._id}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Feedback Dialog - Using the modified FeedbackDialog component */}
+        {selectedOrder !== null && orders.length > 0 && (
+          <FeedbackDialog
+            vendorName={orders[selectedOrder]?.vendor?.businessName || ''}
+            isOpen={openModalType === 'feedback'}
+            onOpenChange={(open) => {
+              if (!open) handleCloseModal()
+            }}
+          />
+        )}
       </main>
     </div>
   )
