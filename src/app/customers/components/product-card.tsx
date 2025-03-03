@@ -7,11 +7,13 @@ import { formatPrice } from '@/lib/utils'
 import { toast } from 'sonner'
 
 interface ProductCardProps {
+  id: string
   image: string
   title: string
   description: string
   price: number
   onAdd: (product: {
+    id: string
     image: string
     title: string
     description: string
@@ -20,6 +22,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({
+  id,
   image,
   title,
   description,
@@ -27,9 +30,10 @@ export function ProductCard({
   onAdd,
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
+  console.log(isHovered)
 
   const handleAdd = () => {
-    onAdd({ image, title, description, price })
+    onAdd({ id, image, title, description, price })
     toast.success(`${title} added to cart`)
   }
   // console.log(isHovered) // Remove or comment out if not needed

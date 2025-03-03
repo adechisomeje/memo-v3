@@ -13,59 +13,62 @@ const ProcessSimplified = () => {
               </h1>
             </div>
 
-            <div className='space-y-12'>
-              {/* Step 1 */}
-              <div className='relative pl-12'>
-                <span className='absolute left-0 font-bold text-[#675E48] text-xl'>
-                  01
-                </span>
-                <div className='space-y-4'>
-                  <h3 className='text-xl lg:text-2xl font-bold text-[#675E48]'>
-                    Customize and Request
-                  </h3>
-                  <p className='text-[#675E48]'>
-                    Buyers browse available cakes from a vendor and select
-                    customization options (size, flavor, etc.).
-                  </p>
-                  <p className='text-[#675E48]'>
-                    The customization details are submitted as a request to the
-                    vendor for review
-                  </p>
-                </div>
-              </div>
+            <div className='relative'>
+              <div className='absolute left-4 top-8 bottom-0 w-px bg-[#9B9079] h-[calc(100%-60px)]'></div>
 
-              {/* Step 2 */}
-              <div className='relative pl-12'>
-                <span className='absolute left-0 font-bold text-[#675E48] text-xl'>
-                  02
-                </span>
-                <div className='space-y-4'>
-                  <h3 className='text-xl lg:text-2xl font-bold text-[#675E48]'>
-                    Vendor Approval and Payment
-                  </h3>
-                  <p className='text-[#675E48]'>
-                    The vendor reviews the request, confirms availability, and
-                    accepts the order, buyers are notified and proceed to make
-                    payment securely through the platform.
-                  </p>
+              <div className='space-y-12'>
+                <div className='relative pl-12'>
+                  <span className='absolute left-0 font-bold text-[#675E48] text-xl z-10 bg-[#FDFCFB] px-1'>
+                    01
+                  </span>
+                  <div className='space-y-4'>
+                    <h3 className='text-xl lg:text-2xl font-bold text-[#675E48]'>
+                      Customize and Request
+                    </h3>
+                    <p className='text-[#675E48]'>
+                      Buyers browse available cakes from a vendor and select
+                      customization options (size, flavor, etc.).
+                    </p>
+                    <p className='text-[#675E48]'>
+                      The customization details are submitted as a request to
+                      the vendor for review
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Step 3 */}
-              <div className='relative pl-12'>
-                <span className='absolute left-0 font-bold text-[#675E48] text-xl'>
-                  03
-                </span>
-                <div className='space-y-4'>
-                  <h3 className='text-xl lg:text-2xl font-bold text-[#675E48]'>
-                    Fulfillment and Delivery
-                  </h3>
-                  <p className='text-[#675E48]'>
-                    The vendor prepares the cake and arranges delivery to the
-                    buyer&apos;s or recipient&apos;s address. Delivery status is
-                    updated, and buyers receive confirmation once the cake is
-                    delivered.
-                  </p>
+                {/* Step 2 */}
+                <div className='relative pl-12'>
+                  <span className='absolute left-0 font-bold text-[#675E48] text-xl z-10 bg-[#FDFCFB] px-1'>
+                    02
+                  </span>
+                  <div className='space-y-4'>
+                    <h3 className='text-xl lg:text-2xl font-bold text-[#675E48]'>
+                      Vendor Approval and Payment
+                    </h3>
+                    <p className='text-[#675E48]'>
+                      The vendor reviews the request, confirms availability, and
+                      accepts the order, buyers are notified and proceed to make
+                      payment securely through the platform.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className='relative pl-12'>
+                  <span className='absolute left-0 font-bold text-[#675E48] text-xl z-10 bg-[#FDFCFB] px-1'>
+                    03
+                  </span>
+                  <div className='space-y-4'>
+                    <h3 className='text-xl lg:text-2xl font-bold text-[#675E48]'>
+                      Fulfillment and Delivery
+                    </h3>
+                    <p className='text-[#675E48]'>
+                      The vendor prepares the cake and arranges delivery to the
+                      buyer&apos;s or recipient&apos;s address. Delivery status
+                      is updated, and buyers receive confirmation once the cake
+                      is delivered.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -75,8 +78,8 @@ const ProcessSimplified = () => {
           <div className='relative'>
             <div className=' rounded-3xl overflow-hidden'>
               <Image
-                width={500}
-                height={500}
+                width={400}
+                height={400}
                 src='/assets/images/simp-group.png'
                 alt='Grouped images showing the memo process'
                 className='object-cover w-full h-full'

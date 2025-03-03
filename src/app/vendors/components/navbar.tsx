@@ -90,7 +90,6 @@ const Navbar = ({ navItems, ctaLink, mobileNavItems, classNames }: Props) => {
               </Link>
             </div>
           </div>
-
           <button className="lg:hidden" onClick={() => setIsOpen(true)}>
             <Hamburger />
           </button>

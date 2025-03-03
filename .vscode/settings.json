@@ -1,5 +1,6 @@
 {
     "conventionalCommits.scopes": [
-        "User Interface"
+        "User Interface",
+        "functionality"
     ]
 }

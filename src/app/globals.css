@@ -84,7 +84,6 @@
   animation-play-state: paused;
 }
 
-
 ::-webkit-scrollbar {
   width: 4px;
   height: 2;
@@ -153,4 +152,3 @@
 .animate-fade-out {
   animation: fadeOut 300ms ease-in forwards;
 }
-

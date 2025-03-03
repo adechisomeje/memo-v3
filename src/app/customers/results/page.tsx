@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Sheet, SheetContent, SheetHeader } from '@/components/ui/sheet'
 import {
   Form,
@@ -23,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import Image from 'next/image'
-import { Info, Loader2, Star } from 'lucide-react'
+import { Info, Star } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Pagination,
@@ -42,9 +41,11 @@ import { Cake, getCakeProducts } from '@/api/public'
 import CakeCardSkeleton from '../components/cake-card-skeleton'
 import { queryKeys } from '@/lib/queries'
 import { Filter } from '../../../../public/assets/icons/Filter'
-import { StarFill } from '../../../../public/assets/icons/StarRating'
+import { StarEmpty } from '../../../../public/assets/icons/StarRating'
 import { useCakeCustomization } from '@/store/cakeCustomization'
 import { useVendorStore } from '@/store/vendorStore'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 
 const cakeCustomizationSchema = z.object({
   flavour: z.array(z.string()),
@@ -58,7 +59,6 @@ type ProductType = 'cakes' | 'gifts' | 'flowers'
 const ResultsPage = () => {
   const router = useRouter()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0)
   const setCustomization = useCakeCustomization(
     (state) => state.setCustomization
@@ -84,9 +84,8 @@ const ResultsPage = () => {
     setSelectedCake(product)
     setSelectedCakeId(product._id)
 
-    //x save vendor information
     setVendorInfo({
-      vendorId: product._id,
+      vendorId: product.vendorId,
       name: product.vendorName,
       picture: product.vendorPicture,
       country: product.vendorCountry,
@@ -145,14 +144,12 @@ const ResultsPage = () => {
       price: selectedLayerPrice,
     }
 
-    setCustomization(dataWithPrice) // Now it matches the store's type
+    setCustomization(dataWithPrice)
 
     setIsSheetOpen(false)
-    setIsModalOpen(true)
     router.push(`/customers/checkout/${selectedCake?._id}`)
   }
 
-  // Function to handle layer changes and update the price.
   const handleLayerChange = (layer: string) => {
     if (selectedCake && selectedCake.layerPrices) {
       const layerNumber = parseInt(layer)
@@ -259,7 +256,8 @@ const ResultsPage = () => {
                                   <div className='flex justify-between items-center'>
                                     <span>Layers:</span>
                                     <span className='font-semibold'>
-                                      {Object.keys(cake.layerPrices)[0]} Layers
+                                      {Object.keys(cake.layerPrices)[0]}{' '}
+                                      Layer(s)
                                     </span>
                                   </div>
                                   <div className='flex justify-between items-center'>
@@ -274,14 +272,14 @@ const ResultsPage = () => {
                                     <span className='text-sm text-muted-foreground'>
                                       Delivery estimate:
                                     </span>
-                                    <span className='font-semibold'>$400</span>
+                                    <span className='font-semibold'>$120</span>
                                   </div>
                                   <div className='flex justify-between items-center pt-2 border-t'>
                                     <span className='text-sm font-medium'>
                                       TOTAL:
                                     </span>
                                     <span className='font-bold'>
-                                      ${cake.price + 400}
+                                      ${cake.price + 120}
                                     </span>
                                   </div>
                                 </div>
@@ -305,7 +303,7 @@ const ResultsPage = () => {
                                     <div className='flex items-center gap-1'>
                                       <div className='flex'>
                                         {[...Array(5)].map((_, i) => (
-                                          <StarFill
+                                          <StarEmpty
                                             key={i}
                                             className={` ${
                                               i < 5
@@ -316,10 +314,7 @@ const ResultsPage = () => {
                                         ))}
                                       </div>
                                       <span className='text-sm font-medium'>
-                                        4.9
-                                      </span>
-                                      <span className='text-sm text-muted-foreground'>
-                                        (1k+)
+                                        {cake.vendorAverageRating}
                                       </span>
                                     </div>
                                   </div>
@@ -398,13 +393,13 @@ const ResultsPage = () => {
                 <span className='text-sm text-muted-foreground'>
                   Delivery estimate:
                 </span>
-                <span className='font-semibold'>$400</span>
+                <span className='font-semibold'>$120</span>
               </div>
               <div className='flex justify-between items-center pt-2 border-t'>
                 <span className='text-sm font-medium'>TOTAL:</span>
                 <span className='font-bold'>
                   {/* Calculate based on selectedLayerPrice */}$
-                  {selectedLayerPrice + 400}
+                  {selectedLayerPrice + 120}
                 </span>
               </div>
 
@@ -433,8 +428,9 @@ const ResultsPage = () => {
                         />
                       ))}
                     </div>
-                    <span className='text-sm font-medium'>4.9</span>
-                    <span className='text-sm text-muted-foreground'>(1k+)</span>
+                    <span className='text-sm font-medium'>
+                      {selectedCake?.vendorAverageRating}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -446,43 +442,6 @@ const ResultsPage = () => {
               onSubmit={form.handleSubmit(onSubmit)}
               className='space-y-4 mt-8'
             >
-              <FormField
-                control={form.control}
-                name='flavour'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='text-primary font-medium text-lg'>
-                      Flavour
-                    </FormLabel>
-                    <FormControl>
-                      <div className='flex flex-wrap gap-2'>
-                        {selectedCake?.flavours.map((flavour: string) => (
-                          <Button
-                            key={flavour}
-                            type='button'
-                            variant={
-                              field.value.includes(flavour)
-                                ? 'default'
-                                : 'outline'
-                            }
-                            onClick={() => {
-                              const newValue = field.value.includes(flavour)
-                                ? field.value.filter((f) => f !== flavour)
-                                : [...field.value, flavour]
-                              field.onChange(newValue)
-                              console.log(flavour)
-                            }}
-                          >
-                            {flavour}
-                          </Button>
-                        ))}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name='layers'
@@ -516,8 +475,47 @@ const ResultsPage = () => {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name='flavour'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className='text-primary font-medium text-lg'>
+                      Flavour
+                    </FormLabel>
+                    <FormControl>
+                      <div className='flex flex-wrap gap-3'>
+                        {selectedCake?.flavours.map((flavour: string) => (
+                          <div
+                            key={flavour}
+                            className='flex items-center space-x-2'
+                          >
+                            <Checkbox
+                              id={`flavour-${flavour}`}
+                              checked={field.value.includes(flavour)}
+                              onCheckedChange={(checked) => {
+                                const newValue = checked
+                                  ? [...field.value, flavour]
+                                  : field.value.filter((f) => f !== flavour)
+                                field.onChange(newValue)
+                              }}
+                            />
+                            <Label
+                              htmlFor={`flavour-${flavour}`}
+                              className='text-sm font-medium cursor-pointer'
+                            >
+                              {flavour}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <Button type='submit' className='w-full'>
+              <Button type='submit' className='w-full mt-10'>
                 I want this
               </Button>
               <small className='flex gap-2 items-center'>
@@ -527,19 +525,6 @@ const ResultsPage = () => {
               </small>
             </form>
           </Form>
-
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogContent className='sm:max-w-md flex flex-col items-center justify-center py-12'>
-              <DialogTitle>
-                <div className='flex flex-col items-center gap-4'>
-                  <Loader2 className='h-8 w-8 animate-spin text-primary' />
-                  <p className='text-center text-lg'>
-                    The vendor is reviewing your request.
-                  </p>
-                </div>
-              </DialogTitle>
-            </DialogContent>
-          </Dialog>
         </SheetContent>
       </Sheet>
     </>

@@ -1,4 +1,4 @@
-import { ApiResponse, axiosClient } from '.'
+import { axiosClient } from '.'
 
 export interface CreateOrderResponse {
   data: {
@@ -10,6 +10,7 @@ export interface CreateOrderResponse {
 
 export async function userCreateOrder(data: {
   productId: string
+  productCategory: string
   note: string
   recipientName: string
   recipientPhone: string
@@ -17,7 +18,18 @@ export async function userCreateOrder(data: {
   size: string
   topping: string
   flavours: string[]
+  deliveryAddress: {
+    address: string
+    city: string
+    state: string
+    country: string
+  }
   deliveryDate: string
+  additionalProducts: {
+    productId: string
+    productCategory: string
+    quantity: number
+  }[]
 }) {
   const response = await axiosClient.post<CreateOrderResponse>('/orders', data)
 

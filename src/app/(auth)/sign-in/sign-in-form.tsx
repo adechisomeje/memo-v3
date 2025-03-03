@@ -50,7 +50,7 @@ const SignInForm = () => {
       })
 
       if (res?.error) {
-        toast.error('Invalid Credentials')
+        toast.error(res?.error)
         return
       }
 
