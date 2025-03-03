@@ -411,8 +411,6 @@ const CheckOutPage = () => {
   useEffect(() => {
     // Function to handle payment success message from the payment iframe
     const handlePaymentMessage = (event: MessageEvent) => {
-      // Check if the message is from your payment provider
-      // You might need to adjust this based on the payment provider's domain
       if (event.data && typeof event.data === 'string') {
         if (
           event.data.includes('success') ||
@@ -824,7 +822,11 @@ const CheckOutPage = () => {
                   </div>
                 </div>
 
-                <ReviewButton vendorId='ajasco-cakes' reviewCount={5} />
+                <ReviewButton
+                  // use selected vendor id here
+                  vendorId={vendorId}
+                  reviewCount={5}
+                />
               </div>
             </div>
           </div>
