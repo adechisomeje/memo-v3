@@ -35,19 +35,18 @@ import { useState } from "react"; // Import useEffect
 import { useQuery } from "@tanstack/react-query"; // Import useQueryClient
 import { getLocations, LocationResponse } from "@/api/public";
 import { useDeliveryDetails } from "@/store/deliveryDetails";
+import useFormErrorStore from "@/store/customer";
 
 const searchFormSchema = z.object({
-  address: z.string().min(1, { message: "Address is required" }),
   country: z.string().min(1, { message: "Country is required" }),
   state: z.string().min(1, { message: "State is required" }),
   city: z.string().min(1, { message: "City is required" }),
-  date: z.date(),
 });
 
 type SearchFormValues = z.infer<typeof searchFormSchema>;
 
 interface SearchFormProps {
-  onSubmit: (data: Omit<SearchFormValues, "date"> & { date: string }) => void;
+  onSubmit: (data: object) => void;
   className?: string;
   variant?: "default" | "sheet";
 }
@@ -89,12 +88,11 @@ export function SearchForm({
   const form = useForm<SearchFormValues>({
     resolver: zodResolver(searchFormSchema),
     defaultValues: {
-      address: "",
       country: "",
       state: "",
       city: "",
-      date: undefined,
     },
+    mode: "onSubmit",
   });
 
   // Single query for all location data
@@ -115,6 +113,9 @@ export function SearchForm({
       ? extractCities(locationData, selectedCountry, selectedState)
       : [];
 
+  const setFormError = useFormErrorStore((state) => state.setFormError);
+  const resetFormError = useFormErrorStore((state) => state.resetFormError);
+
   const handleCountryChange = (value: string) => {
     setSelectedCountry(value);
     form.setValue("country", value);
@@ -129,13 +130,24 @@ export function SearchForm({
     form.setValue("city", "");
   };
 
+  const onError = (errors: any) => {
+    const errorKeys = Object.keys(errors).map((field) => field.toUpperCase());
+
+    if (errorKeys.length === 3) {
+      setFormError(true, "All fields on the form are required");
+    } else {
+      const missingFields = errorKeys.join(" and ");
+      setFormError(
+        true,
+        `${missingFields} field${errorKeys.length > 1 ? "s" : ""} are required`
+      );
+    }
+  };
+
   function handleSubmit(values: SearchFormValues) {
-    const formattedData = {
-      ...values,
-      date: values.date ? format(values.date, "yyyy-MM-dd") : "",
-    };
-    setDeliveryDetails(formattedData);
-    onSubmit(formattedData);
+    resetFormError();
+    setDeliveryDetails(values);
+    onSubmit(values);
   }
 
   const renderLocationSelects = () => (
@@ -170,7 +182,6 @@ export function SearchForm({
                 )}
               </SelectContent>
             </Select>
-            <FormMessage />
           </FormItem>
         )}
       />
@@ -202,7 +213,6 @@ export function SearchForm({
                 ))}
               </SelectContent>
             </Select>
-            <FormMessage />
           </FormItem>
         )}
       />
@@ -219,7 +229,7 @@ export function SearchForm({
               disabled={!selectedState}
             >
               <FormControl>
-                <SelectTrigger className="h-10 text-black border-x-1 rounded-none border-y-0">
+                <SelectTrigger className="h-10 text-black border-x-1 rounded-none border-y-0 border-r-0">
                   <SelectValue placeholder="City" />
                 </SelectTrigger>
               </FormControl>
@@ -234,7 +244,6 @@ export function SearchForm({
                 ))}
               </SelectContent>
             </Select>
-            <FormMessage />
           </FormItem>
         )}
       />
@@ -255,70 +264,10 @@ export function SearchForm({
           </div>
 
           <div className="space-y-10 flex-1">
-            {/* Address Input */}
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex items-center gap-3 px-4 py-3 border rounded-lg">
-                    <MapPin className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="Input delivery address"
-                        {...field}
-                        className="border-none shadow-none px-0 placeholder:text-gray-400"
-                      />
-                    </FormControl>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             {/* Location Selects */}
             <div className="mt-5 flex flex-col gap-10">
               {renderLocationSelects()}
             </div>
-
-            {/* Date Picker */}
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className="w-full h-14 justify-start border-gray-200 rounded-lg"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Calender className="h-5 w-5 text-gray-400" />
-                            <span className="text-gray-400">
-                              {field.value
-                                ? format(field.value, "PPP")
-                                : "Delivery date"}
-                            </span>
-                          </div>
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
 
           <Button
@@ -336,7 +285,7 @@ export function SearchForm({
     <div className="w-full px-5 md:px-7 lg:px-9">
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(handleSubmit)}
+          onSubmit={form.handleSubmit(handleSubmit, onError)}
           className={cn("max-w-6xl mx-auto relative", className)}
         >
           <div className="bg-white rounded-full shadow-lg p-2 md:p-3 !w-fit mx-auto">
