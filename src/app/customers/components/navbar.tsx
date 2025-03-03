@@ -47,42 +47,34 @@ const authenticatedNavItems = [
     label: 'My Profile',
     href: '/customers/dashboard/profile',
     subItems: [
-      { label: 'Create Shipment', href: '/ship' },
-      { label: 'Get a quote', href: '/get-a-quote' },
-      { label: 'Track', href: '/track' },
+      { label: 'Update Profile', href: '/' },
+      { label: 'See Orders', href: '/' },
+      { label: 'Track', href: '/' },
     ],
   },
   {
     label: 'My Orders',
     href: '/customers/dashboard/orders',
   },
-  {
-    label: 'Messages',
-    href: '/customers/dashboard/messages',
-  },
 ]
 
 const Navbar = ({ navItems, classNames }: Props) => {
   const { data: session, status } = useSession()
-
   const [loading, setLoading] = useState(false)
-
   const router = useRouter()
   const [firstName, setFirstName] = useState('')
-  // ... existing state and hooks ...
-
   const [isScrolled, setIsScrolled] = useState(false)
   const pathname = usePathname()
   const isMobile = useMediaQuery('(max-width: 1023px)')
 
   useEffect(() => {
     if (session?.user) {
-      // If using a separate endpoint, you could fetch here:
-      // const userData = await fetchUserDetails()
-      // setFirstName(userData.firstName)
-
-      // If user data is already in session:
-      setFirstName(session.user.firstName || '')
+      setFirstName(
+        session.user.firstName
+          ? session.user.firstName.charAt(0).toUpperCase() +
+              session.user.firstName.slice(1)
+          : ''
+      )
     }
   }, [session])
 

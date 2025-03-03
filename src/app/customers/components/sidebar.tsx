@@ -1,48 +1,47 @@
 'use client'
 
 import Link from 'next/link'
-import {
-  User,
-  ShoppingBag,
-  Mail,
-  LogOut,
-  Pencil,
-  X,
-} from 'lucide-react'
+import { User, ShoppingBag, LogOut, Pencil, X } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { usePathname, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
-import { signOut } from 'next-auth/react'
+import { useEffect, useState } from 'react'
+import { signOut, useSession } from 'next-auth/react'
 
 interface SidebarProps {
   isMobile: boolean
   onClose: () => void
 }
 
-export function Sidebar({ isMobile, onClose }: SidebarProps) {
-  const [loading, setLoading] = useState(false)
+const menuItems = [
+  {
+    href: '/customers/dashboard/profile',
+    icon: User,
+    label: 'My Profile',
+  },
+  {
+    href: '/customers/dashboard/orders',
+    icon: ShoppingBag,
+    label: 'My Orders',
+  },
+]
 
+export function Sidebar({ isMobile, onClose }: SidebarProps) {
+  const { data: session } = useSession()
+  const [loading, setLoading] = useState(false)
+  const [firstName, setFirstName] = useState('')
   const router = useRouter()
   const pathname = usePathname()
-  const menuItems = [
-    {
-      href: '/customers/dashboard/profile',
-      icon: User,
-      label: 'My Profile',
-    },
-    {
-      href: '/customers/dashboard/orders',
-      icon: ShoppingBag,
-      label: 'My Orders',
-    },
-    {
-      href: '/customers/dashboard/messages',
-      icon: Mail,
-      label: 'Messages',
-    },
-    // { href: '/', icon: LogOut, label: 'Log Out' },
-  ]
+  useEffect(() => {
+    if (session?.user) {
+      setFirstName(
+        session.user.firstName
+          ? session.user.firstName.charAt(0).toUpperCase() +
+              session.user.firstName.slice(1)
+          : ''
+      )
+    }
+  }, [session])
 
   return (
     <div
@@ -64,7 +63,12 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
         <div className='relative w-24 h-24 mx-auto mb-4'>
           <Avatar className='w-full h-full border-4 border-white'>
             <AvatarImage src='/placeholder.svg' />
-            <AvatarFallback>MA</AvatarFallback>
+            <AvatarFallback className=''>
+              {firstName
+                ?.split(' ')
+                .map((word) => word[0])
+                .join('')}
+            </AvatarFallback>
           </Avatar>
           <label
             htmlFor='avatar-upload'
@@ -79,7 +83,7 @@ export function Sidebar({ isMobile, onClose }: SidebarProps) {
             />
           </label>
         </div>
-        <h2 className='text-white text-lg font-medium'>Welcome MARIAM</h2>
+        <h2 className='text-white text-lg font-medium'>Welcome, {firstName}</h2>
       </div>
 
       <nav className='p-4'>

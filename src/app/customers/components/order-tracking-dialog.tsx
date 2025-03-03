@@ -3,8 +3,9 @@ import { format } from 'date-fns'
 import { useQuery } from '@tanstack/react-query'
 import OrderCheck from '../../../../public/assets/icons/order-check'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getUserOrders } from '@/api/user'
 import { queryKeys } from '@/lib/queries'
+import { getOrderTimeline } from '@/api/orders'
+import { useSession } from 'next-auth/react'
 
 // Define the status steps in order
 const ORDER_STEPS = [
@@ -43,28 +44,26 @@ const STATUS_MAP: Record<string, string> = {
 
 type OrderTrackingModalProps = {
   index: number
+  orderId: string
 }
 
-export default function OrderTrackingModal({ index }: OrderTrackingModalProps) {
-  // Get all orders data from the cache
-  const { data: ordersResponse, isLoading } = useQuery({
-    queryKey: [queryKeys.userOrders],
-    queryFn: () => getUserOrders(),
+export default function OrderTrackingModal({
+  orderId,
+}: OrderTrackingModalProps) {
+  const { status } = useSession()
+  const { data: timelineResponse, isLoading } = useQuery({
+    queryKey: [queryKeys.orderTimeline, orderId],
+    queryFn: () => getOrderTimeline(orderId),
+    enabled: status === 'authenticated' && !!orderId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
-  // Get the specific order using the index
-  const order = ordersResponse?.data.orders[index]
-
-  // Determine current step based on order status
-  const currentStatus = order?.status
-    ? STATUS_MAP[order.status.toLowerCase()] || 'approved'
-    : 'approved'
-
-  // Format delivery date
-  const deliveryDate = order?.deliveryDate
-    ? format(new Date(order.deliveryDate), 'do MMM, yyyy')
-    : 'Pending'
+  // Get the latest status from timeline if available
+  const currentStatus =
+    timelineResponse?.data[
+      timelineResponse?.data.length - 1
+    ]?.action?.toLowerCase() || 'pending'
+  const mappedStatus = STATUS_MAP[currentStatus] || 'approved'
 
   if (isLoading) {
     return (
@@ -86,21 +85,28 @@ export default function OrderTrackingModal({ index }: OrderTrackingModalProps) {
     )
   }
 
-  if (!order) {
-    return <div className='pt-4'>Order not found</div>
+  if (!timelineResponse?.data) {
+    return <div className='pt-4'>Timeline not found</div>
   }
+
+  // Get the latest timeline entry for the order ID
+  // const latestEntry = timelineResponse.data[timelineResponse.data.length - 1]
 
   return (
     <div className='pt-4'>
-      <h2 className='font-medium mb-2'>Order #{order._id.substring(0, 8)}</h2>
-      <h3 className='font-medium mb-6'>Delivery Date</h3>
-      <p className='text-lg font-semibold mb-8'>{deliveryDate}</p>
+      <h2 className='font-medium mb-2'>Order #{orderId.substring(0, 8)}</h2>
+      <h3 className='font-medium mb-6'>Timeline</h3>
 
       <div className='space-y-8'>
         {ORDER_STEPS.map((step, stepIndex) => {
           // Determine if this step is completed based on current status
-          const isCompleted = getStepStatus(step.key, currentStatus)
+          const isCompleted = getStepStatus(step.key, mappedStatus)
           const isLast = stepIndex === ORDER_STEPS.length - 1
+
+          // Find matching timeline entry for this step
+          const timelineEntry = timelineResponse.data.find(
+            (entry) => STATUS_MAP[entry.action.toLowerCase()] === step.key
+          )
 
           return (
             <div key={step.key} className='flex gap-4'>
@@ -118,9 +124,18 @@ export default function OrderTrackingModal({ index }: OrderTrackingModalProps) {
               </div>
               <div>
                 <h3 className='font-medium'>{step.label}</h3>
-                <p className='text-xs text-[#656565]'>{step.description}</p>
-                {isCompleted && step.key === currentStatus && (
-                  <p className='text-xs text-green-600 mt-1'>Current status</p>
+                <p className='text-xs text-[#656565]'>
+                  {timelineEntry?.description || step.description}
+                </p>
+                {isCompleted && step.key === mappedStatus && (
+                  <p className='text-xs text-green-600 mt-1'>
+                    {timelineEntry?.timestamp
+                      ? format(
+                          new Date(timelineEntry.timestamp),
+                          'MMM dd, yyyy HH:mm'
+                        )
+                      : 'Current status'}
+                  </p>
                 )}
               </div>
             </div>

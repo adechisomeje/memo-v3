@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/sheet'
 import {
   validateBusiness,
-  validateCountry,
   validateInstagramUsername,
   validateName,
   validatePhone,
@@ -70,14 +69,9 @@ const schema = z.object({
     .refine(validatePhone, {
       message: 'Enter a valid phone number (e.g. 08034567890)',
     }),
-  country: z
-    .string()
-    .min(2, {
-      message: 'Country must be at least 2 characters',
-    })
-    .refine(validateCountry, {
-      message: 'Country not valid/recognized',
-    }),
+  country: z.string().min(2, {
+    message: 'Country must be at least 2 characters',
+  }),
   instagramUsername: z
     .string()
     .min(2, {
