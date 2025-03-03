@@ -72,7 +72,7 @@ export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const { refetch } = useQuery({
+  const { refetch, isPending } = useQuery({
     queryKey: queryKeys.cakeProducts,
     queryFn: getCakeProducts,
     enabled: false,
@@ -98,7 +98,7 @@ export default function Home() {
   });
 
   return (
-    <div className="">
+    <div className="overflow-x-hidden">
       <Navbar
         navItems={navItems}
         mobileNavItems={mobileNavItems}
@@ -134,7 +134,7 @@ export default function Home() {
             <div className="md:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button size="lg" className="mt-10">
+                  <Button size="lg" className="mt-10" loading={isPending}>
                     Get Started
                   </Button>
                 </SheetTrigger>

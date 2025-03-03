@@ -9,8 +9,8 @@ const Tiers = () => {
             Memo vendor tiers
           </h6>
           <p className="text-neutral-30 font-semibold text-xl !leading-[30px]">
-            If you're part of our basic, premium or Enterprise plan, your store
-            will be highlighted to memo customers.
+            If you&apos;re part of our basic, premium or Enterprise plan, your
+            store will be highlighted to memo customers.
           </p>
         </div>
         <div className="flex items-center">

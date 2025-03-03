@@ -69,6 +69,7 @@ const Navbar = ({ navItems, classNames }: Props) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 1023px)");
 
@@ -93,12 +94,24 @@ const Navbar = ({ navItems, classNames }: Props) => {
     }
   }, [session]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      const viewportHeight = window.innerHeight;
+
+      setIsScrolled(scrollPosition > viewportHeight);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
       <AnimatePresence>
         {isEmptyForm && (
           <motion.div
-            className="fixed top-0 left-0 w-full bg-[#C1121F] text-white h-[60px] z-10 flex items-center justify-center shadow-md"
+            className="fixed top-0 left-0 w-full bg-[#C1121F] text-white h-[60px] z-40 flex items-center justify-center shadow-md"
             initial={{ y: -60 }}
             animate={{ y: 90 }}
             exit={{ y: -60 }}
@@ -110,7 +123,8 @@ const Navbar = ({ navItems, classNames }: Props) => {
       </AnimatePresence>
       <nav
         className={cn(
-          "relative py-6 px-8 top-0 left-0 right-0 w-full z-50 transition-all duration-300 ease-in-out bg-white shadow-md",
+          "fixed py-6 px-8 top-0 left-0 right-0 w-full z-50 transition-all duration-300 ease-in-out",
+          isScrolled ? " bg-white/80 backdrop-blur-sm" : "bg-white shadow-md",
           "border-b border-gray-200"
         )}
       >

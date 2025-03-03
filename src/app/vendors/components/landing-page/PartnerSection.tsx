@@ -16,7 +16,6 @@ const PartnerSection = () => {
   const updateSliderPosition = (id: string) => {
     const activeButton = buttonRefs.current[id];
     if (activeButton) {
-      const parentLeft = activeButton.parentElement?.offsetLeft || 0;
       setSliderStyle({
         left: `${activeButton.offsetLeft}px`,
         width: `${activeButton.clientWidth}px`,
@@ -136,11 +135,11 @@ const PartnerSection = () => {
         <Image src={banner} className="w-[45%] flex-shrink-0" alt="/" />
         <div className="flex flex-col gap-[82px] leading-[42px] text-black font-medium justify-between">
           <p className="text-[28px]">
-            “Memo has truly made a difference! Since partnering with them, we've
-            experienced higher sales and greater visibility for Toke Gifts. The
-            journey has been remarkable so far.”
+            &quot;Memo has truly made a difference! Since partnering with them,
+            we&apos;ve experienced higher sales and greater visibility for Toke
+            Gifts. The journey has been remarkable so far.&quot;
           </p>
-          <p className="text-[24px]">— Toke Gifts, Lagos" </p>
+          <p className="text-[24px]">— Toke Gifts, Lagos&quot; </p>
         </div>
       </div>
     </>

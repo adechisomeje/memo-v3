@@ -9,9 +9,7 @@ import algeria from "@/../../public/assets/images/algeria.png";
 import egypt from "@/../../public/assets/images/egypt.png";
 import morocco from "@/../../public/assets/images/morrocco.png";
 
-interface pageProps {}
-
-const SelectCountry = ({}: pageProps) => {
+const SelectCountry = () => {
   const router = useRouter();
 
   const countries = [

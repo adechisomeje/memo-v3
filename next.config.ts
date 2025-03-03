@@ -2,9 +2,8 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['placehold.co', 'example.com'], // Add any other image domains you need
+    domains: ['images.unsplash.com', 'example.com'],
   },
-  /* config options here */
 }
 
 export default nextConfig

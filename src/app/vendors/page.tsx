@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Dancing_Script } from "next/font/google";
 import Image from "next/image";
-import Link from "next/link";
 import React from "react";
 import banner from "@/../../public/assets/images/vendor-landing-hero.png";
 import PayoutSection from "./components/landing-page/PayoutSection";
