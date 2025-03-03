@@ -69,7 +69,6 @@ const Navbar = ({ navItems, classNames }: Props) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
-  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 1023px)");
 
@@ -94,16 +93,6 @@ const Navbar = ({ navItems, classNames }: Props) => {
     }
   }, [session]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      setIsScrolled(scrollPosition > 0);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <>
       <AnimatePresence>
@@ -115,7 +104,7 @@ const Navbar = ({ navItems, classNames }: Props) => {
             exit={{ y: -60 }}
             transition={{ duration: 0.7, ease: "easeInOut" }}
           >
-            <p className="text-center font-medium px-4">{errorMessage}</p>
+            <p className="text-center font-medium px-4">⚠⚠⚠ {errorMessage}</p>
           </motion.div>
         )}
       </AnimatePresence>

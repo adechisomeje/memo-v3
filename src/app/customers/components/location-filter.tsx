@@ -1,19 +1,11 @@
 "use client";
-
-import { format } from "date-fns";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import {
   Select,
   SelectContent,
@@ -21,16 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Calender } from "../../../../public/assets/icons/Calender";
-import { MapPin } from "../../../../public/assets/icons/MapPin";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+
 import { useState } from "react"; // Import useEffect
 import { useQuery } from "@tanstack/react-query"; // Import useQueryClient
 import { getLocations, LocationResponse } from "@/api/public";
@@ -81,6 +65,8 @@ export function SearchForm({
 }: SearchFormProps) {
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
+  const [selectedCity, setSelectedCity] = useState<string>("");
+
   const setDeliveryDetails = useDeliveryDetails(
     (state) => state.setDeliveryDetails
   );
@@ -130,7 +116,12 @@ export function SearchForm({
     form.setValue("city", "");
   };
 
-  const onError = (errors: any) => {
+  const handleCityChange = (value: string) => {
+    setSelectedCity(value);
+    form.setValue("city", value);
+  };
+
+  const onError = (errors: object) => {
     const errorKeys = Object.keys(errors).map((field) => field.toUpperCase());
 
     if (errorKeys.length === 3) {
@@ -139,7 +130,9 @@ export function SearchForm({
       const missingFields = errorKeys.join(" and ");
       setFormError(
         true,
-        `${missingFields} field${errorKeys.length > 1 ? "s" : ""} are required`
+        `${missingFields} field${errorKeys.length > 1 ? "s" : ""} ${
+          errorKeys.length === 1 ? "is" : "are"
+        } required`
       );
     }
   };
@@ -163,8 +156,14 @@ export function SearchForm({
               value={field.value || "default"}
             >
               <FormControl>
-                <SelectTrigger className="h-10 text-black border-r border-l-0 rounded-none border-y-0">
-                  <SelectValue placeholder="Country" />
+                <SelectTrigger className="h-10 text-black border-r border-l-0 rounded-none border-y-0 !outline-none">
+                  <SelectValue placeholder="Country">
+                    {locationsQuery.isLoading
+                      ? "Loading countries..."
+                      : selectedCountry
+                      ? selectedCountry
+                      : "Country"}
+                  </SelectValue>
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -198,8 +197,19 @@ export function SearchForm({
               disabled={!selectedCountry}
             >
               <FormControl>
-                <SelectTrigger className="h-10 text-black border-x-1 rounded-none border-y-0">
-                  <SelectValue placeholder="State" />
+                <SelectTrigger
+                  className={cn(
+                    "h-10 text-black border-x-1 rounded-none border-y-0 !outline-none",
+                    !selectedCountry && "text-gray-400 opacity-70"
+                  )}
+                >
+                  <SelectValue placeholder="State">
+                    {!selectedCountry
+                      ? "Select country first"
+                      : selectedState
+                      ? selectedState
+                      : "State"}
+                  </SelectValue>
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -224,13 +234,24 @@ export function SearchForm({
         render={({ field }) => (
           <FormItem>
             <Select
-              onValueChange={field.onChange}
+              onValueChange={handleCityChange}
               value={field.value || "default"}
               disabled={!selectedState}
             >
               <FormControl>
-                <SelectTrigger className="h-10 text-black border-x-1 rounded-none border-y-0 border-r-0">
-                  <SelectValue placeholder="City" />
+                <SelectTrigger
+                  className={cn(
+                    "h-10 text-black border-x-1 rounded-none border-y-0 border-r-0 !outline-none",
+                    !selectedState && "text-gray-400 opacity-70"
+                  )}
+                >
+                  <SelectValue placeholder="City">
+                    {!selectedState
+                      ? "Select state first"
+                      : selectedCity
+                      ? selectedCity
+                      : "City"}
+                  </SelectValue>
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -288,7 +309,7 @@ export function SearchForm({
           onSubmit={form.handleSubmit(handleSubmit, onError)}
           className={cn("max-w-6xl mx-auto relative", className)}
         >
-          <div className="bg-white rounded-full shadow-lg p-2 md:p-3 !w-fit mx-auto">
+          <div className="bg-white rounded-full shadow-lg p-2 md:p-3 !max-w-[576px] !min-w-[576px] mx-auto">
             <div className="border-2 border-primary rounded-full grid  gap-2 md:gap-4 items-center">
               {/* Location Selects */}
               <div className="md:col-span-7 grid grid-cols-3 gap-2">
