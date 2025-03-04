@@ -1,125 +1,125 @@
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
-import Image from 'next/image'
-import Navbar from './customers/components/navbar'
-import { Footer } from '../components/Footer/footer'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import WhyAndWhatSection from './customers/components/why-and-what-section'
-import ProcessSimplified from './customers/components/process'
-import TrustedCompanies from './customers/components/trusted-companies'
-import { useRouter } from 'next/navigation'
-import StatsSection from './customers/components/memo-stats'
-import { SearchForm } from './customers/components/location-filter'
-import { getCakeProducts } from '@/api/public'
-import { useQuery } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { queryKeys } from '@/lib/queries'
-import { useSession } from 'next-auth/react'
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import Navbar from "./customers/components/navbar";
+import { Footer } from "../components/Footer/footer";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import WhyAndWhatSection from "./customers/components/why-and-what-section";
+import ProcessSimplified from "./customers/components/process";
+import TrustedCompanies from "./customers/components/trusted-companies";
+import { useRouter } from "next/navigation";
+import StatsSection from "./customers/components/memo-stats";
+import { SearchForm } from "./customers/components/location-filter";
+import { getCakeProducts } from "@/api/public";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { queryKeys } from "@/lib/queries";
+import { useSession } from "next-auth/react";
 
 const navItems = [
   {
-    label: 'Home',
-    href: '/',
+    label: "Home",
+    href: "/",
   },
   {
-    label: 'About us',
-    href: '/about',
+    label: "About us",
+    href: "/about",
   },
   {
-    label: 'Contact us',
-    href: '/contact',
+    label: "Contact us",
+    href: "/contact",
   },
   {
-    label: 'Blogs',
-    href: '/blogs',
+    label: "Blogs",
+    href: "/blogs",
   },
-]
+];
 
 const mobileNavItems = [
   {
-    label: 'Home',
-    href: '/',
+    label: "Home",
+    href: "/",
   },
   {
-    label: 'About us',
-    href: '/resources',
+    label: "About us",
+    href: "/resources",
     subItems: [
-      { label: 'Create Shipment', href: '/ship' },
-      { label: 'Get a quote', href: '/get-a-quote' },
-      { label: 'Track', href: '/track' },
+      { label: "Create Shipment", href: "/ship" },
+      { label: "Get a quote", href: "/get-a-quote" },
+      { label: "Track", href: "/track" },
     ],
   },
   {
-    label: 'Contact us',
-    href: '/job-riders',
+    label: "Contact us",
+    href: "/job-riders",
     subItems: [
-      { label: 'Riders', href: '/riders' },
-      { label: 'Rider scout', href: '/job-riders' },
+      { label: "Riders", href: "/riders" },
+      { label: "Rider scout", href: "/job-riders" },
     ],
   },
   {
-    label: 'Blog',
-    href: '/sign-in',
+    label: "Blog",
+    href: "/sign-in",
     subItems: [
-      { label: 'Blog', href: '/blog' },
-      { label: 'User Case', href: '/user-case' },
+      { label: "Blog", href: "/blog" },
+      { label: "User Case", href: "/user-case" },
     ],
   },
-]
+];
 
 export default function Home() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
-  const { refetch } = useQuery({
+  const { refetch, isPending } = useQuery({
     queryKey: queryKeys.cakeProducts,
     queryFn: getCakeProducts,
     enabled: false,
     staleTime: 5 * 60 * 1000,
-  })
+  });
 
   const handleGetStarted = async () => {
     try {
-      const { data } = await refetch()
+      const { data } = await refetch();
       if (data) {
-        router.push('/customers/results')
+        router.push("/customers/results");
       }
     } catch (error) {
-      console.error('Error fetching cake products:', error)
-      toast.error('Failed to load products. Please try again.')
+      console.error("Error fetching cake products:", error);
+      toast.error("Failed to load products. Please try again.");
     }
-  }
+  };
 
-  console.log('Session in profile:', {
+  console.log("Session in profile:", {
     status,
     accessToken: session?.accessToken,
     user: session?.user,
-  })
+  });
 
   return (
-    <div className=''>
+    <div className="overflow-x-hidden">
       <Navbar
         navItems={navItems}
         mobileNavItems={mobileNavItems}
-        ctaLink='/get-started'
+        ctaLink="/get-started"
       />
       <main>
-        <div className='relative lg:min-h-[800px] min-h-[450px] flex items-center justify-center'>
+        <div className="relative lg:min-h-[800px] min-h-[450px] flex items-center justify-center">
           <Image
-            src='/assets/images/landing-bg.png'
-            alt='Background celebration image'
+            src="/assets/images/landing-bg.png"
+            alt="Background celebration image"
             fill
-            className='object-cover brightness-50'
+            className="object-cover brightness-50"
             priority
           />
 
-          <div className='relative z-10 container mx-auto px-4 text-center text-white'>
-            <h1 className='text-3xl md:text-4xl lg:text-5xl font-extrabold max-w-[700px] mx-auto lg:leading-[60px]'>
-              Celebrate <span className='text-[#f5e6d3]'>Moments</span> with
+          <div className="relative z-10 container mx-auto px-4 text-center text-white">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold max-w-[700px] mx-auto lg:leading-[60px]">
+              Celebrate <span className="text-[#f5e6d3]">Moments</span> with
               Cakes, Flowers, & More.
             </h1>
-            <p className='md:text-xl mt-2 max-w-2xl mx-auto'>
+            <p className="md:text-xl mt-2 max-w-2xl mx-auto">
               We make every celebration, from birthdays to anniversaries, easy
               and memorable. Send joy to your loved ones, no matter where they
               are
@@ -127,22 +127,22 @@ export default function Home() {
 
             <SearchForm
               onSubmit={handleGetStarted}
-              className='mt-10 hidden md:block'
-              variant='default'
+              className="mt-10 hidden md:block"
+              variant="default"
             />
 
-            <div className='md:hidden'>
+            <div className="md:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button size='lg' className='mt-10'>
+                  <Button size="lg" className="mt-10" loading={isPending}>
                     Get Started
                   </Button>
                 </SheetTrigger>
-                <SheetContent side='right' className='sm:max-w-md'>
+                <SheetContent side="right" className="sm:max-w-md">
                   <SearchForm
-                    variant='sheet'
+                    variant="sheet"
                     onSubmit={handleGetStarted}
-                    className='h-full flex flex-col'
+                    className="h-full flex flex-col"
                   />
                 </SheetContent>
               </Sheet>
@@ -157,5 +157,5 @@ export default function Home() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }
