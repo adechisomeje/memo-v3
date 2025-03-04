@@ -298,6 +298,7 @@ export function SearchForm({
           <Button
             type="submit"
             className="w-full mt-8 bg-red-600 hover:bg-red-700 text-white h-12"
+            loading={isFetching}
           >
             Get Started
           </Button>
