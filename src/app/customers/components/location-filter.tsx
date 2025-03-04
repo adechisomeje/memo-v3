@@ -33,6 +33,7 @@ interface SearchFormProps {
   onSubmit: (data: object) => void;
   className?: string;
   variant?: "default" | "sheet";
+  isFetching: boolean;
 }
 
 // Helper functions to extract location data
@@ -62,6 +63,7 @@ export function SearchForm({
   onSubmit,
   className,
   variant = "default",
+  isFetching,
 }: SearchFormProps) {
   const [selectedCountry, setSelectedCountry] = useState<string>("");
   const [selectedState, setSelectedState] = useState<string>("");
@@ -142,6 +144,8 @@ export function SearchForm({
     setDeliveryDetails(values);
     onSubmit(values);
   }
+
+  console.log("is it?", isFetching);
 
   const renderLocationSelects = () => (
     <>
@@ -320,7 +324,7 @@ export function SearchForm({
 
           {/* Get Started Button */}
           <div className="flex justify-center mt-8">
-            <Button size="lg" type="submit">
+            <Button size="lg" type="submit" loading={isFetching}>
               Get Started
             </Button>
           </div>
