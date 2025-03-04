@@ -49,15 +49,9 @@ const authenticatedNavItems = [
     label: "My Profile",
     href: "/customers/dashboard/profile",
     subItems: [
-<<<<<<<<< Temporary merge branch 1
-      { label: 'Update Profile', href: '/' },
-      { label: 'See Orders', href: '/' },
-      { label: 'Track', href: '/' },
-=========
-      { label: "Create Shipment", href: "/ship" },
-      { label: "Get a quote", href: "/get-a-quote" },
-      { label: "Track", href: "/track" },
->>>>>>>>> Temporary merge branch 2
+      { label: "Update Profile", href: "/" },
+      { label: "See Orders", href: "/" },
+      { label: "Track", href: "/" },
     ],
   },
   {
