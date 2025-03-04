@@ -4,11 +4,13 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 interface ReviewButtonProps {
-  vendorId: string
+  vendorId: string | null
   reviewCount: number
 }
 
 export function ReviewButton({ vendorId, reviewCount }: ReviewButtonProps) {
+  if (!vendorId) return null
+
   return (
     <Button variant='outline' className='w-full p-6 gap-32'>
       {reviewCount} Reviews

@@ -51,7 +51,7 @@ export const StarEmpty = (props: React.SVGProps<SVGSVGElement>) => {
       fill='none'
       xmlns='http://www.w3.org/2000/svg'
     >
-      <g clip-path='url(#clip0_2547_870)'>
+      <g clipPath='url(#clip0_2547_870)'>
         <path
           d='M15.5 6.34688H9.775L8 0.796875L6.225 6.34688H0.5L5.125 9.77188L3.375 15.2969L8 11.8719L12.625 15.2969L10.85 9.74687L15.5 6.34688Z'
           fill='url(#paint0_linear_2547_870)'
@@ -66,8 +66,8 @@ export const StarEmpty = (props: React.SVGProps<SVGSVGElement>) => {
           y2='9.54688'
           gradientUnits='userSpaceOnUse'
         >
-          <stop stop-color='#B99E48' stop-opacity='0.46' />
-          <stop offset='1' stop-color='#352B0C' stop-opacity='0.37' />
+          <stop stopColor='#B99E48' stop-opacity='0.46' />
+          <stop offset='1' stopColor='#352B0C' stop-opacity='0.37' />
         </linearGradient>
         <clipPath id='clip0_2547_870'>
           <rect
