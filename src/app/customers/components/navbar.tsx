@@ -83,13 +83,6 @@ const Navbar = ({ navItems, classNames }: Props) => {
       if (timer) clearTimeout(timer);
     };
   }, [isEmptyForm, resetFormError]);
-  const { data: session, status } = useSession();
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const [firstName, setFirstName] = useState("");
-  const [isScrolled, setIsScrolled] = useState(false);
-  const pathname = usePathname();
-  const isMobile = useMediaQuery("(max-width: 1023px)");
 
   useEffect(() => {
     if (session?.user) {
