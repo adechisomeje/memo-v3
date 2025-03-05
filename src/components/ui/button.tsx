@@ -63,7 +63,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={loading || props.disabled}
         {...props}
       >
-        <span className={`${loading && "opacity-0"}`}>{children}</span>
+        <span
+          className={`${
+            loading && "opacity-0"
+          } inline-flex items-center justify-center gap-2 whitespace-nowrap`}
+        >
+          {children}
+        </span>
         {loading && (
           <Icons.LoaderButton className="spinner absolute left-[45%] top-[32.5%] -translate-x-1/2 -translate-y-1/2 !w-5 !h-5" />
         )}
