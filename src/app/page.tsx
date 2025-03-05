@@ -11,10 +11,6 @@ import TrustedCompanies from "./customers/components/trusted-companies";
 import { useRouter } from "next/navigation";
 import StatsSection from "./customers/components/memo-stats";
 import { SearchForm } from "./customers/components/location-filter";
-import { getCakeProducts } from "@/api/public";
-import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { queryKeys } from "@/lib/queries";
 import { useSession } from "next-auth/react";
 
 const navItems = [
@@ -71,12 +67,6 @@ const mobileNavItems = [
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
-
-  const storedLocations = localStorage.getItem("selectedLocations") || "";
-
-  const parsedLocations = JSON.parse(storedLocations) || {};
-
-  const { country, city, state } = parsedLocations;
 
   const handleGetStarted = async () => {
     router.push("/customers/results");

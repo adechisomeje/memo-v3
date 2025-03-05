@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 
-import { useEffect, useState } from "react"; // Import useEffect
+import { useState } from "react"; // Import useEffect
 import { useQuery } from "@tanstack/react-query"; // Import useQueryClient
 import { getLocations, LocationResponse } from "@/api/public";
 import { useDeliveryDetails } from "@/store/deliveryDetails";

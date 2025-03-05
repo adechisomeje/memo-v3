@@ -78,6 +78,18 @@ const PRICE_RANGES = [
   { minPrice: 40001, maxPrice: 55000, label: "₦40,001 - ₦55,000" },
 ];
 
+interface FilterParams {
+  productType: string;
+  country: string;
+  state: string;
+  city: string;
+  page: number;
+  limit: number;
+  size?: string;
+  minPrice?: number;
+  maxPrice?: number;
+}
+
 const ResultsPage = () => {
   const router = useRouter();
   const storedLocations = localStorage.getItem("selectedLocations") || "";
@@ -119,7 +131,7 @@ const ResultsPage = () => {
       ],
       queryFn: () => {
         // Construct filter parameters dynamically
-        const filterParams: Record<string, any> = {
+        const filterParams: FilterParams = {
           productType: "cake",
           country,
           state,
