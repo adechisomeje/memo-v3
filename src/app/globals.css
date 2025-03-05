@@ -97,7 +97,10 @@
   cursor: pointer;
 }
 
-
+.spinner {
+  animation: rotate 3s linear infinite;
+    animation-play-state: running;
+}
 
 
 
@@ -151,4 +154,14 @@
 
 .animate-fade-out {
   animation: fadeOut 300ms ease-in forwards;
+}
+
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

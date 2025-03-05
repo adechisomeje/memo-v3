@@ -33,6 +33,7 @@ interface SearchFormProps {
   onSubmit: (data: object) => void;
   className?: string;
   variant?: "default" | "sheet";
+  isFetching: boolean;
 }
 
 // Helper functions to extract location data
@@ -62,10 +63,20 @@ export function SearchForm({
   onSubmit,
   className,
   variant = "default",
+  isFetching,
 }: SearchFormProps) {
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
-  const [selectedState, setSelectedState] = useState<string>("");
-  const [selectedCity, setSelectedCity] = useState<string>("");
+  let savedLocations: string = "{}";
+
+  if (typeof window !== "undefined") {
+    savedLocations = localStorage.getItem("delivery-storage") ?? "{}";
+  }
+
+  const parsedData = JSON.parse(savedLocations);
+  const { country, state, city } = parsedData?.state?.deliveryDetails || {};
+
+  const [selectedCountry, setSelectedCountry] = useState<string>(country);
+  const [selectedState, setSelectedState] = useState<string>(state);
+  const [selectedCity, setSelectedCity] = useState<string>(city);
 
   const setDeliveryDetails = useDeliveryDetails(
     (state) => state.setDeliveryDetails
@@ -74,9 +85,9 @@ export function SearchForm({
   const form = useForm<SearchFormValues>({
     resolver: zodResolver(searchFormSchema),
     defaultValues: {
-      country: "",
-      state: "",
-      city: "",
+      country: country,
+      state: state,
+      city: city,
     },
     mode: "onSubmit",
   });
@@ -294,6 +305,7 @@ export function SearchForm({
           <Button
             type="submit"
             className="w-full mt-8 bg-red-600 hover:bg-red-700 text-white h-12"
+            loading={isFetching}
           >
             Get Started
           </Button>
@@ -320,7 +332,7 @@ export function SearchForm({
 
           {/* Get Started Button */}
           <div className="flex justify-center mt-8">
-            <Button size="lg" type="submit">
+            <Button size="lg" type="submit" loading={isFetching}>
               Get Started
             </Button>
           </div>

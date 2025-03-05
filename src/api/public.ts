@@ -160,9 +160,9 @@ export async function getCities(country: string, state: string) {
   return response.data
 }
 
-export async function getCakeProducts() {
+export async function getCakeProducts(country: string, state: string, city: string, page: number, limit: number) {
   const response = await axiosClient.get<ApiResponse<CakeResponseData>>(
-    '/cakes/public'
+    `/cakes/public?country=${country}&state=${state}&city=${city}&page=${page}&limit=${limit}`
   )
   return response.data
 }
@@ -177,6 +177,22 @@ export async function getCakeProductsByVendor(vendorId: string) {
 export async function getVendorReviews(vendorId: string) {
   const response = await axiosClient.get<ApiResponse<ReviewResponse>>(
     `/reviews/vendor/${vendorId}`
+  )
+  return response.data.data
+}
+
+export async function filterPublicProducts(
+  category?: string,
+  country?: string,
+  state?: string,
+  city?: string,
+  page?: number,
+  limit?: number,
+  size?: string,
+  priceMin?: number,
+  priceMax?: number,) {
+  const response = await axiosClient.get(
+`/products/filter?category=${category}&country=${country}&state=${state}&city=${city}&page=${page}&limit=${limit}&size=${size}&priceMin=${priceMin}&priceMax=${priceMax}`
   )
   return response.data.data
 }

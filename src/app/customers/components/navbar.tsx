@@ -68,6 +68,7 @@ const Navbar = ({ navItems, classNames }: Props) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 1023px)");
+  const isSmallSCreen = useMediaQuery("(max-width: 768px)");
 
   const { isEmptyForm, errorMessage, resetFormError } = useFormErrorStore();
   useEffect(() => {
@@ -114,7 +115,7 @@ const Navbar = ({ navItems, classNames }: Props) => {
           <motion.div
             className="fixed top-0 left-0 w-full bg-[#C1121F] text-white h-[60px] z-40 flex items-center justify-center shadow-md"
             initial={{ y: -60 }}
-            animate={{ y: 90 }}
+            animate={{ y: isMobile ? 84 : 96 }}
             exit={{ y: -60 }}
             transition={{ duration: 0.7, ease: "easeInOut" }}
           >
@@ -124,8 +125,9 @@ const Navbar = ({ navItems, classNames }: Props) => {
       </AnimatePresence>
       <nav
         className={cn(
-          "fixed py-6 px-8 top-0 left-0 right-0 w-full z-50 transition-all duration-300 ease-in-out",
+          "py-6 px-8 top-0 left-0 right-0 w-full z-50 transition-all duration-300 ease-in-out",
           isScrolled ? " bg-white/80 backdrop-blur-sm" : "bg-white shadow-md",
+          isSmallSCreen || pathname !== "/" ? "relative" : "fixed",
           "border-b border-gray-200"
         )}
       >

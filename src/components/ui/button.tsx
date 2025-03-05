@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Icons } from "../icons/Icon";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -63,7 +63,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={loading || props.disabled}
         {...props}
       >
-        {loading ? <Icons.LoaderButton /> : children}
+        <span className={`${loading && "opacity-0"}`}>{children}</span>
+        {loading && (
+          <Icons.LoaderButton className="spinner absolute left-[45%] top-[32.5%] -translate-x-1/2 -translate-y-1/2 !w-5 !h-5" />
+        )}
       </Comp>
     );
   }
