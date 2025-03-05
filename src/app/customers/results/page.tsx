@@ -66,16 +66,16 @@ const CAKE_SIZES = [
 ];
 
 const PRICE_RANGES = [
-  { minPrice: 5000, maxPrice: 6000, label: "₦5,000 - ₦6,000" },
-  { minPrice: 6001, maxPrice: 7000, label: "₦6,001 - ₦7,000" },
-  { minPrice: 7001, maxPrice: 8000, label: "₦7,001 - ₦8,000" },
-  { minPrice: 8001, maxPrice: 9000, label: "₦8,001 - ₦9,000" },
-  { minPrice: 9001, maxPrice: 10000, label: "₦9,001 - ₦10,000" },
-  { minPrice: 10001, maxPrice: 11000, label: "₦10,001 - ₦11,000" },
-  { minPrice: 11001, maxPrice: 12000, label: "₦11,001 - ₦12,000" },
-  { minPrice: 12001, maxPrice: 13000, label: "₦12,001 - ₦13,000" },
-  { minPrice: 13001, maxPrice: 14000, label: "₦13,001 - ₦14,000" },
   { minPrice: 40001, maxPrice: 55000, label: "₦40,001 - ₦55,000" },
+  { minPrice: 55001, maxPrice: 56000, label: "₦55,001 - ₦56,000" },
+  { minPrice: 56001, maxPrice: 57000, label: "₦56,001 - ₦57,000" },
+  { minPrice: 57001, maxPrice: 58000, label: "₦57,001 - ₦58,000" },
+  { minPrice: 58001, maxPrice: 59000, label: "₦58,001 - ₦59,000" },
+  { minPrice: 59001, maxPrice: 60000, label: "₦59,001 - ₦60,000" },
+  { minPrice: 60001, maxPrice: 61000, label: "₦60,001 - ₦61,000" },
+  { minPrice: 61001, maxPrice: 62000, label: "₦61,001 - ₦62,000" },
+  { minPrice: 62001, maxPrice: 63000, label: "₦62,001 - ₦63,000" },
+  { minPrice: 63001, maxPrice: 64000, label: "₦63,001 - ₦64,000" },
 ];
 
 interface FilterParams {
@@ -165,9 +165,9 @@ const ResultsPage = () => {
           filterParams.city,
           filterParams.page,
           filterParams.limit,
-          filterParams.size,
-          filterParams.minPrice,
-          filterParams.maxPrice
+          filterParams.size || "8 inches",
+          filterParams.minPrice || 40100,
+          filterParams.maxPrice || 55000
         );
       },
       // Enable query only if at least one filter is set
