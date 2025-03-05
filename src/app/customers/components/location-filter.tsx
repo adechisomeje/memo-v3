@@ -65,10 +65,14 @@ export function SearchForm({
   variant = "default",
   isFetching,
 }: SearchFormProps) {
-  const savedLocations = localStorage.getItem("delivery-storage") || "";
+  let savedLocations: string = "{}";
+
+  if (typeof window !== "undefined") {
+    savedLocations = localStorage.getItem("delivery-storage") ?? "{}";
+  }
 
   const parsedData = JSON.parse(savedLocations);
-  const { country, state, city } = parsedData.state?.deliveryDetails || {};
+  const { country, state, city } = parsedData?.state?.deliveryDetails || {};
 
   const [selectedCountry, setSelectedCountry] = useState<string>(country);
   const [selectedState, setSelectedState] = useState<string>(state);

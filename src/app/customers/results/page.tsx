@@ -92,11 +92,15 @@ interface FilterParams {
 
 const ResultsPage = () => {
   const router = useRouter();
-  const storedLocations = localStorage.getItem("selectedLocations") || "";
 
-  const parsedLocations = JSON.parse(storedLocations) || {};
+  let savedLocations: string = "{}";
 
-  const { country, city, state } = parsedLocations;
+  if (typeof window !== "undefined") {
+    savedLocations = localStorage.getItem("delivery-storage") ?? "{}";
+  }
+
+  const parsedData = JSON.parse(savedLocations);
+  const { country, state, city } = parsedData?.state?.deliveryDetails || {};
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0);
