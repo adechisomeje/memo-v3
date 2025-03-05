@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 
-import { useState } from "react"; // Import useEffect
+import { useEffect, useState } from "react"; // Import useEffect
 import { useQuery } from "@tanstack/react-query"; // Import useQueryClient
 import { getLocations, LocationResponse } from "@/api/public";
 import { useDeliveryDetails } from "@/store/deliveryDetails";
@@ -65,9 +65,14 @@ export function SearchForm({
   variant = "default",
   isFetching,
 }: SearchFormProps) {
-  const [selectedCountry, setSelectedCountry] = useState<string>("");
-  const [selectedState, setSelectedState] = useState<string>("");
-  const [selectedCity, setSelectedCity] = useState<string>("");
+  const savedLocations = localStorage.getItem("delivery-storage") || "";
+
+  const parsedData = JSON.parse(savedLocations);
+  const { country, state, city } = parsedData.state?.deliveryDetails || {};
+
+  const [selectedCountry, setSelectedCountry] = useState<string>(country);
+  const [selectedState, setSelectedState] = useState<string>(state);
+  const [selectedCity, setSelectedCity] = useState<string>(city);
 
   const setDeliveryDetails = useDeliveryDetails(
     (state) => state.setDeliveryDetails
@@ -76,9 +81,9 @@ export function SearchForm({
   const form = useForm<SearchFormValues>({
     resolver: zodResolver(searchFormSchema),
     defaultValues: {
-      country: "",
-      state: "",
-      city: "",
+      country: country,
+      state: state,
+      city: city,
     },
     mode: "onSubmit",
   });
@@ -144,8 +149,6 @@ export function SearchForm({
     setDeliveryDetails(values);
     onSubmit(values);
   }
-
-  console.log("is it?", isFetching);
 
   const renderLocationSelects = () => (
     <>

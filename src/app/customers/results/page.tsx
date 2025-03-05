@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetHeader } from '@/components/ui/sheet'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
 import {
   Form,
   FormControl,
@@ -13,17 +13,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import Image from 'next/image'
-import { Info, Star } from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from "@/components/ui/select";
+import Image from "next/image";
+import { Info, Star } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Pagination,
   PaginationContent,
@@ -32,57 +32,166 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Card, CardContent } from '@/components/ui/card'
-import * as z from 'zod'
-import { useQuery } from '@tanstack/react-query'
-import { Cake, getCakeProducts } from '@/api/public'
-import CakeCardSkeleton from '../components/cake-card-skeleton'
-import { queryKeys } from '@/lib/queries'
-import { Filter } from '../../../../public/assets/icons/Filter'
-import { StarEmpty } from '../../../../public/assets/icons/StarRating'
-import { useCakeCustomization } from '@/store/cakeCustomization'
-import { useVendorStore } from '@/store/vendorStore'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
+} from "@/components/ui/pagination";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import * as z from "zod";
+import { useQuery } from "@tanstack/react-query";
+import { Cake, filterPublicProducts, getCakeProducts } from "@/api/public";
+import CakeCardSkeleton from "../components/cake-card-skeleton";
+import { queryKeys } from "@/lib/queries";
+import { Filter } from "../../../../public/assets/icons/Filter";
+import { StarEmpty } from "../../../../public/assets/icons/StarRating";
+import { useCakeCustomization } from "@/store/cakeCustomization";
+import { useVendorStore } from "@/store/vendorStore";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const cakeCustomizationSchema = z.object({
   flavour: z.array(z.string()),
-  layers: z.string().min(1, { message: 'Please select number of layers' }),
-})
+  layers: z.string().min(1, { message: "Please select number of layers" }),
+});
 
-export type CakeCustomizationSchema = z.infer<typeof cakeCustomizationSchema>
+export type CakeCustomizationSchema = z.infer<typeof cakeCustomizationSchema>;
 
-type ProductType = 'cakes' | 'gifts' | 'flowers'
+type ProductType = "cakes" | "gifts" | "flowers";
+
+const CAKE_SIZES = [
+  "7 inches",
+  "8 inches",
+  "9 inches",
+  "10 inches",
+  "11 inches",
+  "12 inches",
+];
+
+const PRICE_RANGES = [
+  { minPrice: 5000, maxPrice: 6000, label: "₦5,000 - ₦6,000" },
+  { minPrice: 6001, maxPrice: 7000, label: "₦6,001 - ₦7,000" },
+  { minPrice: 7001, maxPrice: 8000, label: "₦7,001 - ₦8,000" },
+  { minPrice: 8001, maxPrice: 9000, label: "₦8,001 - ₦9,000" },
+  { minPrice: 9001, maxPrice: 10000, label: "₦9,001 - ₦10,000" },
+  { minPrice: 10001, maxPrice: 11000, label: "₦10,001 - ₦11,000" },
+  { minPrice: 11001, maxPrice: 12000, label: "₦11,001 - ₦12,000" },
+  { minPrice: 12001, maxPrice: 13000, label: "₦12,001 - ₦13,000" },
+  { minPrice: 13001, maxPrice: 14000, label: "₦13,001 - ₦14,000" },
+  { minPrice: 40001, maxPrice: 55000, label: "₦40,001 - ₦55,000" },
+];
 
 const ResultsPage = () => {
-  const router = useRouter()
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0)
+  const router = useRouter();
+  const storedLocations = localStorage.getItem("selectedLocations") || "";
+
+  const parsedLocations = JSON.parse(storedLocations) || {};
+
+  const { country, city, state } = parsedLocations;
+
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0);
+
+  // New state for filtering
+  const [selectedPriceRange, setSelectedPriceRange] = useState<{
+    minPrice?: number;
+    maxPrice?: number;
+  }>({});
+  const [selectedSize, setSelectedSize] = useState<string>("");
+
   const setCustomization = useCakeCustomization(
     (state) => state.setCustomization
-  )
-  const setSelectedCake = useCakeCustomization((state) => state.setSelectedCake)
+  );
+  const setSelectedCake = useCakeCustomization(
+    (state) => state.setSelectedCake
+  );
   const setSelectedCakeId = useCakeCustomization(
     (state) => state.setSelectedCakeId
-  )
-  const selectedCake = useCakeCustomization((state) => state.selectedCake)
-  const setVendorInfo = useVendorStore((state) => state.setVendorInfo)
+  );
+  const selectedCake = useCakeCustomization((state) => state.selectedCake);
+  const setVendorInfo = useVendorStore((state) => state.setVendorInfo);
 
-  const { data: cakeProductsResponse, isLoading } = useQuery({
+  // Dynamic filtering query
+  const { data: filteredProductsResponse, isLoading: isFilterLoading } =
+    useQuery({
+      queryKey: [
+        queryKeys.filteredCakeProducts,
+        selectedSize,
+        selectedPriceRange.minPrice,
+        selectedPriceRange.maxPrice,
+      ],
+      queryFn: () => {
+        // Construct filter parameters dynamically
+        const filterParams: Record<string, any> = {
+          productType: "cake",
+          country,
+          state,
+          city,
+          page: 1,
+          limit: 10,
+        };
+
+        // Conditionally add size if selected
+        if (selectedSize) {
+          filterParams.size = selectedSize;
+        }
+
+        // Conditionally add price range if selected
+        if (selectedPriceRange.minPrice !== undefined) {
+          filterParams.minPrice = selectedPriceRange.minPrice;
+        }
+        if (selectedPriceRange.maxPrice !== undefined) {
+          filterParams.maxPrice = selectedPriceRange.maxPrice;
+        }
+
+        // Call the filter function with dynamic parameters
+        return filterPublicProducts(
+          filterParams.productType,
+          filterParams.country,
+          filterParams.state,
+          filterParams.city,
+          filterParams.page,
+          filterParams.limit,
+          filterParams.size,
+          filterParams.minPrice,
+          filterParams.maxPrice
+        );
+      },
+      // Enable query only if at least one filter is set
+      enabled: !!(selectedSize || selectedPriceRange.minPrice !== undefined),
+      staleTime: 5 * 60 * 1000,
+    });
+
+  // Original products query (fallback)
+  const { data: cakeProductsResponse, isLoading: isInitialLoading } = useQuery({
     queryKey: queryKeys.cakeProducts,
-    queryFn: getCakeProducts,
+    queryFn: () => getCakeProducts(country, state, city, 1, 10),
     staleTime: 5 * 60 * 1000,
-  })
+    enabled: !(selectedSize || selectedPriceRange.minPrice !== undefined),
+  });
 
-  // Access the cakes data through the response structure
-  const cakeProducts = cakeProductsResponse?.data
+  // Determine which data to display
+  const cakeProducts = filteredProductsResponse ?? cakeProductsResponse?.data;
+  const isLoading = isFilterLoading || isInitialLoading;
+
+  // Handler for price range selection
+  const handlePriceRangeChange = (value: string) => {
+    const [minPrice, maxPrice] = value.split("-").map(Number);
+    setSelectedPriceRange({ minPrice, maxPrice });
+  };
+
+  // Handler for size selection
+  const handleSizeChange = (value: string) => {
+    setSelectedSize(value);
+  };
+
+  // Reset filters
+  const resetFilters = () => {
+    setSelectedPriceRange({});
+    setSelectedSize("");
+  };
 
   const handleProductSelect = (product: Cake, type: ProductType) => {
-    console.log('Selecting product:', product)
-    setSelectedCake(product)
-    setSelectedCakeId(product._id)
+    console.log("Selecting product:", product);
+    setSelectedCake(product);
+    setSelectedCakeId(product._id);
 
     setVendorInfo({
       vendorId: product.vendorId,
@@ -91,229 +200,255 @@ const ResultsPage = () => {
       country: product.vendorCountry,
       state: product.vendorState,
       city: product.vendorCity,
-    })
+    });
 
     // Set initial layer price based on the base price, or the first layer price if available.
     setSelectedLayerPrice(
       product.layerPrices
-        ? product.layerPrices['1'] ?? product.price
+        ? product.layerPrices["1"] ?? product.price
         : product.price
-    )
+    );
 
-    if (type === 'cakes') {
-      setIsSheetOpen(true)
+    if (type === "cakes") {
+      setIsSheetOpen(true);
     } else {
-      router.push(`/customers/checkout/${product._id}`)
+      router.push(`/customers/checkout/${product._id}`);
     }
-  }
+  };
 
   const form = useForm<CakeCustomizationSchema>({
     resolver: zodResolver(cakeCustomizationSchema),
     defaultValues: {
       flavour: [],
-      layers: '',
-      // icing: 'Buttercream',
+      layers: "",
     },
-  })
+  });
+
+  useEffect(() => {
+    console.log("helllo", cakeProducts);
+  }, [filteredProductsResponse]);
 
   useEffect(() => {
     if (selectedCake) {
       const firstLayer = selectedCake.layerPrices
         ? Object.keys(selectedCake.layerPrices)[0]
-        : String(selectedCake.layers)
+        : String(selectedCake.layers);
 
       // Set default values for the form
       form.reset({
         flavour: selectedCake.flavours,
         layers: firstLayer,
-      })
+      });
 
       // Convert string to number for layerPrices access
-      const layerNumber = parseInt(firstLayer)
+      const layerNumber = parseInt(firstLayer);
       setSelectedLayerPrice(
         selectedCake.layerPrices
           ? selectedCake.layerPrices[layerNumber] ?? selectedCake.price
           : selectedCake.price
-      )
+      );
     }
-  }, [selectedCake, form])
+  }, [selectedCake, form]);
 
   const handleCakeCustomization = async (data: CakeCustomizationSchema) => {
     const dataWithPrice: CakeCustomizationSchema & { price?: number } = {
       ...data,
       price: selectedLayerPrice,
-    }
+    };
 
-    setCustomization(dataWithPrice)
+    setCustomization(dataWithPrice);
 
-    setIsSheetOpen(false)
-    router.push(`/customers/checkout/${selectedCake?._id}`)
-  }
+    setIsSheetOpen(false);
+    router.push(`/customers/checkout/${selectedCake?._id}`);
+  };
 
   const handleLayerChange = (layer: string) => {
     if (selectedCake && selectedCake.layerPrices) {
-      const layerNumber = parseInt(layer)
-      const priceForLayer = selectedCake.layerPrices[layerNumber]
-      setSelectedLayerPrice(priceForLayer ?? selectedCake.price)
+      const layerNumber = parseInt(layer);
+      const priceForLayer = selectedCake.layerPrices[layerNumber];
+      setSelectedLayerPrice(priceForLayer ?? selectedCake.price);
     }
-    form.setValue('layers', layer)
-  }
+    form.setValue("layers", layer);
+  };
 
   async function onSubmit(data: CakeCustomizationSchema) {
-    handleCakeCustomization(data)
+    handleCakeCustomization(data);
   }
 
   return (
     <>
-      <div className='px-4 sm:px-6 lg:px-14'>
+      <div className="px-4 sm:px-6 lg:px-14">
         <main>
-          <div className='flex justify-between items-center mt-8'>
-            <h1 className='text-[#640D0D] text-lg '>
-              Choose Your Special <span className='font-semibold'>Treat</span>
+          <div className="flex justify-between items-center mt-8">
+            <h1 className="text-[#640D0D] text-lg ">
+              Choose Your Special{" "}
+              <span className="font-semibold text-sm">Treat</span>
             </h1>
             <Filter />
           </div>
-          <div className='flex flex-col '>
-            <div className='flex items-center justify-between'>
-              <div className='md:flex gap-4 mt-8 hidden'>
-                <Select>
-                  <SelectTrigger className='gap-3 p-4 w-full'>
-                    <SelectValue placeholder='Prize' />
+          <div className="flex flex-col ">
+            <div className="flex items-center justify-between">
+              <div className="md:flex gap-4 mt-8 hidden">
+                <Select onValueChange={handlePriceRangeChange}>
+                  <SelectTrigger className="gap-3 p-4 w-full *:text-[16px] *:leading-[21.72px]">
+                    <SelectValue placeholder="Price" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='light'>Light</SelectItem>
-                    <SelectItem value='dark'>Dark</SelectItem>
-                    <SelectItem value='system'>System</SelectItem>
+                    {PRICE_RANGES.map((range) => (
+                      <SelectItem
+                        key={range.minPrice}
+                        value={`${range.minPrice}-${range.maxPrice}`}
+                      >
+                        {range.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <Select>
-                  <SelectTrigger className='gap-3 p-4 w-full'>
-                    <SelectValue placeholder='Size' />
+                <Select onValueChange={handleSizeChange}>
+                  <SelectTrigger className="gap-3 p-4 w-full  *:text-[16px] *:leading-[21.72px]">
+                    <SelectValue placeholder="Size" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='light'>Light</SelectItem>
-                    <SelectItem value='dark'>Dark</SelectItem>
-                    <SelectItem value='system'>System</SelectItem>
+                    {CAKE_SIZES.map((size) => (
+                      <SelectItem key={size} value={size}>
+                        {size}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <Select>
-                  <SelectTrigger className='gap-3 p-4 w-full'>
-                    <SelectValue placeholder='Distance' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='light'>Light</SelectItem>
-                    <SelectItem value='dark'>Dark</SelectItem>
-                    <SelectItem value='system'>System</SelectItem>
-                  </SelectContent>
-                </Select>
+                {(selectedPriceRange.minPrice || selectedSize) && (
+                  <Button variant="outline" onClick={resetFilters}>
+                    Clear Filters
+                  </Button>
+                )}
               </div>
             </div>
 
-            <div className='w-full mb-10'>
-              <Tabs defaultValue='cakes' className=''>
-                <div className='lg:flex lg:justify-end justify-around'>
+            {(selectedPriceRange.minPrice || selectedSize) && (
+              <div className="mt-4 text-sm text-muted-foreground">
+                Showing results for
+                {selectedPriceRange.minPrice &&
+                  ` Price: ₦${selectedPriceRange.minPrice} - ₦${selectedPriceRange.maxPrice}`}
+                {selectedSize && ` Size: ${selectedSize}`}
+              </div>
+            )}
+
+            <div className="w-full mb-10">
+              <Tabs defaultValue="cakes" className="">
+                <div className="lg:flex lg:justify-end justify-around">
                   <TabsList>
-                    <TabsTrigger value='cakes'>Cakes</TabsTrigger>
-                    <TabsTrigger value='gifts'>Gifts</TabsTrigger>
-                    <TabsTrigger value='flowers'>Flowers</TabsTrigger>
+                    <TabsTrigger value="cakes">Cakes</TabsTrigger>
+                    <TabsTrigger value="gifts">Gifts</TabsTrigger>
+                    <TabsTrigger value="flowers">Flowers</TabsTrigger>
                   </TabsList>
                 </div>
 
-                <TabsContent value='cakes' className='w-full mt-8'>
-                  <div className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+                <TabsContent value="cakes" className="w-full mt-8">
+                  <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {isLoading ? (
                       Array.from({ length: 4 }).map((_, index) => (
                         <CakeCardSkeleton key={index} />
                       ))
-                    ) : cakeProducts?.cakes && cakeProducts.cakes.length > 0 ? (
-                      cakeProducts.cakes.map((cake) => (
+                    ) : (cakeProducts?.products || cakeProducts?.cakes) &&
+                      (cakeProducts?.cakes?.length ||
+                        cakeProducts?.products?.length) > 0 ? (
+                      (cakeProducts?.products
+                        ? cakeProducts?.products
+                        : cakeProducts?.cakes
+                      )?.map((cake: Cake) => (
                         <div
                           key={cake._id}
-                          onClick={() => handleProductSelect(cake, 'cakes')}
-                          className='cursor-pointer'
+                          onClick={() => handleProductSelect(cake, "cakes")}
+                          className="cursor-pointer"
                         >
-                          <Card className='overflow-hidden'>
-                            <div className='aspect-[4/3] relative overflow-hidden'>
+                          <Card className="overflow-hidden">
+                            <div className="aspect-[4/3] relative overflow-hidden">
                               <Image
                                 src={
                                   cake.thumbnail ||
-                                  '/assets/images/cake-sample.svg'
+                                  "/assets/images/cake-sample.svg"
                                 }
                                 alt={cake.vendorName}
                                 fill
-                                className='object-cover'
+                                className="object-cover"
                               />
                             </div>
-                            <CardContent className='p-4'>
-                              <div className='space-y-3'>
-                                <div className='space-y-1'>
-                                  <div className='flex justify-between items-center'>
-                                    <span>Size:</span>
-                                    <span className='font-semibold'>
+                            <CardContent className="py-4 px-0">
+                              <div className="space-y-3">
+                                <div className="space-y-1">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">
+                                      Size:
+                                    </span>
+                                    <span className="font-semibold text-sm">
                                       {cake.size}
                                     </span>
                                   </div>
-                                  <div className='flex justify-between items-center'>
-                                    <span>Layers:</span>
-                                    <span className='font-semibold'>
-                                      {Object.keys(cake.layerPrices)[0]}{' '}
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">
+                                      Layers:
+                                    </span>
+                                    <span className="font-semibold text-sm">
+                                      {Object.keys(cake.layerPrices)[0]}{" "}
                                       Layer(s)
                                     </span>
                                   </div>
-                                  <div className='flex justify-between items-center'>
-                                    <span className='text-sm text-muted-foreground'>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">
                                       Price:
                                     </span>
-                                    <span className='font-semibold'>
+                                    <span className="font-semibold text-sm">
                                       ${cake.price}
                                     </span>
                                   </div>
-                                  <div className='flex justify-between items-center'>
-                                    <span className='text-sm text-muted-foreground'>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">
                                       Delivery estimate:
                                     </span>
-                                    <span className='font-semibold'>$120</span>
+                                    <span className="font-semibold text-sm">
+                                      $120
+                                    </span>
                                   </div>
-                                  <div className='flex justify-between items-center pt-2 border-t'>
-                                    <span className='text-sm font-medium'>
+                                  <div className="flex justify-between items-center pt-2 border-t">
+                                    <span className="text-sm font-medium">
                                       TOTAL:
                                     </span>
-                                    <span className='font-bold'>
+                                    <span className="font-bold">
                                       ${cake.price + 120}
                                     </span>
                                   </div>
                                 </div>
-                                <div className='flex items-center gap-3 pt-3 border-t'>
-                                  <Avatar className='h-10 w-10'>
+                                <div className="flex items-center gap-3 pt-3 border-t">
+                                  <Avatar className="h-10 w-10">
                                     <AvatarImage
                                       src={cake.vendorPicture}
                                       alt={cake.vendorName}
                                     />
                                     <AvatarFallback>
                                       {cake.vendorName
-                                        .split(' ')
-                                        .map((word) => word[0])
-                                        .join('')}
+                                        .split(" ")
+                                        .map((word: string) => word[0])
+                                        .join("")}
                                     </AvatarFallback>
                                   </Avatar>
-                                  <div className='flex-1'>
-                                    <h3 className='text-sm font-medium'>
+                                  <div className="flex-1">
+                                    <h3 className="text-sm font-medium">
                                       {cake.vendorName}
                                     </h3>
-                                    <div className='flex items-center gap-1'>
-                                      <div className='flex'>
+                                    <div className="flex items-center gap-1">
+                                      <div className="flex">
                                         {[...Array(5)].map((_, i) => (
                                           <StarEmpty
                                             key={i}
                                             className={` ${
-                                              i < 5
-                                                ? 'text-yellow-400 fill-yellow-400'
-                                                : 'text-gray-300'
+                                              i > 5
+                                                ? "text-yellow-400 fill-yellow-400"
+                                                : "text-gray-300"
                                             }`}
                                           />
                                         ))}
                                       </div>
-                                      <span className='text-sm font-medium'>
+                                      <span className="text-sm font-medium">
                                         {cake.vendorAverageRating}
                                       </span>
                                     </div>
@@ -325,110 +460,105 @@ const ResultsPage = () => {
                         </div>
                       ))
                     ) : (
-                      <div className='flex flex-col justify-center items-center  py-10 gap-3'>
+                      <div className=" col-span-4 flex flex-col justify-center items-center py-10 gap-3">
                         <Image
-                          src='/assets/icons/no-data.svg'
-                          alt='No results'
-                          width={500}
-                          height={500}
+                          src="/assets/icons/no-data.svg"
+                          alt="No results"
+                          width={300}
+                          height={300}
                         />
-                        <p className='mt-8'>
+                        <p className="mt-8">
                           No cake products available. Please try again later.
                         </p>
                       </div>
                     )}
                   </div>
                 </TabsContent>
-                <TabsContent value='gifts'>
+
+                <TabsContent value="gifts">
                   {/* Add gifts content here */}
                 </TabsContent>
-                <TabsContent value='flowers'>
+                <TabsContent value="flowers">
                   {/* Add flowers content here */}
                 </TabsContent>
               </Tabs>
             </div>
           </div>
-          <Pagination className='my-10'>
+          <Pagination className="my-10">
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious href='#' />
+                <PaginationPrevious href="#" />
               </PaginationItem>
               <PaginationItem>
-                <PaginationLink href='#'>1</PaginationLink>
+                <PaginationLink href="#">1</PaginationLink>
               </PaginationItem>
               <PaginationItem>
                 <PaginationEllipsis />
               </PaginationItem>
               <PaginationItem>
-                <PaginationNext href='#' />
+                <PaginationNext href="#" />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </main>
       </div>
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className='overflow-y-auto sm:max-w-[640px] p-6 sm:p-10'>
-          <SheetHeader className='flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:gap-8'>
-            {/* ... (your Image and initial price display) ... */}
-            <div className='relative w-full h-48 mb-4'>
+        <SheetContent className="overflow-y-auto sm:max-w-[640px] p-6 sm:p-10">
+          <SheetHeader className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:gap-8">
+            <div className="relative w-full h-48 mb-4">
               <Image
                 src={
-                  selectedCake?.thumbnail || '/assets/images/cake-sample.svg'
+                  selectedCake?.thumbnail || "/assets/images/cake-sample.svg"
                 }
-                alt='Selected cake'
+                alt="Selected cake"
                 fill
-                className='object-cover rounded-lg'
+                className="object-cover rounded-lg"
               />
             </div>
 
-            <div className='space-y-2 mb-4'>
-              <div className='flex justify-between items-center'>
-                <span className='text-sm text-muted-foreground'>Price:</span>
-                <span className='font-semibold'>
-                  {/* Display selectedLayerPrice, not the base price */}$
-                  {selectedLayerPrice}
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Price:</span>
+                <span className="font-semibold text-sm">
+                  ${selectedLayerPrice}
                 </span>
               </div>
-              <div className='flex justify-between items-center'>
-                <span className='text-sm text-muted-foreground'>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">
                   Delivery estimate:
                 </span>
-                <span className='font-semibold'>$120</span>
+                <span className="font-semibold text-sm">$120</span>
               </div>
-              <div className='flex justify-between items-center pt-2 border-t'>
-                <span className='text-sm font-medium'>TOTAL:</span>
-                <span className='font-bold'>
-                  {/* Calculate based on selectedLayerPrice */}$
-                  {selectedLayerPrice + 120}
-                </span>
+              <div className="flex justify-between items-center pt-2 border-t">
+                <span className="text-sm font-medium">TOTAL:</span>
+                <span className="font-bold">${selectedLayerPrice + 120}</span>
               </div>
 
-              <div className='flex items-center gap-3 pb-4 border-b'>
-                <Avatar className='h-8 w-8'>
-                  <AvatarImage src='/assets/images/naomi.png' />
-                  {/* {selectedCake?.vendorPicture || '/assets/images/naomi.png'} */}
+              <div className="flex items-center gap-3 pb-4 border-b">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="/assets/images/naomi.png" />
                   <AvatarFallback>
                     {selectedCake?.vendorName.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className='flex-1'>
-                  <h3 className='text-sm font-medium'>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium">
                     {selectedCake?.vendorName}
                   </h3>
-                  <div className='flex items-center gap-1'>
-                    <div className='flex'>
+                  <div className="flex items-center gap-1">
+                    <div className="flex">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
                           className={`h-4 w-4 ${
                             i < 4
-                              ? 'text-yellow-400 fill-yellow-400'
-                              : 'text-gray-300'
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-300"
                           }`}
                         />
                       ))}
                     </div>
-                    <span className='text-sm font-medium'>
+                    <span className="text-sm font-medium">
                       {selectedCake?.vendorAverageRating}
                     </span>
                   </div>
@@ -440,14 +570,14 @@ const ResultsPage = () => {
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className='space-y-4 mt-8'
+              className="space-y-4 mt-8"
             >
               <FormField
                 control={form.control}
-                name='layers'
+                name="layers"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className='text-primary font-medium text-lg'>
+                    <FormLabel className="text-primary font-medium text-lg">
                       Layers
                     </FormLabel>
                     <Select
@@ -455,8 +585,8 @@ const ResultsPage = () => {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className='p-4 sm:p-6'>
-                          <SelectValue placeholder='Select number of layers' />
+                        <SelectTrigger className="p-4 sm:p-6">
+                          <SelectValue placeholder="Select number of layers" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -477,18 +607,18 @@ const ResultsPage = () => {
               />
               <FormField
                 control={form.control}
-                name='flavour'
+                name="flavour"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className='text-primary font-medium text-lg'>
+                    <FormLabel className="text-primary font-medium text-lg">
                       Flavour
                     </FormLabel>
                     <FormControl>
-                      <div className='flex flex-wrap gap-3'>
+                      <div className="flex flex-wrap gap-3">
                         {selectedCake?.flavours.map((flavour: string) => (
                           <div
                             key={flavour}
-                            className='flex items-center space-x-2'
+                            className="flex items-center space-x-2"
                           >
                             <Checkbox
                               id={`flavour-${flavour}`}
@@ -496,13 +626,13 @@ const ResultsPage = () => {
                               onCheckedChange={(checked) => {
                                 const newValue = checked
                                   ? [...field.value, flavour]
-                                  : field.value.filter((f) => f !== flavour)
-                                field.onChange(newValue)
+                                  : field.value.filter((f) => f !== flavour);
+                                field.onChange(newValue);
                               }}
                             />
                             <Label
                               htmlFor={`flavour-${flavour}`}
-                              className='text-sm font-medium cursor-pointer'
+                              className="text-sm font-medium cursor-pointer"
                             >
                               {flavour}
                             </Label>
@@ -515,11 +645,11 @@ const ResultsPage = () => {
                 )}
               />
 
-              <Button type='submit' className='w-full mt-10'>
+              <Button type="submit" className="w-full mt-10">
                 I want this
               </Button>
-              <small className='flex gap-2 items-center'>
-                <Info color='red' size={16} />
+              <small className="flex gap-2 items-center">
+                <Info color="red" size={16} />
                 The total price may change a bit based on the delivery estimate
                 after review by vendor
               </small>
@@ -528,7 +658,7 @@ const ResultsPage = () => {
         </SheetContent>
       </Sheet>
     </>
-  )
-}
+  );
+};
 
-export default ResultsPage
+export default ResultsPage;

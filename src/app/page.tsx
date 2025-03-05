@@ -72,23 +72,14 @@ export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const { refetch, isFetching } = useQuery({
-    queryKey: queryKeys.cakeProducts,
-    queryFn: getCakeProducts,
-    enabled: false,
-    staleTime: 5 * 60 * 1000,
-  });
+  const storedLocations = localStorage.getItem("selectedLocations") || "";
+
+  const parsedLocations = JSON.parse(storedLocations) || {};
+
+  const { country, city, state } = parsedLocations;
 
   const handleGetStarted = async () => {
-    try {
-      const { data } = await refetch();
-      if (data) {
-        router.push("/customers/results");
-      }
-    } catch (error) {
-      console.error("Error fetching cake products:", error);
-      toast.error("Failed to load products. Please try again.");
-    }
+    router.push("/customers/results");
   };
 
   console.log("Session in profile:", {
@@ -97,7 +88,6 @@ export default function Home() {
     user: session?.user,
   });
 
-  console.log("pednig", isFetching);
   return (
     <div className="overflow-x-hidden">
       <Navbar
@@ -130,13 +120,13 @@ export default function Home() {
               onSubmit={handleGetStarted}
               className="mt-10 hidden md:block"
               variant="default"
-              isFetching={isFetching}
+              isFetching={false}
             />
 
             <div className="md:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button size="lg" className="mt-10" loading={isFetching}>
+                  <Button size="lg" className="mt-10" loading={false}>
                     Get Started
                   </Button>
                 </SheetTrigger>
@@ -145,7 +135,7 @@ export default function Home() {
                     variant="sheet"
                     onSubmit={handleGetStarted}
                     className="h-full flex flex-col"
-                    isFetching={isFetching}
+                    isFetching={false}
                   />
                 </SheetContent>
               </Sheet>
