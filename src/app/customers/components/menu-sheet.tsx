@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import {
   User,
-  ChevronRight,
   ChevronDown,
   User2,
   ListOrderedIcon,
@@ -127,7 +126,6 @@ export default function MobileMenu({ navItems }: Props) {
             <Link href='/sign-in'>Login/Sign Up</Link>
           )}
         </div>
-        <ChevronRight className='w-6 h-6' />
       </div>
 
       {/* Navigation Sections */}
