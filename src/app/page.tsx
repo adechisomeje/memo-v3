@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import StatsSection from "./customers/components/memo-stats";
 import { SearchForm } from "./customers/components/location-filter";
 import { useSession } from "next-auth/react";
+import { useEffect } from "react";
 
 const navItems = [
   {
@@ -77,6 +78,10 @@ export default function Home() {
     accessToken: session?.accessToken,
     user: session?.user,
   });
+
+  useEffect(() => {
+    router.prefetch("/customers/results");
+  }, []);
 
   return (
     <div className="overflow-x-hidden">

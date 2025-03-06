@@ -160,9 +160,9 @@ export async function getCities(country: string, state: string) {
   return response.data
 }
 
-export async function getCakeProducts(country: string, state: string, city: string, page: number, limit: number) {
+export async function getCakeProducts(country: string, state: string, city: string, page: number, limit: number, deliveryDate: Date) {
   const response = await axiosClient.get<ApiResponse<CakeResponseData>>(
-    `/cakes/public?country=${country}&state=${state}&city=${city}&page=${page}&limit=${limit}`
+    `/cakes/public?country=${country}&state=${state}&city=${city}&page=${page}&limit=${limit}&deliveryDate=${deliveryDate}`
   )
   return response.data
 }
@@ -190,9 +190,9 @@ export async function filterPublicProducts(
   limit?: number,
   size?: string,
   priceMin?: number,
-  priceMax?: number,) {
+  priceMax?: number,deliveryDate?:Date) {
   const response = await axiosClient.get(
-`/products/filter?category=${category}&country=${country}&state=${state}&city=${city}&page=${page}&limit=${limit}&size=${size}&priceMin=${priceMin}&priceMax=${priceMax}`
+`/products/filter?category=${category}&country=${country}&state=${state}&city=${city}&page=${page}&limit=${limit}&size=${size}&priceMin=${priceMin}&priceMax=${priceMax}&deliveryDate=${deliveryDate}`
   )
   return response.data.data
 }
