@@ -1,8 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import { useState, useEffect, useCallback } from 'react'
-import { CalendarIcon, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,7 +15,7 @@ import { CreateOrderResponse, userCreateOrder } from '@/api/orders'
 import { toast } from 'sonner'
 import * as z from 'zod'
 import { useRouter } from 'next/navigation'
-import { Calendar } from '@/components/ui/calendar'
+
 import { useCakeCustomization } from '@/store/cakeCustomization'
 import {
   Form,
@@ -24,7 +24,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form'
-import { useForm, useFormContext, UseFormReturn } from 'react-hook-form'
+import { useForm, UseFormReturn } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -45,14 +45,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { locationData } from '@/data/countryData'
+
 import { cn } from '@/lib/utils'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { format } from 'date-fns'
+
+import { useDeliveryDetails } from '@/store/deliveryDetails'
 
 interface CartItem {
   id: string
@@ -61,30 +57,6 @@ interface CartItem {
   description: string
   price: number
   quantity: number
-}
-
-type City = string
-
-interface StateData {
-  capital: string
-  cities: City[]
-}
-
-interface CountryData {
-  states: {
-    [stateName: string]: StateData
-  }
-}
-
-interface StateData {
-  capital: string
-  cities: string[]
-}
-
-interface CountryData {
-  states: {
-    [key: string]: StateData
-  }
 }
 
 interface CountryCode {
@@ -100,9 +72,6 @@ const countryCodes: CountryCode[] = [
 ]
 
 const formSchema = z.object({
-  date: z.date({
-    required_error: 'Delivery date is required',
-  }),
   note: z.string().optional(),
   recipientName: z
     .string()
@@ -114,15 +83,6 @@ const formSchema = z.object({
     }),
   address: z.string().min(2, {
     message: 'Address is required',
-  }),
-  state: z.string().min(2, {
-    message: 'State is required',
-  }),
-  country: z.string().min(2, {
-    message: 'Country is required',
-  }),
-  city: z.string().min(2, {
-    message: 'City is required',
   }),
   countryCode: z.string().min(2, {
     message: 'Please select a country code',
@@ -150,165 +110,6 @@ const formSchema = z.object({
       }
     ),
 })
-
-const AddressSelectFields = () => {
-  const form = useFormContext()
-  const [availableCountries, setAvailableCountries] = useState<string[]>([])
-  const [availableStates, setAvailableStates] = useState<string[]>([])
-  const [availableCities, setAvailableCities] = useState<string[]>([])
-
-  const currentCountry: object | unknown = form.watch('country')
-  const currentState = form.watch('state')
-  const currentCity = form.watch('city')
-
-  // Initialize available countries once on component mount
-  useEffect(() => {
-    const countries = Object.keys(locationData.countries)
-    setAvailableCountries(countries)
-  }, [])
-
-  useEffect(() => {
-    if (!currentCountry) return
-    try {
-      const countryData = locationData.countries[
-        currentCountry as keyof typeof locationData.countries
-      ] as CountryData
-      const states = Object.keys(countryData.states)
-      setAvailableStates(states)
-
-      if (currentState && !states.includes(currentState)) {
-        form.setValue('state', '', { shouldValidate: true })
-        form.setValue('city', '', { shouldValidate: true })
-      }
-    } catch (error) {
-      console.error('Error updating states:', error)
-    }
-  }, [currentCountry])
-
-  useEffect(() => {
-    if (!currentCountry || !currentState) return
-    try {
-      const countryData = locationData.countries[
-        currentCountry as keyof typeof locationData.countries
-      ] as CountryData
-      const stateData = countryData.states[currentState] as StateData
-      const cities = stateData.cities
-      setAvailableCities(cities)
-
-      // Only reset city if current city is not valid
-      if (currentCity && !cities.includes(currentCity)) {
-        form.setValue('city', '', { shouldValidate: true })
-      }
-    } catch (error) {
-      console.error('Error updating cities:', error)
-    }
-  }, [currentCountry, currentState]) // Remove form and currentCity from dependencies
-
-  const handleCountryChange = useCallback(
-    (value: string) => {
-      form.setValue('country', value, { shouldValidate: true })
-    },
-    [form]
-  )
-
-  const handleStateChange = useCallback(
-    (value: string) => {
-      form.setValue('state', value, { shouldValidate: true })
-    },
-    [form]
-  )
-
-  const handleCityChange = useCallback(
-    (value: string) => {
-      form.setValue('city', value, { shouldValidate: true })
-    },
-    [form]
-  )
-
-  return (
-    <>
-      <FormField
-        control={form.control}
-        name='country'
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-              <Select onValueChange={handleCountryChange} value={field.value}>
-                <SelectTrigger className='w-full p-6'>
-                  <SelectValue placeholder='Select Country' />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCountries.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name='state'
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-              <Select
-                onValueChange={handleStateChange}
-                value={field.value}
-                disabled={!currentCountry}
-              >
-                <SelectTrigger className='w-full p-6'>
-                  <SelectValue placeholder='Select State' />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableStates.map((state) => (
-                    <SelectItem key={state} value={state}>
-                      {state}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name='city'
-        render={({ field }) => (
-          <FormItem>
-            <FormControl>
-              <Select
-                onValueChange={handleCityChange}
-                value={field.value}
-                disabled={!currentState}
-              >
-                <SelectTrigger className='w-full p-6'>
-                  <SelectValue placeholder='Select City' />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCities.map((city) => (
-                    <SelectItem key={city} value={city}>
-                      {city}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </>
-  )
-}
 
 const PhoneNumberInput = ({
   form,
@@ -399,6 +200,7 @@ const PhoneNumberInput = ({
 }
 
 const CheckOutPage = () => {
+  const deliveryDetails = useDeliveryDetails((state) => state.deliveryDetails)
   const [otherItems, setOtherItems] = useState<CartItem[]>([])
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null)
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
@@ -473,13 +275,9 @@ const CheckOutPage = () => {
     defaultValues: {
       note: '',
       address: '',
-      country: '',
-      state: '',
-      city: '',
       recipientName: '',
       countryCode: '+234',
       recipientPhone: '+234',
-      date: undefined,
     },
   })
 
@@ -533,7 +331,7 @@ const CheckOutPage = () => {
   })
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
-    if (!selectedCake || !cakeCustomization) {
+    if (!selectedCake || !cakeCustomization || !deliveryDetails) {
       toast.error(
         'Missing required data. Please go back and select a cake and delivery details.'
       )
@@ -560,11 +358,11 @@ const CheckOutPage = () => {
       flavours: cakeCustomization.flavour,
       deliveryAddress: {
         address: data.address,
-        city: data.city,
-        state: data.state,
-        country: data.country,
+        city: deliveryDetails.city,
+        state: deliveryDetails.state,
+        country: deliveryDetails.country,
       },
-      deliveryDate: data.date.toISOString(),
+      deliveryDate: new Date(deliveryDetails.date!).toISOString(),
       additionalProducts,
     })
   }
@@ -652,113 +450,75 @@ const CheckOutPage = () => {
 
             <div className='space-y-6'>
               <div className='space-y-4'>
-                <div className='border-t pt-4'>
-                  <div className='flex justify-between mb-2'>
-                    <span className='font-semibold'>Delivery fee:</span>
-                    <span>{formatPrice(120)}</span>
+                <div className='flex flex-col sm:flex-row justify-between gap-4 bg-[#FFFBFA] p-5 rounded-lg'>
+                  <div className='flex flex-col'>
+                    <span className='font-semibold text-lg'>
+                      Delivery Address:
+                    </span>
+                    <span className='text-sm'>
+                      {deliveryDetails?.city}, {deliveryDetails?.state},{' '}
+                      {deliveryDetails?.country}
+                    </span>
                   </div>
-                  <div className='flex justify-between font-semibold'>
-                    <span>TOTAL:</span>
-                    <span>{formatPrice(totalWithOtherItems + 120)}</span>
+                  <div className='flex flex-col'>
+                    <span className='font-semibold text-lg'>
+                      Delivery Date:
+                    </span>
+                    <span className='text-sm'>{deliveryDetails?.date}</span>
                   </div>
                 </div>
-              </div>
-              <div className='space-y-4'>
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(handleSubmit)}
-                    className='space-y-4'
-                  >
-                    <FormField
-                      control={form.control}
-                      name='date'
-                      render={({ field }) => (
-                        <FormItem className='md:col-span-2'>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant={'outline'}
-                                  className={cn(
-                                    'pl-3 text-left font-normal',
-                                    !field.value && 'text-muted-foreground'
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, 'PPP')
-                                  ) : (
-                                    <span>Pick a delivery date</span>
-                                  )}
-                                  <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className='w-auto p-0'
-                              align='start'
-                            >
-                              <Calendar
-                                mode='single'
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) => {
-                                  const today = new Date()
-                                  today.setHours(0, 0, 0, 0)
-                                  return date < today
-                                }}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name='address'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              placeholder='Address'
-                              className='w-full p-6'
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className='grid grid-cols-3 gap-4'>
-                      <AddressSelectFields />
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name='note'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Textarea
-                              placeholder='Note...'
-                              className='w-full'
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                <div className='space-y-4'>
+                  <Form {...form}>
+                    <form
+                      onSubmit={form.handleSubmit(handleSubmit)}
+                      className='space-y-4'
+                    >
                       <FormField
                         control={form.control}
-                        name='recipientName'
+                        name='address'
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
                               <Input
-                                placeholder='Recipient Name'
+                                placeholder='Address'
+                                className='w-full p-6'
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                        <FormField
+                          control={form.control}
+                          name='recipientName'
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  placeholder='Recipient Name'
+                                  className='w-full'
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <PhoneNumberInput form={form} />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name='note'
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Textarea
+                                placeholder='Note...'
                                 className='w-full'
                                 {...field}
                               />
@@ -768,65 +528,65 @@ const CheckOutPage = () => {
                         )}
                       />
 
-                      <PhoneNumberInput form={form} />
-                    </div>
-
-                    <Button
-                      disabled={mutation.isPending}
-                      type='submit'
-                      className='w-full mt-10'
-                      size='lg'
-                    >
-                      {mutation.isPending ? (
-                        <div className='flex items-center justify-center'>
-                          <span className='animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full'></span>
-                        </div>
-                      ) : (
-                        <>
-                          PROCEED TO PAY (
-                          {formatPrice(totalWithOtherItems + 120)})
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </Form>
-              </div>
-              <div className='space-y-4 bg-[#FFFBFA] p-5 rounded-lg'>
-                <div className='flex items-center gap-2'>
-                  <Avatar className='h-8 w-8'>
-                    <AvatarImage className='p-4'>
-                      {selectedCake?.vendorPicture ||
-                        '/assets/images/naomi.png'}
-                    </AvatarImage>
-                    <AvatarFallback>
-                      {selectedCake?.vendorName.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className='font-medium'>{selectedCake.vendorName}</div>
-                    <div className='flex items-center gap-1'>
-                      {Array(5)
-                        .fill(null)
-                        .map((_, i) => (
-                          <StarFill
-                            key={i}
-                            className={` ${
-                              i < 4
-                                ? 'fill-primary'
-                                : 'fill-muted stroke-muted-foreground'
-                            }`}
-                          />
-                        ))}
-                      <span className='text-sm text-gray-500'>(1k+)</span>
+                      <Button
+                        disabled={mutation.isPending}
+                        type='submit'
+                        className='w-full mt-10'
+                        size='lg'
+                      >
+                        {mutation.isPending ? (
+                          <div className='flex items-center justify-center'>
+                            <span className='animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full'></span>
+                          </div>
+                        ) : (
+                          <>
+                            PROCEED TO PAY (
+                            {formatPrice(totalWithOtherItems + 120)})
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </Form>
+                </div>
+                <div className='space-y-4 bg-[#FFFBFA] p-5 rounded-lg'>
+                  <div className='flex items-center gap-2'>
+                    <Avatar className='h-8 w-8'>
+                      <AvatarImage className='p-4'>
+                        {selectedCake?.vendorPicture ||
+                          '/assets/images/naomi.png'}
+                      </AvatarImage>
+                      <AvatarFallback>
+                        {selectedCake?.vendorName.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className='font-medium'>
+                        {selectedCake.vendorName}
+                      </div>
+                      <div className='flex items-center gap-1'>
+                        {Array(5)
+                          .fill(null)
+                          .map((_, i) => (
+                            <StarFill
+                              key={i}
+                              className={` ${
+                                i < 4
+                                  ? 'fill-primary'
+                                  : 'fill-muted stroke-muted-foreground'
+                              }`}
+                            />
+                          ))}
+                        <span className='text-sm text-gray-500'>(1k+)</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <ReviewButton
-                  // use selected vendor id here
-                  vendorId={vendorId}
-                  reviewCount={5}
-                />
+                  <ReviewButton
+                    // use selected vendor id here
+                    vendorId={vendorId}
+                    reviewCount={5}
+                  />
+                </div>
               </div>
             </div>
           </div>
