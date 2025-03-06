@@ -56,6 +56,8 @@ import {
 const cakeCustomizationSchema = z.object({
   flavour: z.array(z.string()),
   layers: z.string().min(1, { message: "Please select number of layers" }),
+  priceRange: z.string().optional(),
+  size: z.string().optional(),
 });
 
 export type CakeCustomizationSchema = z.infer<typeof cakeCustomizationSchema>;
@@ -94,7 +96,7 @@ interface FilterParams {
   size?: string;
   minPrice?: number;
   maxPrice?: number;
-  deliveryDate?: Date;
+  deliveryDate?: "string";
 }
 
 const ResultsPage = () => {
@@ -170,6 +172,8 @@ const ResultsPage = () => {
           filterParams.deliveryDate = date;
         }
 
+        console.log("params are", filterParams);
+
         // Call the filter function with dynamic parameters
         return filterPublicProducts(
           filterParams.productType,
@@ -184,12 +188,10 @@ const ResultsPage = () => {
           filterParams.deliveryDate
         );
       },
-      // Enable query only if at least one filter is set
       enabled: !!(selectedSize || selectedPriceRange.minPrice !== undefined),
       staleTime: 5 * 60 * 1000,
     });
 
-  // Original products query (fallback)
   const { data: cakeProductsResponse, isLoading: isInitialLoading } = useQuery({
     queryKey: queryKeys.cakeProducts,
     queryFn: () => getCakeProducts(country, state, city, 1, 10, date),
@@ -197,25 +199,25 @@ const ResultsPage = () => {
     enabled: !(selectedSize || selectedPriceRange.minPrice !== undefined),
   });
 
-  // Determine which data to display
   const cakeProducts = filteredProductsResponse ?? cakeProductsResponse?.data;
   const isLoading = isFilterLoading || isInitialLoading;
 
-  // Handler for price range selection
   const handlePriceRangeChange = (value: string) => {
     const [minPrice, maxPrice] = value.split("-").map(Number);
     setSelectedPriceRange({ minPrice, maxPrice });
   };
 
-  // Handler for size selection
   const handleSizeChange = (value: string) => {
     setSelectedSize(value);
   };
 
   // Reset filters
   const resetFilters = () => {
+    console.log("loggggggeedddd");
     setSelectedPriceRange({});
     setSelectedSize("");
+    form.setValue("priceRange", "");
+    form.setValue("size", "");
   };
 
   const handleProductSelect = (product: Cake, type: ProductType) => {
@@ -251,6 +253,8 @@ const ResultsPage = () => {
     defaultValues: {
       flavour: [],
       layers: "",
+      priceRange: "",
+      size: "",
     },
   });
 
@@ -330,33 +334,65 @@ const ResultsPage = () => {
           <div className="flex flex-col ">
             <div className="flex items-center justify-between">
               <div className="md:flex gap-4 mt-8 hidden">
-                <Select onValueChange={handlePriceRangeChange}>
-                  <SelectTrigger className="gap-3 p-4 w-full *:text-[16px] *:leading-[21.72px]">
-                    <SelectValue placeholder="Price" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRICE_RANGES.map((range) => (
-                      <SelectItem
-                        key={range.minPrice}
-                        value={`${range.minPrice}-${range.maxPrice}`}
+                <FormField
+                  control={form.control}
+                  name="priceRange"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          const [minPrice, maxPrice] = value
+                            .split("-")
+                            .map(Number);
+                          setSelectedPriceRange({ minPrice, maxPrice });
+                        }}
+                        value={field.value}
                       >
-                        {range.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select onValueChange={handleSizeChange}>
-                  <SelectTrigger className="gap-3 p-4 w-full  *:text-[16px] *:leading-[21.72px]">
-                    <SelectValue placeholder="Size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CAKE_SIZES.map((size) => (
-                      <SelectItem key={size} value={size}>
-                        {size}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                        <SelectTrigger className="gap-3 p-4 w-full *:text-[16px] *:leading-[21.72px] !outline-none">
+                          <SelectValue placeholder="Price" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PRICE_RANGES.map((range) => (
+                            <SelectItem
+                              key={range.minPrice}
+                              value={`${range.minPrice}-${range.maxPrice}`}
+                            >
+                              {range.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="size"
+                  render={({ field }) => (
+                    <FormItem>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setSelectedSize(value);
+                        }}
+                        value={field.value}
+                      >
+                        <SelectTrigger className="gap-3 p-4 w-full *:text-[16px] *:leading-[21.72px] !outline-none">
+                          <SelectValue placeholder="Size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CAKE_SIZES.map((size) => (
+                            <SelectItem key={size} value={size}>
+                              {size}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
                 {(selectedPriceRange.minPrice || selectedSize) && (
                   <Button variant="outline" onClick={resetFilters}>
                     Clear Filters
@@ -700,7 +736,16 @@ const ResultsPage = () => {
       </Sheet>
 
       {/* Add mobile filter dialog */}
-      <Dialog open={isMobileFilterOpen} onOpenChange={setIsMobileFilterOpen}>
+      <Dialog
+        open={isMobileFilterOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            // Dialog is closing
+            resetFilters();
+          }
+          setIsMobileFilterOpen(open);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Filter Products</DialogTitle>
@@ -708,37 +753,68 @@ const ResultsPage = () => {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Price Range</Label>
-              <Select onValueChange={handlePriceRangeChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select price range" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRICE_RANGES.map((range) => (
-                    <SelectItem
-                      key={range.minPrice}
-                      value={`${range.minPrice}-${range.maxPrice}`}
+              <FormField
+                control={form.control}
+                name="priceRange"
+                render={({ field }) => (
+                  <FormItem>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        const [minPrice, maxPrice] = value
+                          .split("-")
+                          .map(Number);
+                        setSelectedPriceRange({ minPrice, maxPrice });
+                      }}
+                      value={field.value}
                     >
-                      {range.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select price range" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PRICE_RANGES.map((range) => (
+                          <SelectItem
+                            key={range.minPrice}
+                            value={`${range.minPrice}-${range.maxPrice}`}
+                          >
+                            {range.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="space-y-2">
               <Label>Size</Label>
-              <Select onValueChange={handleSizeChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CAKE_SIZES.map((size) => (
-                    <SelectItem key={size} value={size}>
-                      {size}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormField
+                control={form.control}
+                name="size"
+                render={({ field }) => (
+                  <FormItem>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        setSelectedSize(value);
+                      }}
+                      value={field.value}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CAKE_SIZES.map((size) => (
+                          <SelectItem key={size} value={size}>
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
             </div>
 
             {(selectedPriceRange.minPrice || selectedSize) && (

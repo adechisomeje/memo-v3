@@ -190,9 +190,22 @@ export async function filterPublicProducts(
   limit?: number,
   size?: string,
   priceMin?: number,
-  priceMax?: number,deliveryDate?:Date) {
-  const response = await axiosClient.get(
-`/products/filter?category=${category}&country=${country}&state=${state}&city=${city}&page=${page}&limit=${limit}&size=${size}&priceMin=${priceMin}&priceMax=${priceMax}&deliveryDate=${deliveryDate}`
-  )
-  return response.data.data
+  priceMax?: number,
+  deliveryDate?: string
+) {
+  const params: Record<string, string | number> = {};
+
+  if (category) params.category = category;
+  if (country) params.country = country;
+  if (state) params.state = state;
+  if (city) params.city = city;
+  if (page) params.page = page;
+  if (limit) params.limit = limit;
+  if (size) params.size = size;
+  if (priceMin) params.priceMin = priceMin;
+  if (priceMax) params.priceMax = priceMax;
+  if (deliveryDate) params.deliveryDate = deliveryDate;
+
+  const response = await axiosClient.get("/products/filter", { params });
+  return response.data.data;
 }
