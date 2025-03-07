@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import { Star } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -21,27 +20,32 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { z } from 'zod'
+import { useEffect, useState } from 'react'
+import { dropReviews } from '@/api/user'
+import { useMutation } from '@tanstack/react-query'
 
 export const feedbackSchema = z.object({
   rating: z.number().min(1, 'Please provide a rating').max(5),
-  remarks: z.string().min(1, 'Please provide your feedback').max(500),
+  comment: z.string(),
 })
 
 export type FeedbackInput = z.infer<typeof feedbackSchema>
 
 interface FeedbackDialogProps {
   vendorName: string
+  orderId: string
   isOpen?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
 export function FeedbackDialog({
   vendorName,
+  orderId,
   isOpen,
   onOpenChange,
 }: FeedbackDialogProps) {
   // Use internal state if external control props are not provided
-  const [internalOpen, setInternalOpen] = React.useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
 
   // Determine if we're using external or internal state control
   const open = isOpen !== undefined ? isOpen : internalOpen
@@ -51,32 +55,37 @@ export function FeedbackDialog({
     resolver: zodResolver(feedbackSchema),
     defaultValues: {
       rating: 0,
-      remarks: '',
+      comment: '',
     },
   })
 
-  // Reset form when dialog opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (open) {
       form.reset({
         rating: 0,
-        remarks: '',
+        comment: '',
       })
     }
   }, [open, form])
 
-  const onSubmit = async (data: FeedbackInput) => {
-    try {
-      // api goes in here
-      console.log('Feedback submitted:', data)
-      toast('Feedback submitted')
-      setOpen(false)
-      form.reset()
-    } catch (error) {
-      console.error('Error submitting feedback:', error)
-      toast('Error occurred.')
-    }
+  const mutation = useMutation({
+    mutationFn: dropReviews,
+    onSuccess: () => {
+      toast.success('Feedback submitted successfully')
+    },
+    onError: (error) => {
+      toast.error(error.message)
+    },
+  })
+  function onSubmit(values: z.infer<typeof feedbackSchema>) {
+    mutation.mutate({
+      orderId,
+      rating: values.rating,
+      comment: values.comment,
+    })
   }
+
+  // console.log(orderId)
 
   const handleStarClick = (rating: number) => {
     form.setValue('rating', rating)
@@ -127,7 +136,7 @@ export function FeedbackDialog({
 
             <FormField
               control={form.control}
-              name='remarks'
+              name='comment'
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
@@ -143,7 +152,13 @@ export function FeedbackDialog({
             />
             <div className='flex items-center justify-center'>
               <Button size='lg' type='submit'>
-                Send Feedback
+                {mutation.isPending ? (
+                  <div className='flex items-center justify-center'>
+                    <span className='animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full'></span>
+                  </div>
+                ) : (
+                  <>Send Feedback</>
+                )}
               </Button>
             </div>
           </form>

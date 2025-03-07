@@ -60,6 +60,26 @@ type Pagination = {
   totalPages: number
 }
 
+export interface Review {
+  order: string
+  vendor: string
+  user: string
+  rating: number
+  comment: string
+  likes: string[]
+  _id: string
+  replies: string[]
+  createdAt: string
+  updatedAt: string
+  __v: number
+}
+
+export interface ReviewResponse {
+  statusCode: number
+  data: Review
+  message: string
+}
+
 export async function updateUserProfile(data: {
   firstName: string
   lastName: string
@@ -76,6 +96,22 @@ export async function updateUserProfile(data: {
       },
     }
   )
+
+  return response.data
+}
+
+export async function dropReviews(data: {
+  orderId: string
+  rating: number
+  comment: string
+}) {
+  const response = await axiosClient.post<ReviewResponse>('/reviews', data, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem(
+        'next-auth.session-token'
+      )}`,
+    },
+  })
 
   return response.data
 }
