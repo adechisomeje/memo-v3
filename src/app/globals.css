@@ -102,6 +102,25 @@
     animation-play-state: running;
 }
 
+.svg-loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70px;
+  height: 70px;
+  transform: translate(-50%, -50%);
+}
+
+.svg-loader path {
+  fill: #C1121F !important;
+}
+
+.loader-black {
+  > path {
+    fill: black !important;
+  }
+}
+
 
 
 @keyframes slideIn {
