@@ -683,7 +683,7 @@ const ResultsPage = () => {
                       Flavour
                     </FormLabel>
                     <FormControl>
-                      {selectedCake?.layers === 1 || selectedLayer === "1" ? (
+                      {selectedLayer === "1" ? (
                         // Radio buttons for single layer cakes
                         <RadioGroup
                           value={field.value[0] || ""}
