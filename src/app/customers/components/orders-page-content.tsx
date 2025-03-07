@@ -269,10 +269,11 @@ export default function OrdersPageContent() {
           </DialogContent>
         </Dialog>
 
-        {/* Feedback Dialog - Using the modified FeedbackDialog component */}
+        {/* Feedback Dialog - Update to pass orderId */}
         {selectedOrder !== null && orders.length > 0 && (
           <FeedbackDialog
             vendorName={orders[selectedOrder]?.vendor?.businessName || ''}
+            orderId={orders[selectedOrder]._id}
             isOpen={openModalType === 'feedback'}
             onOpenChange={(open) => {
               if (!open) handleCloseModal()
