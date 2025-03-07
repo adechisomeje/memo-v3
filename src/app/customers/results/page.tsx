@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
-import { Info, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Pagination,
@@ -52,6 +52,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const cakeCustomizationSchema = z.object({
   flavour: z.array(z.string()),
@@ -114,6 +115,7 @@ const ResultsPage = () => {
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0);
+  const [selectedLayer, setSelectedLayer] = useState<string>("1");
 
   // New state for filtering
   const [selectedPriceRange, setSelectedPriceRange] = useState<{
@@ -202,15 +204,6 @@ const ResultsPage = () => {
   const cakeProducts = filteredProductsResponse ?? cakeProductsResponse?.data;
   const isLoading = isFilterLoading || isInitialLoading;
 
-  const handlePriceRangeChange = (value: string) => {
-    const [minPrice, maxPrice] = value.split("-").map(Number);
-    setSelectedPriceRange({ minPrice, maxPrice });
-  };
-
-  const handleSizeChange = (value: string) => {
-    setSelectedSize(value);
-  };
-
   // Reset filters
   const resetFilters = () => {
     console.log("loggggggeedddd");
@@ -224,6 +217,16 @@ const ResultsPage = () => {
     console.log("Selecting product:", product);
     setSelectedCake(product);
     setSelectedCakeId(product._id);
+    setSelectedLayerPrice(product.layerPrices[product?.layers]);
+
+    const layerKey = product.layers
+      ? product.layers.toString()
+      : Object.keys(product.layerPrices)[0];
+
+    // Make sure we have a string value with fallback to "1"
+    setSelectedLayer(
+      product.layerPrices && layerKey in product.layerPrices ? layerKey : "1"
+    );
 
     setVendorInfo({
       vendorId: product.vendorId,
@@ -234,12 +237,7 @@ const ResultsPage = () => {
       city: product.vendorCity,
     });
 
-    // Set initial layer price based on the base price, or the first layer price if available.
-    setSelectedLayerPrice(
-      product.layerPrices
-        ? product.layerPrices["1"] ?? product.price
-        : product.price
-    );
+    console.log("layerprice", product.layerPrices[product?.layers]);
 
     if (type === "cakes") {
       setIsSheetOpen(true);
@@ -273,14 +271,6 @@ const ResultsPage = () => {
         flavour: selectedCake.flavours,
         layers: firstLayer,
       });
-
-      // Convert string to number for layerPrices access
-      const layerNumber = parseInt(firstLayer);
-      setSelectedLayerPrice(
-        selectedCake.layerPrices
-          ? selectedCake.layerPrices[layerNumber] ?? selectedCake.price
-          : selectedCake.price
-      );
     }
   }, [selectedCake, form]);
 
@@ -301,6 +291,7 @@ const ResultsPage = () => {
       const layerNumber = parseInt(layer);
       const priceForLayer = selectedCake.layerPrices[layerNumber];
       setSelectedLayerPrice(priceForLayer ?? selectedCake.price);
+      setSelectedLayer(layer);
     }
     form.setValue("layers", layer);
   };
@@ -581,7 +572,7 @@ const ResultsPage = () => {
       </div>
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="overflow-y-auto sm:max-w-[640px] p-6 sm:p-10">
-          <SheetHeader className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:gap-8">
+          <SheetHeader className="flex items-center sm:flex-row sm:gap-8">
             <div className="relative w-full h-48 mb-4">
               <Image
                 src={
@@ -593,7 +584,7 @@ const ResultsPage = () => {
               />
             </div>
 
-            <div className="space-y-2 mb-4">
+            <div className=" w-1/2 mb-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Price:</span>
                 <span className="font-semibold text-sm">
@@ -659,7 +650,7 @@ const ResultsPage = () => {
                     </FormLabel>
                     <Select
                       onValueChange={handleLayerChange}
-                      defaultValue={field.value}
+                      defaultValue={selectedCake?.layers.toString()}
                     >
                       <FormControl>
                         <SelectTrigger className="p-4 sm:p-6">
@@ -682,6 +673,7 @@ const ResultsPage = () => {
                   </FormItem>
                 )}
               />
+              {/* Replace the existing FormField for flavors with this updated code */}
               <FormField
                 control={form.control}
                 name="flavour"
@@ -691,31 +683,61 @@ const ResultsPage = () => {
                       Flavour
                     </FormLabel>
                     <FormControl>
-                      <div className="flex flex-wrap gap-3">
-                        {selectedCake?.flavours.map((flavour: string) => (
-                          <div
-                            key={flavour}
-                            className="flex items-center space-x-2"
-                          >
-                            <Checkbox
-                              id={`flavour-${flavour}`}
-                              checked={field.value.includes(flavour)}
-                              onCheckedChange={(checked) => {
-                                const newValue = checked
-                                  ? [...field.value, flavour]
-                                  : field.value.filter((f) => f !== flavour);
-                                field.onChange(newValue);
-                              }}
-                            />
-                            <Label
-                              htmlFor={`flavour-${flavour}`}
-                              className="text-sm font-medium cursor-pointer"
+                      {selectedCake?.layers === 1 || selectedLayer === "1" ? (
+                        // Radio buttons for single layer cakes
+                        <RadioGroup
+                          value={field.value[0] || ""}
+                          onValueChange={(value) => {
+                            field.onChange([value]); // Wrap in array since the field expects array
+                          }}
+                          className="flex flex-wrap gap-3"
+                        >
+                          {selectedCake?.flavours.map((flavour: string) => (
+                            <div
+                              key={flavour}
+                              className="flex items-center space-x-2"
                             >
-                              {flavour}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
+                              <RadioGroupItem
+                                id={`flavour-${flavour}`}
+                                value={flavour}
+                              />
+                              <Label
+                                htmlFor={`flavour-${flavour}`}
+                                className="text-sm font-medium cursor-pointer"
+                              >
+                                {flavour}
+                              </Label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      ) : (
+                        // Original checkbox implementation for multi-layer cakes
+                        <div className="flex flex-wrap gap-3">
+                          {selectedCake?.flavours.map((flavour: string) => (
+                            <div
+                              key={flavour}
+                              className="flex items-center space-x-2"
+                            >
+                              <Checkbox
+                                id={`flavour-${flavour}`}
+                                checked={field.value.includes(flavour)}
+                                onCheckedChange={(checked) => {
+                                  const newValue = checked
+                                    ? [...field.value, flavour]
+                                    : field.value.filter((f) => f !== flavour);
+                                  field.onChange(newValue);
+                                }}
+                              />
+                              <Label
+                                htmlFor={`flavour-${flavour}`}
+                                className="text-sm font-medium cursor-pointer"
+                              >
+                                {flavour}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -723,13 +745,8 @@ const ResultsPage = () => {
               />
 
               <Button type="submit" className="w-full mt-10">
-                I want this
+                Proceed at: <p>(${selectedLayerPrice})</p>
               </Button>
-              <small className="flex gap-2 items-center">
-                <Info color="red" size={16} />
-                The total price may change a bit based on the delivery estimate
-                after review by vendor
-              </small>
             </form>
           </Form>
         </SheetContent>

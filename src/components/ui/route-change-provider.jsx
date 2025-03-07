@@ -1,7 +1,12 @@
-// components/RouteChangeProvider.jsx
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  Suspense,
+} from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Loader from "./loading";
 
@@ -9,8 +14,8 @@ const RouteChangeContext = createContext({
   isCompiling: false,
 });
 
-export function RouteChangeProvider({ children }) {
-  const [isCompiling, setIsCompiling] = useState(false);
+// This component will use the searchParams hook inside Suspense
+function RouteChangeListener({ setIsCompiling }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -24,13 +29,23 @@ export function RouteChangeProvider({ children }) {
     handleStart();
 
     return () => clearTimeout(timeout);
-  }, [pathname, searchParams]); // Dependencies for route change detection
+  }, [pathname, searchParams, setIsCompiling]);
+
+  return null;
+}
+
+export function RouteChangeProvider({ children }) {
+  const [isCompiling, setIsCompiling] = useState(false);
 
   return (
     <RouteChangeContext.Provider value={{ isCompiling }}>
       {children}
 
       {isCompiling && <Loader />}
+
+      <Suspense fallback={null}>
+        <RouteChangeListener setIsCompiling={setIsCompiling} />
+      </Suspense>
     </RouteChangeContext.Provider>
   );
 }
