@@ -643,7 +643,7 @@ const ResultsPage = () => {
               <FormField
                 control={form.control}
                 name="layers"
-                render={({ field }) => (
+                render={() => (
                   <FormItem>
                     <FormLabel className="text-primary font-medium text-lg">
                       Layers
