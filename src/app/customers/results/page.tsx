@@ -457,8 +457,7 @@ const ResultsPage = () => {
                                       Layers:
                                     </span>
                                     <span className="font-semibold text-sm">
-                                      {Object.keys(cake.layerPrices)[0]}{" "}
-                                      Layer(s)
+                                      {cake.layers} Layer(s)
                                     </span>
                                   </div>
                                   <div className="flex justify-between items-center">
