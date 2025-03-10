@@ -66,8 +66,8 @@ export const StarEmpty = (props: React.SVGProps<SVGSVGElement>) => {
           y2='9.54688'
           gradientUnits='userSpaceOnUse'
         >
-          <stop stopColor='#B99E48' stop-opacity='0.46' />
-          <stop offset='1' stopColor='#352B0C' stop-opacity='0.37' />
+          <stop stopColor='#B99E48' stopOpacity='0.46' />
+          <stop offset='1' stopColor='#352B0C' stopOpacity='0.37' />
         </linearGradient>
         <clipPath id='clip0_2547_870'>
           <rect

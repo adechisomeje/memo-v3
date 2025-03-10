@@ -241,7 +241,13 @@ const SignUpForm = () => {
               variant='default'
               type='submit'
             >
-              {loading ? 'Loading...' : 'Register'}
+              {loading ? (
+                <div className='flex items-center justify-center'>
+                  <span className='animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full'></span>
+                </div>
+              ) : (
+                <>Register</>
+              )}
             </Button>
           </form>
         </Form>

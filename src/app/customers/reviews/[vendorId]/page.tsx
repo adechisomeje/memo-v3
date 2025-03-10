@@ -69,7 +69,7 @@ const Reviews = () => {
                           alt={`${review.user.firstName} ${review.user.lastName}`}
                         />
                         <AvatarFallback>
-                          {review.user.firstName[0]}
+                          {`${review.user.firstName[0]}${review.user.lastName[0]}`.toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className='flex-1 space-y-2'>

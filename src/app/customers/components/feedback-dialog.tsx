@@ -38,6 +38,15 @@ interface FeedbackDialogProps {
   onOpenChange?: (open: boolean) => void
 }
 
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+  message: string
+}
+
 export function FeedbackDialog({
   vendorName,
   orderId,
@@ -49,7 +58,13 @@ export function FeedbackDialog({
 
   // Determine if we're using external or internal state control
   const open = isOpen !== undefined ? isOpen : internalOpen
-  const setOpen = onOpenChange || setInternalOpen
+  const setOpen = (value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value)
+    } else {
+      setInternalOpen(value)
+    }
+  }
 
   const form = useForm<FeedbackInput>({
     resolver: zodResolver(feedbackSchema),
@@ -73,8 +88,10 @@ export function FeedbackDialog({
     onSuccess: () => {
       toast.success('Feedback submitted successfully')
     },
-    onError: (error) => {
-      toast.error(error.message)
+    onError: (error: ApiError) => {
+      toast.error(
+        error.response?.data?.message || error.message || 'An error occurred'
+      )
     },
   })
   function onSubmit(values: z.infer<typeof feedbackSchema>) {

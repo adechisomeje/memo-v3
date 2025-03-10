@@ -102,12 +102,16 @@ export default function OrdersPageContent() {
         return <Badge className='bg-green-500'>Completed</Badge>
       case 'processing':
         return <Badge className='bg-blue-500'>Processing</Badge>
-      case 'shipped':
-        return <Badge className='bg-purple-500'>Shipped</Badge>
+      case 'paid':
+        return <Badge className='bg-blue-500'>Paid</Badge>
+      case 'ready':
+        return <Badge className='bg-purple-500'>Ready</Badge>
       case 'cancelled':
         return <Badge className='bg-red-500'>Cancelled</Badge>
+      case 'delivered':
+        return <Badge className='bg-green-500'>Delivered</Badge>
       default:
-        return <Badge>{status}</Badge>
+        return <Badge className='bg-yellow-500'>{status}</Badge>
     }
   }
 
@@ -238,11 +242,13 @@ export default function OrdersPageContent() {
                           >
                             View Timeline
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleOpenModal(index, 'feedback')}
-                          >
-                            Drop Feedback
-                          </DropdownMenuItem>
+                          {order.status.toLowerCase() === 'delivered' && (
+                            <DropdownMenuItem
+                              onClick={() => handleOpenModal(index, 'feedback')}
+                            >
+                              Drop Feedback
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -269,7 +275,6 @@ export default function OrdersPageContent() {
           </DialogContent>
         </Dialog>
 
-        {/* Feedback Dialog - Update to pass orderId */}
         {selectedOrder !== null && orders.length > 0 && (
           <FeedbackDialog
             vendorName={orders[selectedOrder]?.vendor?.businessName || ''}
