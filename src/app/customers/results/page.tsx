@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Cookies from 'js-cookie'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
@@ -100,8 +101,9 @@ interface FilterParams {
 }
 
 const ResultsPage = () => {
-  const router = useRouter()
+  const currency = Cookies.get('currency') || 'USD'
 
+  const router = useRouter()
   let savedLocations: string = '{}'
 
   if (typeof window !== 'undefined') {
@@ -312,7 +314,7 @@ const ResultsPage = () => {
           <div className='flex justify-between items-center mt-8'>
             <h1 className='text-[#640D0D] text-lg '>
               Choose Your Special{' '}
-              <span className='font-semibold text-sm'>Treat</span>
+              <span className='font-semibold text-lg'>Treat</span>
             </h1>
             {/* Add onClick handler to Filter icon */}
             <div onClick={handleFilterClick} className='cursor-pointer'>
@@ -393,7 +395,7 @@ const ResultsPage = () => {
               <div className='mt-4 text-sm text-muted-foreground'>
                 Showing results for
                 {selectedPriceRange.minPrice &&
-                  ` Price: ₦${selectedPriceRange.minPrice} - ₦${selectedPriceRange.maxPrice}`}
+                  ` Price: {currency}${selectedPriceRange.minPrice} - {currency}${selectedPriceRange.maxPrice}`}
                 {selectedSize && ` Size: ${selectedSize}`}
               </div>
             )}
@@ -463,7 +465,8 @@ const ResultsPage = () => {
                                       Price:
                                     </span>
                                     <span className='font-semibold text-sm'>
-                                      ${cake.price}
+                                      {currency}
+                                      {cake.price}
                                     </span>
                                   </div>
                                   <div className='flex justify-between items-center'>
@@ -471,7 +474,7 @@ const ResultsPage = () => {
                                       Delivery estimate:
                                     </span>
                                     <span className='font-semibold text-sm'>
-                                      $120
+                                      {currency}120
                                     </span>
                                   </div>
                                   <div className='flex justify-between items-center pt-2 border-t'>
@@ -479,7 +482,8 @@ const ResultsPage = () => {
                                       TOTAL:
                                     </span>
                                     <span className='font-bold'>
-                                      ${cake.price + 120}
+                                      {currency}
+                                      {cake.price + 120}
                                     </span>
                                   </div>
                                 </div>
