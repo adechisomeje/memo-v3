@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Cookies from 'js-cookie'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
@@ -53,6 +52,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import NoDataWithWaitlist from '../components/no-data-waitlist-form'
 
 const cakeCustomizationSchema = z.object({
   flavour: z.array(z.string()),
@@ -101,7 +101,7 @@ interface FilterParams {
 }
 
 const ResultsPage = () => {
-  const currency = Cookies.get('currency') || 'USD'
+  // const currency = Cookies.get('currency') || 'USD'
 
   const router = useRouter()
   let savedLocations: string = '{}'
@@ -299,10 +299,8 @@ const ResultsPage = () => {
     handleCakeCustomization(data)
   }
 
-  // Add state for mobile filter dialog
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
 
-  // Add handler for Filter icon click
   const handleFilterClick = () => {
     setIsMobileFilterOpen(true)
   }
@@ -316,7 +314,6 @@ const ResultsPage = () => {
               Choose Your Special{' '}
               <span className='font-semibold text-lg'>Treat</span>
             </h1>
-            {/* Add onClick handler to Filter icon */}
             <div onClick={handleFilterClick} className='cursor-pointer'>
               <Filter />
             </div>
@@ -465,8 +462,7 @@ const ResultsPage = () => {
                                       Price:
                                     </span>
                                     <span className='font-semibold text-sm'>
-                                      {currency}
-                                      {cake.price}
+                                      ₦{cake.price}
                                     </span>
                                   </div>
                                   <div className='flex justify-between items-center'>
@@ -474,7 +470,7 @@ const ResultsPage = () => {
                                       Delivery estimate:
                                     </span>
                                     <span className='font-semibold text-sm'>
-                                      {currency}120
+                                      ₦120
                                     </span>
                                   </div>
                                   <div className='flex justify-between items-center pt-2 border-t'>
@@ -482,8 +478,7 @@ const ResultsPage = () => {
                                       TOTAL:
                                     </span>
                                     <span className='font-bold'>
-                                      {currency}
-                                      {cake.price + 120}
+                                      ₦{cake.price + 120}
                                     </span>
                                   </div>
                                 </div>
@@ -529,17 +524,7 @@ const ResultsPage = () => {
                         </div>
                       ))
                     ) : (
-                      <div className=' col-span-4 flex flex-col justify-center items-center py-10 gap-3'>
-                        <Image
-                          src='/assets/icons/no-data.svg'
-                          alt='No results'
-                          width={300}
-                          height={300}
-                        />
-                        <p className='mt-8'>
-                          No cake products available. Please try again later.
-                        </p>
-                      </div>
+                      <NoDataWithWaitlist />
                     )}
                   </div>
                 </TabsContent>
@@ -589,18 +574,18 @@ const ResultsPage = () => {
               <div className='flex justify-between items-center'>
                 <span className='text-sm text-muted-foreground'>Price:</span>
                 <span className='font-semibold text-sm'>
-                  ${selectedLayerPrice}
+                  ₦{selectedLayerPrice}
                 </span>
               </div>
               <div className='flex justify-between items-center'>
                 <span className='text-sm text-muted-foreground'>
                   Delivery estimate:
                 </span>
-                <span className='font-semibold text-sm'>$120</span>
+                <span className='font-semibold text-sm'>₦120</span>
               </div>
               <div className='flex justify-between items-center pt-2 border-t'>
                 <span className='text-sm font-medium'>TOTAL:</span>
-                <span className='font-bold'>${selectedLayerPrice + 120}</span>
+                <span className='font-bold'>₦{selectedLayerPrice + 120}</span>
               </div>
 
               <div className='flex items-center gap-3 pb-4 border-b'>
@@ -667,7 +652,7 @@ const ResultsPage = () => {
                           Object.entries(selectedCake.layerPrices).map(
                             ([layer, price]) => (
                               <SelectItem key={layer} value={layer}>
-                                {layer} Layers (${price})
+                                {layer} Layers (₦{price})
                               </SelectItem>
                             )
                           )}
@@ -749,7 +734,7 @@ const ResultsPage = () => {
               />
 
               <Button type='submit' className='w-full mt-10'>
-                Proceed at: <p>(${selectedLayerPrice})</p>
+                Proceed at: <p>(₦{selectedLayerPrice})</p>
               </Button>
             </form>
           </Form>

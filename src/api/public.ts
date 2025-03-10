@@ -102,6 +102,23 @@ export interface VendorProductsResponse {
   data: CakeData[]
   message: string
 }
+
+interface WaitlistEntry {
+  name: string
+  phone: string
+  email: string
+  country: string
+  state: string
+  city: string
+  productType: string
+  status: string
+  notes: string
+  _id: string
+  createdAt: string
+  updatedAt: string
+  __v: number
+}
+
 export type LocationResponse = {
   statusCode: number
   data: {
@@ -138,29 +155,14 @@ export async function getLocations() {
   return response.data
 }
 
-export async function getCountry() {
-  const response = await axiosClient.get<ApiResponse<VendorCountriesResponse>>(
-    '/vendors/public/countries'
-  )
-
-  return response.data
-}
-
-export async function getStates(country: string) {
-  const response = await axiosClient.get<ApiResponse<VendorStatesResponse>>(
-    `/vendors/public/states?country=${country}`
-  )
-  return response.data
-}
-
-export async function getCities(country: string, state: string) {
-  const response = await axiosClient.get<ApiResponse<VendorCitiesResponse>>(
-    `/vendors/public/cities?country=${country}&state=${state}`
-  )
-  return response.data
-}
-
-export async function getCakeProducts(country: string, state: string, city: string, page: number, limit: number, deliveryDate: Date) {
+export async function getCakeProducts(
+  country: string,
+  state: string,
+  city: string,
+  page: number,
+  limit: number,
+  deliveryDate: Date
+) {
   const response = await axiosClient.get<ApiResponse<CakeResponseData>>(
     `/cakes/public?country=${country}&state=${state}&city=${city}&page=${page}&limit=${limit}&deliveryDate=${deliveryDate}`
   )
@@ -193,19 +195,45 @@ export async function filterPublicProducts(
   priceMax?: number,
   deliveryDate?: string
 ) {
-  const params: Record<string, string | number> = {};
+  const params: Record<string, string | number> = {}
 
-  if (category) params.category = category;
-  if (country) params.country = country;
-  if (state) params.state = state;
-  if (city) params.city = city;
-  if (page) params.page = page;
-  if (limit) params.limit = limit;
-  if (size) params.size = size;
-  if (priceMin) params.priceMin = priceMin;
-  if (priceMax) params.priceMax = priceMax;
-  if (deliveryDate) params.deliveryDate = deliveryDate;
+  if (category) params.category = category
+  if (country) params.country = country
+  if (state) params.state = state
+  if (city) params.city = city
+  if (page) params.page = page
+  if (limit) params.limit = limit
+  if (size) params.size = size
+  if (priceMin) params.priceMin = priceMin
+  if (priceMax) params.priceMax = priceMax
+  if (deliveryDate) params.deliveryDate = deliveryDate
 
-  const response = await axiosClient.get("/products/filter", { params });
-  return response.data.data;
+  const response = await axiosClient.get('/products/filter', { params })
+  return response.data.data
+}
+
+export async function productWaitlist(data: {
+  name: string
+  phone: string
+  email: string
+  country: string
+  state: string
+  city: string
+  productType: string
+  notes: string
+  userId: string
+}) {
+  const response = await axiosClient.post<ApiResponse<WaitlistEntry>>(
+    '/product-waitlists',
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem(
+          'next-auth.session-token'
+        )}`,
+      },
+    }
+  )
+
+  return response.data
 }
