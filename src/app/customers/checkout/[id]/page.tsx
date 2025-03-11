@@ -216,7 +216,15 @@ const CheckOutPage = () => {
   const router = useRouter()
   const selectedCake = useCakeCustomization((state) => state.selectedCake)
   const cakeCustomization = useCakeCustomization((state) => state.customization)
+  const setSelectedCake = useCakeCustomization((state) => state.setSelectedCake)
+  const setSelectedCakeId = useCakeCustomization(
+    (state) => state.setSelectedCakeId
+  )
   const vendorId = useVendorStore((state) => state.selectedVendorId)
+
+  // Add loading state
+  const [isLoadingCake, setIsLoadingCake] = useState(true)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // Set up payment success listener using window events
   useEffect(() => {
@@ -239,6 +247,41 @@ const CheckOutPage = () => {
       window.removeEventListener('message', handlePaymentMessage)
     }
   }, [])
+
+  // Get cake ID from URL if not found in state
+  useEffect(() => {
+    const fetchCakeData = async () => {
+      if (!selectedCake) {
+        const pathParts = window.location.pathname.split('/')
+        const cakeId = pathParts[pathParts.length - 1]
+
+        if (cakeId) {
+          try {
+            console.log('Trying to fetch cake data for ID:', cakeId)
+            // Attempt to get cake data based on ID from your API
+            const cakeResponse = await getCakeProductsByVendor(cakeId)
+            if (cakeResponse && cakeResponse.length > 0) {
+              const cakeData = cakeResponse[0]
+              console.log('Found cake data:', cakeData)
+              setSelectedCake(cakeData)
+              setSelectedCakeId(cakeData._id)
+            } else {
+              setErrorMessage(
+                "Couldn't find the cake data. Please return to selection."
+              )
+            }
+          } catch (error) {
+            console.error('Error fetching cake data:', error)
+            setErrorMessage('An error occurred loading the cake data.')
+          }
+        }
+      }
+      // Set loading to false when done either way
+      setIsLoadingCake(false)
+    }
+
+    fetchCakeData()
+  }, [selectedCake, setSelectedCake, setSelectedCakeId])
 
   const handlePaymentSuccess = () => {
     handleClosePayment()
@@ -445,14 +488,25 @@ const CheckOutPage = () => {
     fetchVendorReviews()
   }, [vendorId])
 
+  // Update the check for selected cake to include loading state
+  if (isLoadingCake) {
+    return (
+      <div className='p-8 text-center'>
+        <h2 className='text-xl font-semibold mb-4'>Loading Cake Data</h2>
+        <div className='flex justify-center'>
+          <div className='animate-spin h-10 w-10 border-4 border-red-600 border-t-transparent rounded-full'></div>
+        </div>
+      </div>
+    )
+  }
+
   if (!selectedCake) {
-    router.push('/customers/results')
     return (
       <div className='p-8 text-center'>
         <h2 className='text-xl font-semibold mb-4'>Missing Information</h2>
         <p>
-          Please select a cake and delivery details before proceeding to
-          checkout.
+          {errorMessage ||
+            'Please select a cake and delivery details before proceeding to checkout.'}
         </p>
         <Button
           onClick={() => router.push('/customers/results')}

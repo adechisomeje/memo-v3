@@ -214,34 +214,51 @@ const ResultsPage = () => {
 
   const handleProductSelect = (product: Cake, type: ProductType) => {
     console.log('Selecting product:', product)
-    setSelectedCake(product)
-    setSelectedCakeId(product._id)
-    setSelectedLayerPrice(product.layerPrices[product?.layers])
 
-    const layerKey = product.layers
-      ? product.layers.toString()
-      : Object.keys(product.layerPrices)[0]
+    // Make deep copy of product to ensure it's properly stored
+    const productCopy = JSON.parse(JSON.stringify(product))
+
+    // Store in state
+    setSelectedCake(productCopy)
+    setSelectedCakeId(productCopy._id)
+
+    // Calculate layer price
+    const defaultLayerKey = productCopy.layers
+      ? productCopy.layers.toString()
+      : Object.keys(productCopy.layerPrices)[0]
+
+    const layerPrice =
+      productCopy.layerPrices[productCopy.layers] ||
+      productCopy.layerPrices[defaultLayerKey] ||
+      productCopy.price
+
+    setSelectedLayerPrice(layerPrice)
 
     // Make sure we have a string value with fallback to "1"
-    setSelectedLayer(
-      product.layerPrices && layerKey in product.layerPrices ? layerKey : '1'
-    )
+    const finalLayerKey =
+      productCopy.layerPrices && defaultLayerKey in productCopy.layerPrices
+        ? defaultLayerKey
+        : '1'
 
+    setSelectedLayer(finalLayerKey)
+
+    // Store vendor info
     setVendorInfo({
-      vendorId: product.vendorId,
-      name: product.vendorName,
-      picture: product.vendorPicture,
-      country: product.vendorCountry,
-      state: product.vendorState,
-      city: product.vendorCity,
+      vendorId: productCopy.vendorId,
+      name: productCopy.vendorName,
+      picture: productCopy.vendorPicture,
+      country: productCopy.vendorCountry,
+      state: productCopy.vendorState,
+      city: productCopy.vendorCity,
     })
 
-    console.log('layerprice', product.layerPrices[product?.layers])
+    console.log('layerprice', layerPrice)
+    console.log('Selected cake stored:', productCopy)
 
     if (type === 'cakes') {
       setIsSheetOpen(true)
     } else {
-      router.push(`/customers/checkout/${product._id}`)
+      router.push(`/customers/checkout/${productCopy._id}`)
     }
   }
 
@@ -413,13 +430,15 @@ const ResultsPage = () => {
                       Array.from({ length: 4 }).map((_, index) => (
                         <CakeCardSkeleton key={index} />
                       ))
-                    ) : (cakeProducts?.products || cakeProducts?.cakes) &&
-                      (cakeProducts?.cakes?.length ||
-                        cakeProducts?.products?.length) > 0 ? (
-                      (cakeProducts?.products
-                        ? cakeProducts?.products
-                        : cakeProducts?.cakes
-                      )?.map((cake: Cake) => (
+                    ) : cakeProducts &&
+                      ((cakeProducts.products &&
+                        cakeProducts.products.length > 0) ||
+                        (cakeProducts.cakes &&
+                          cakeProducts.cakes.length > 0)) ? (
+                      (cakeProducts.products && cakeProducts.products.length > 0
+                        ? cakeProducts.products
+                        : cakeProducts.cakes
+                      ).map((cake: Cake) => (
                         <div
                           key={cake._id}
                           onClick={() => handleProductSelect(cake, 'cakes')}
@@ -570,7 +589,7 @@ const ResultsPage = () => {
               />
             </div>
 
-            <div className=' w-1/2 mb-4'>
+            <div className=' w-full lg:w-1/2  mb-4'>
               <div className='flex justify-between items-center'>
                 <span className='text-sm text-muted-foreground'>Price:</span>
                 <span className='font-semibold text-sm'>
