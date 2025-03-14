@@ -32,11 +32,11 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import MobileMenu from './menu-sheet'
 import Image from 'next/image'
 
-const dancingScript = Dancing_Script({
-  subsets: ['latin'],
-  weight: ['700'],
-  display: 'swap',
-})
+// const dancingScript = Dancing_Script({
+//   subsets: ['latin'],
+//   weight: ['700'],
+//   display: 'swap',
+// })
 
 type Props = {
   mobileNavItems: TNavItem[]
