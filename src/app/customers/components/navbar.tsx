@@ -30,6 +30,7 @@ import {
 import { TNavItem } from '@/types/nav-types'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import MobileMenu from './menu-sheet'
+import Image from 'next/image'
 
 const dancingScript = Dancing_Script({
   subsets: ['latin'],
@@ -132,9 +133,14 @@ const Navbar = ({ navItems, classNames }: Props) => {
         )}
       >
         <div className='flex items-center justify-between max-w-7xl mx-auto'>
-          <div className='text-3xl'>
-            <Link className={dancingScript.className} href='/'>
-              MEMO
+          <div className=''>
+            <Link href='/'>
+              <Image
+                src='/assets/images/memo-logo.svg'
+                alt='logo'
+                width={100}
+                height={100}
+              />
             </Link>
           </div>
           <div className='hidden gap-[85px] lg:flex'>

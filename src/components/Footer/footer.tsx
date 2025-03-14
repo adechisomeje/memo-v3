@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Facebook, Twitter, Instagram, Globe } from 'lucide-react'
 import { Dancing_Script } from 'next/font/google'
+import Image from 'next/image'
 
 const dancingScript = Dancing_Script({
   subsets: ['latin'],
@@ -12,10 +13,18 @@ export function Footer() {
     <footer className='bg-[#370e06]  py-12 px-4'>
       <div className='container mx-auto'>
         <div className='grid grid-cols-1 md:grid-cols-4 gap-8'>
-          <div className='text-3xl text-[#FDF0D5]'>
+          {/* <div className='text-3xl text-[#FDF0D5]'>
             <Link className={dancingScript.className} href='/'>
               MEMO
             </Link>
+          </div> */}
+          <div className=''>
+            <Image
+              src='/assets/images/memo-logo-variant.svg'
+              alt='logo'
+              width={100}
+              height={100}
+            />
           </div>
           <p className='text-[#FDF0D5] lg:hidden text-sm'>
             Memo: Your trusted platform for seamless gifting and local
