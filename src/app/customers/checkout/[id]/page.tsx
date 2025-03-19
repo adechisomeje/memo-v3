@@ -620,7 +620,7 @@ const CheckOutPage = () => {
                               <FormControl>
                                 <Input
                                   placeholder='Recipient Name'
-                                  className='w-full'
+                                  className='w-full p-6'
                                   {...field}
                                 />
                               </FormControl>
@@ -639,7 +639,7 @@ const CheckOutPage = () => {
                           <FormItem>
                             <FormControl>
                               <Textarea
-                                placeholder='Note... (E.g: Happy Birthday Jane) '
+                                placeholder='E.g Happy Birthday Jane'
                                 className='w-full'
                                 {...field}
                               />
