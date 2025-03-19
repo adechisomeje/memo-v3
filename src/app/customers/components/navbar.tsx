@@ -8,7 +8,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Hamburger } from "../../../../public/assets/icons/hamburger";
 import { useMediaQuery } from "usehooks-ts";
-import { Dancing_Script } from "next/font/google";
 import { signOut, useSession } from "next-auth/react";
 import { User } from "../../../../public/assets/icons/User";
 import { motion, AnimatePresence } from "framer-motion";
