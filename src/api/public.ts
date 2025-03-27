@@ -24,8 +24,15 @@ export interface CakeData {
   flavours: string[]
   topping: string
   layers: number
+  deliveryInfo?: DeliveryInfo
   layerPrices: Record<string, number>
 }
+export interface DeliveryInfo {
+  city: string
+  deliveryPrice: number
+  isBasePrice: boolean
+}
+
 export interface Cake {
   _id: string
   thumbnail: string
@@ -35,16 +42,18 @@ export interface Cake {
   vendorPicture: string
   vendorCountry: string
   vendorState: string
-  vendorAverageRating: number
   vendorCity: string
+  vendorAverageRating: number
   size: string
   flavours: string[]
   topping: string
   layers: number
   layerPrices: {
-    [key: number]: number
+    [key: string]: number
   }
+  deliveryInfo: DeliveryInfo
 }
+
 
 type ReviewReply = {
   user: string

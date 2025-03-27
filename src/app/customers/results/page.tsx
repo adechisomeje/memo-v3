@@ -45,13 +45,8 @@ import { useCakeCustomization } from '@/store/cakeCustomization'
 import { useVendorStore } from '@/store/vendorStore'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import NoDataWithWaitlist from '../components/no-data-waitlist-form'
 
 const cakeCustomizationSchema = z.object({
@@ -101,97 +96,68 @@ interface FilterParams {
 }
 
 const ResultsPage = () => {
-  // const currency = Cookies.get('currency') || 'USD'
-
   const router = useRouter()
   let savedLocations: string = '{}'
-
   if (typeof window !== 'undefined') {
     savedLocations = localStorage.getItem('delivery-storage') ?? '{}'
   }
-
   const parsedData = JSON.parse(savedLocations)
   const { country, state, city, date } =
     parsedData?.state?.deliveryDetails || {}
 
+  // Sheet & customization states
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0)
-  const [selectedLayer, setSelectedLayer] = useState<string>('1')
+  // Set default for layers as "placeholder" so user must select.
+  const [selectedLayer, setSelectedLayer] = useState<string>('')
 
-  // New state for filtering
-  const [selectedPriceRange, setSelectedPriceRange] = useState<{
-    minPrice?: number
-    maxPrice?: number
-  }>({})
+  // Filtering states
+  const [selectedPriceRange, setSelectedPriceRange] = useState<{ minPrice?: number; maxPrice?: number }>({})
   const [selectedSize, setSelectedSize] = useState<string>('')
 
-  const setCustomization = useCakeCustomization(
-    (state) => state.setCustomization
-  )
+  const setCustomization = useCakeCustomization((state) => state.setCustomization)
   const setSelectedCake = useCakeCustomization((state) => state.setSelectedCake)
-  const setSelectedCakeId = useCakeCustomization(
-    (state) => state.setSelectedCakeId
-  )
+  const setSelectedCakeId = useCakeCustomization((state) => state.setSelectedCakeId)
   const selectedCake = useCakeCustomization((state) => state.selectedCake)
   const setVendorInfo = useVendorStore((state) => state.setVendorInfo)
 
+  // Combined total price (layer price + delivery fee)
+  const totalPrice = selectedLayerPrice + (selectedCake?.deliveryInfo?.deliveryPrice ?? 0)
+
   // Dynamic filtering query
-  const { data: filteredProductsResponse, isLoading: isFilterLoading } =
-    useQuery({
-      queryKey: [
-        queryKeys.filteredCakeProducts,
-        selectedSize,
-        selectedPriceRange.minPrice,
-        selectedPriceRange.maxPrice,
-        date,
-      ],
-      queryFn: () => {
-        // Construct filter parameters dynamically
-        const filterParams: FilterParams = {
-          productType: 'cake',
-          country,
-          state,
-          city,
-          page: 1,
-          limit: 10,
-          deliveryDate: date,
-        }
-
-        // Conditionally add size if selected
-        if (selectedSize) {
-          filterParams.size = selectedSize
-        }
-
-        // Conditionally add price range if selected
-        if (selectedPriceRange.minPrice !== undefined) {
-          filterParams.minPrice = selectedPriceRange.minPrice
-        }
-        if (selectedPriceRange.maxPrice !== undefined) {
-          filterParams.maxPrice = selectedPriceRange.maxPrice
-        }
-        if (date !== undefined) {
-          filterParams.deliveryDate = date
-        }
-
-        console.log('params are', filterParams)
-
-        // Call the filter function with dynamic parameters
-        return filterPublicProducts(
-          filterParams.productType,
-          filterParams.country,
-          filterParams.state,
-          filterParams.city,
-          filterParams.page,
-          filterParams.limit,
-          filterParams.size,
-          filterParams.minPrice,
-          filterParams.maxPrice,
-          filterParams.deliveryDate
-        )
-      },
-      enabled: !!(selectedSize || selectedPriceRange.minPrice !== undefined),
-      staleTime: 5 * 60 * 1000,
-    })
+  const { data: filteredProductsResponse, isLoading: isFilterLoading } = useQuery({
+    queryKey: [queryKeys.filteredCakeProducts, selectedSize, selectedPriceRange.minPrice, selectedPriceRange.maxPrice, date],
+    queryFn: () => {
+      const filterParams: FilterParams = {
+        productType: 'cake',
+        country,
+        state,
+        city,
+        page: 1,
+        limit: 10,
+        deliveryDate: date,
+      }
+      if (selectedSize) filterParams.size = selectedSize
+      if (selectedPriceRange.minPrice !== undefined) filterParams.minPrice = selectedPriceRange.minPrice
+      if (selectedPriceRange.maxPrice !== undefined) filterParams.maxPrice = selectedPriceRange.maxPrice
+      if (date !== undefined) filterParams.deliveryDate = date
+      console.log('Filter params:', filterParams)
+      return filterPublicProducts(
+        filterParams.productType,
+        filterParams.country,
+        filterParams.state,
+        filterParams.city,
+        filterParams.page,
+        filterParams.limit,
+        filterParams.size,
+        filterParams.minPrice,
+        filterParams.maxPrice,
+        filterParams.deliveryDate
+      )
+    },
+    enabled: !!(selectedSize || selectedPriceRange.minPrice !== undefined),
+    staleTime: 5 * 60 * 1000,
+  })
 
   const { data: cakeProductsResponse, isLoading: isInitialLoading } = useQuery({
     queryKey: queryKeys.cakeProducts,
@@ -205,44 +171,30 @@ const ResultsPage = () => {
 
   // Reset filters
   const resetFilters = () => {
-    console.log('loggggggeedddd')
+    console.log('Resetting filters...')
     setSelectedPriceRange({})
     setSelectedSize('')
     form.setValue('priceRange', '')
     form.setValue('size', '')
   }
 
+  // When a cake is selected, store it, reset customization values,
+  // and update vendor info.
   const handleProductSelect = (product: Cake, type: ProductType) => {
     console.log('Selecting product:', product)
-
-    // Make deep copy of product to ensure it's properly stored
     const productCopy = JSON.parse(JSON.stringify(product))
-
-    // Store in state
     setSelectedCake(productCopy)
     setSelectedCakeId(productCopy._id)
-
-    // Calculate layer price
-    const defaultLayerKey = productCopy.layers
-      ? productCopy.layers.toString()
-      : Object.keys(productCopy.layerPrices)[0]
-
+    const defaultLayerKey =
+      productCopy.layers ? productCopy.layers.toString() : Object.keys(productCopy.layerPrices)[0]
     const layerPrice =
       productCopy.layerPrices[productCopy.layers] ||
       productCopy.layerPrices[defaultLayerKey] ||
       productCopy.price
-
     setSelectedLayerPrice(layerPrice)
-
-    // Make sure we have a string value with fallback to "1"
-    const finalLayerKey =
-      productCopy.layerPrices && defaultLayerKey in productCopy.layerPrices
-        ? defaultLayerKey
-        : '1'
-
-    setSelectedLayer(finalLayerKey)
-
-    // Store vendor info
+    // Reset selected layer to force user selection.
+    setSelectedLayer('')
+    // Update vendor info (which sets selectedVendorId in your store).
     setVendorInfo({
       vendorId: productCopy.vendorId,
       name: productCopy.vendorName,
@@ -251,10 +203,8 @@ const ResultsPage = () => {
       state: productCopy.vendorState,
       city: productCopy.vendorCity,
     })
-
-    console.log('layerprice', layerPrice)
+    console.log('Layer price:', layerPrice)
     console.log('Selected cake stored:', productCopy)
-
     if (type === 'cakes') {
       setIsSheetOpen(true)
     } else {
@@ -262,52 +212,59 @@ const ResultsPage = () => {
     }
   }
 
+  // Initialize the customization form.
+  // Notice the default for layers is now "placeholder".
   const form = useForm<CakeCustomizationSchema>({
     resolver: zodResolver(cakeCustomizationSchema),
     defaultValues: {
       flavour: [],
-      layers: '',
+      layers: 'placeholder', // default sentinel value
       priceRange: '',
       size: '',
     },
   })
 
+  // Log cake products for debugging.
   useEffect(() => {
-    console.log('helllo', cakeProducts)
+    console.log('Cake products:', cakeProducts)
   }, [filteredProductsResponse])
 
+  // Reset the customization form when a new cake is selected.
   useEffect(() => {
     if (selectedCake) {
-      const firstLayer = selectedCake.layerPrices
-        ? Object.keys(selectedCake.layerPrices)[0]
-        : String(selectedCake.layers)
-
-      // Set default values for the form
       form.reset({
-        flavour: selectedCake.flavours,
-        layers: firstLayer,
+        flavour: [],
+        layers: 'placeholder', // force user selection
       })
     }
   }, [selectedCake, form])
 
+  // Handle customization submission.
   const handleCakeCustomization = async (data: CakeCustomizationSchema) => {
+    const deliveryPrice = selectedCake?.deliveryInfo?.deliveryPrice ?? 0
+    const computedTotal = selectedLayerPrice + deliveryPrice
     const dataWithPrice: CakeCustomizationSchema & { price?: number } = {
       ...data,
-      price: selectedLayerPrice,
+      price: computedTotal,
     }
-
     setCustomization(dataWithPrice)
-
     setIsSheetOpen(false)
     router.push(`/customers/checkout/${selectedCake?._id}`)
   }
 
+  // Handle layer change; update selected layer price and value.
   const handleLayerChange = (layer: string) => {
     if (selectedCake && selectedCake.layerPrices) {
-      const layerNumber = parseInt(layer)
-      const priceForLayer = selectedCake.layerPrices[layerNumber]
-      setSelectedLayerPrice(priceForLayer ?? selectedCake.price)
-      setSelectedLayer(layer)
+      if (layer === 'placeholder') {
+        // When placeholder is selected, clear selection.
+        setSelectedLayerPrice(0)
+        setSelectedLayer('')
+      } else {
+        const layerNumber = parseInt(layer)
+        const priceForLayer = selectedCake.layerPrices[layerNumber]
+        setSelectedLayerPrice(priceForLayer ?? selectedCake.price)
+        setSelectedLayer(layer)
+      }
     }
     form.setValue('layers', layer)
   }
@@ -317,7 +274,6 @@ const ResultsPage = () => {
   }
 
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
-
   const handleFilterClick = () => {
     setIsMobileFilterOpen(true)
   }
@@ -328,8 +284,7 @@ const ResultsPage = () => {
         <main>
           <div className='flex justify-between items-center mt-8'>
             <h1 className='text-[#640D0D] text-lg '>
-              Choose Your Special{' '}
-              <span className='font-semibold text-lg'>Treat</span>
+              Choose Your Special <span className='font-semibold text-lg'>Treat</span>
             </h1>
             <div onClick={handleFilterClick} className='cursor-pointer'>
               <Filter />
@@ -346,22 +301,17 @@ const ResultsPage = () => {
                       <Select
                         onValueChange={(value) => {
                           field.onChange(value)
-                          const [minPrice, maxPrice] = value
-                            .split('-')
-                            .map(Number)
+                          const [minPrice, maxPrice] = value.split('-').map(Number)
                           setSelectedPriceRange({ minPrice, maxPrice })
                         }}
                         value={field.value}
                       >
-                        <SelectTrigger className='gap-3 p-4 w-full *:text-[16px] *:leading-[21.72px] !outline-none'>
+                        <SelectTrigger className='gap-3 p-4 w-full !outline-none'>
                           <SelectValue placeholder='Price' />
                         </SelectTrigger>
                         <SelectContent>
                           {PRICE_RANGES.map((range) => (
-                            <SelectItem
-                              key={range.minPrice}
-                              value={`${range.minPrice}-${range.maxPrice}`}
-                            >
+                            <SelectItem key={range.minPrice} value={`${range.minPrice}-${range.maxPrice}`}>
                               {range.label}
                             </SelectItem>
                           ))}
@@ -370,7 +320,6 @@ const ResultsPage = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name='size'
@@ -383,7 +332,7 @@ const ResultsPage = () => {
                         }}
                         value={field.value}
                       >
-                        <SelectTrigger className='gap-3 p-4 w-full *:text-[16px] *:leading-[21.72px] !outline-none'>
+                        <SelectTrigger className='gap-3 p-4 w-full !outline-none'>
                           <SelectValue placeholder='Size' />
                         </SelectTrigger>
                         <SelectContent>
@@ -404,7 +353,6 @@ const ResultsPage = () => {
                 )}
               </div>
             </div>
-
             {(selectedPriceRange.minPrice || selectedSize) && (
               <div className='mt-4 text-sm text-muted-foreground'>
                 Showing results for
@@ -413,9 +361,8 @@ const ResultsPage = () => {
                 {selectedSize && ` Size: ${selectedSize}`}
               </div>
             )}
-
             <div className='w-full mb-10'>
-              <Tabs defaultValue='cakes' className=''>
+              <Tabs defaultValue='cakes'>
                 <div className='lg:flex lg:justify-end justify-around'>
                   <TabsList>
                     <TabsTrigger value='cakes'>Cakes</TabsTrigger>
@@ -423,7 +370,6 @@ const ResultsPage = () => {
                     <TabsTrigger value='flowers'>Flowers</TabsTrigger>
                   </TabsList>
                 </div>
-
                 <TabsContent value='cakes' className='w-full mt-8'>
                   <div className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6'>
                     {isLoading ? (
@@ -447,10 +393,7 @@ const ResultsPage = () => {
                           <Card className='overflow-hidden'>
                             <div className='aspect-[4/3] relative overflow-hidden'>
                               <Image
-                                src={
-                                  cake.thumbnail ||
-                                  '/assets/images/cake-sample.svg'
-                                }
+                                src={cake.thumbnail || '/assets/images/cake-sample.svg'}
                                 alt={cake.vendorName}
                                 fill
                                 className='object-cover'
@@ -460,80 +403,48 @@ const ResultsPage = () => {
                               <div className='space-y-3'>
                                 <div className='space-y-1'>
                                   <div className='flex justify-between items-center'>
-                                    <span className='text-sm text-muted-foreground'>
-                                      Size:
-                                    </span>
+                                    <span className='text-sm text-muted-foreground'>Size:</span>
+                                    <span className='font-semibold text-sm'>{cake.size}</span>
+                                  </div>
+                                  <div className='flex justify-between items-center'>
+                                    <span className='text-sm text-muted-foreground'>Layers:</span>
                                     <span className='font-semibold text-sm'>
-                                      {cake.size}
+                                      {Object.keys(cake.layerPrices)[0]} Layer(s)
                                     </span>
                                   </div>
                                   <div className='flex justify-between items-center'>
-                                    <span className='text-sm text-muted-foreground'>
-                                      Layers:
-                                    </span>
-                                    <span className='font-semibold text-sm'>
-                                      {Object.keys(cake.layerPrices)[0]}{' '}
-                                      Layer(s)
-                                    </span>
+                                    <span className='text-sm text-muted-foreground'>Price:</span>
+                                    <span className='font-semibold text-sm'>₦{cake.price}</span>
                                   </div>
                                   <div className='flex justify-between items-center'>
-                                    <span className='text-sm text-muted-foreground'>
-                                      Price:
-                                    </span>
+                                    <span className='text-sm text-muted-foreground'>Delivery estimate:</span>
                                     <span className='font-semibold text-sm'>
-                                      ₦{cake.price}
-                                    </span>
-                                  </div>
-                                  <div className='flex justify-between items-center'>
-                                    <span className='text-sm text-muted-foreground'>
-                                      Delivery estimate:
-                                    </span>
-                                    <span className='font-semibold text-sm'>
-                                      ₦120
+                                      ₦{cake.deliveryInfo?.deliveryPrice ?? 0}
                                     </span>
                                   </div>
                                   <div className='flex justify-between items-center pt-2 border-t'>
-                                    <span className='text-sm font-medium'>
-                                      TOTAL:
-                                    </span>
+                                    <span className='text-sm font-medium'>TOTAL:</span>
                                     <span className='font-bold'>
-                                      ₦{cake.price + 120}
+                                      ₦{cake.price + (cake.deliveryInfo?.deliveryPrice ?? 0)}
                                     </span>
                                   </div>
                                 </div>
                                 <div className='flex items-center gap-3 pt-3 border-t'>
                                   <Avatar className='h-10 w-10'>
-                                    <AvatarImage
-                                      src={cake.vendorPicture}
-                                      alt={cake.vendorName}
-                                    />
+                                    <AvatarImage src={cake.vendorPicture} alt={cake.vendorName} />
                                     <AvatarFallback>
-                                      {cake.vendorName
-                                        .split(' ')
-                                        .map((word: string) => word[0])
-                                        .join('')}
+                                      {cake.vendorName.split(' ').map((word: string) => word[0]).join('')}
                                     </AvatarFallback>
                                   </Avatar>
                                   <div className='flex-1'>
-                                    <h3 className='text-sm font-medium'>
-                                      {cake.vendorName}
-                                    </h3>
+                                    <h3 className='text-sm font-medium'>{cake.vendorName}</h3>
                                     <div className='flex items-center gap-1'>
                                       <div className='flex'>
                                         {[...Array(5)].map((_, i) => (
-                                          <StarEmpty
-                                            key={i}
-                                            className={` ${
-                                              i > 5
-                                                ? 'text-yellow-400 fill-yellow-400'
-                                                : 'text-gray-300'
-                                            }`}
-                                          />
+                                          <StarEmpty key={i} className={`h-4 w-4 ${i < 4 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
                                         ))}
                                       </div>
-                                      <span className='text-sm font-medium'>
-                                        {cake.vendorAverageRating}
-                                      </span>
+                                      <span className='text-sm font-medium'>{cake.vendorAverageRating}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -547,13 +458,8 @@ const ResultsPage = () => {
                     )}
                   </div>
                 </TabsContent>
-
-                <TabsContent value='gifts'>
-                  {/* Add gifts content here */}
-                </TabsContent>
-                <TabsContent value='flowers'>
-                  {/* Add flowers content here */}
-                </TabsContent>
+                <TabsContent value='gifts'>{/* Add gifts content here */}</TabsContent>
+                <TabsContent value='flowers'>{/* Add flowers content here */}</TabsContent>
               </Tabs>
             </div>
           </div>
@@ -580,192 +486,145 @@ const ResultsPage = () => {
           <SheetHeader className='flex items-center sm:flex-row sm:gap-8'>
             <div className='relative w-full h-48 mb-4'>
               <Image
-                src={
-                  selectedCake?.thumbnail || '/assets/images/cake-sample.svg'
-                }
+                src={selectedCake?.thumbnail || '/assets/images/cake-sample.svg'}
                 alt='Selected cake'
                 fill
                 className='object-cover rounded-lg'
               />
             </div>
-
-            <div className=' w-full lg:w-1/2  mb-4'>
+            <div className='w-full lg:w-1/2 mb-4'>
               <div className='flex justify-between items-center'>
                 <span className='text-sm text-muted-foreground'>Price:</span>
-                <span className='font-semibold text-sm'>
-                  ₦{selectedLayerPrice}
-                </span>
+                <span className='font-semibold text-sm'>₦{selectedLayerPrice}</span>
               </div>
               <div className='flex justify-between items-center'>
-                <span className='text-sm text-muted-foreground'>
-                  Delivery estimate:
-                </span>
-                <span className='font-semibold text-sm'>₦120</span>
+                <span className='text-sm text-muted-foreground'>Delivery estimate:</span>
+                <span className='font-semibold text-sm'>₦{selectedCake?.deliveryInfo?.deliveryPrice ?? 0}</span>
               </div>
               <div className='flex justify-between items-center pt-2 border-t'>
                 <span className='text-sm font-medium'>TOTAL:</span>
-                <span className='font-bold'>₦{selectedLayerPrice + 120}</span>
+                <span className='font-bold'>₦{totalPrice}</span>
               </div>
-
               <div className='flex items-center gap-3 pb-4 border-b'>
                 <Avatar className='h-8 w-8'>
                   <AvatarImage />
                   <AvatarFallback>
-                    {selectedCake?.vendorName
-                      .split(' ')
-                      .map((word: string) => word[0])
-                      .join('')}
+                    {selectedCake?.vendorName.split(' ').map((word: string) => word[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 <div className='flex-1'>
-                  <h3 className='text-sm font-medium'>
-                    {selectedCake?.vendorName}
-                  </h3>
+                  <h3 className='text-sm font-medium'>{selectedCake?.vendorName}</h3>
                   <div className='flex items-center gap-1'>
                     <div className='flex'>
                       {[...Array(5)].map((_, i) => (
-                        <StarEmpty
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < 4
-                              ? 'text-yellow-400 fill-yellow-400'
-                              : 'text-gray-300'
-                          }`}
-                        />
+                        <StarEmpty key={i} className={`h-4 w-4 ${i < 4 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />
                       ))}
                     </div>
-                    <span className='text-sm font-medium'>
-                      {selectedCake?.vendorAverageRating}
-                    </span>
+                    <span className='text-sm font-medium'>{selectedCake?.vendorAverageRating}</span>
                   </div>
                 </div>
               </div>
             </div>
           </SheetHeader>
-
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className='space-y-4 mt-8'
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 mt-8'>
+              {/* Layer Dropdown with default option */}
               <FormField
                 control={form.control}
                 name='layers'
-                render={() => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel className='text-primary font-medium text-lg'>
-                      Layers
-                    </FormLabel>
+                    <FormLabel className='text-primary font-medium text-lg'>Layers</FormLabel>
                     <Select
-                      onValueChange={handleLayerChange}
-                      defaultValue={selectedCake?.layers.toString()}
+                      onValueChange={(value) => {
+                        handleLayerChange(value)
+                        field.onChange(value)
+                      }}
+                      value={field.value}
                     >
                       <FormControl>
                         <SelectTrigger className='p-4 sm:p-6'>
-                          <SelectValue placeholder='Select number of layers' />
+                          <SelectValue placeholder='Select Cake Layer' />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        {/* Use a sentinel value ("placeholder") for the default option */}
+                        <SelectItem value='placeholder'>Select Cake Layer</SelectItem>
                         {selectedCake &&
                           selectedCake.layerPrices &&
-                          Object.entries(selectedCake.layerPrices).map(
-                            ([layer, price]) => (
-                              <SelectItem key={layer} value={layer}>
-                                {layer} Layers (₦{price})
-                              </SelectItem>
-                            )
-                          )}
+                          Object.entries(selectedCake.layerPrices).map(([layer, price]) => (
+                            <SelectItem key={layer} value={layer}>
+                              {layer} Layers (₦{price})
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              {/* Replace the existing FormField for flavors with this updated code */}
-              <FormField
-                control={form.control}
-                name='flavour'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className='text-primary font-medium text-lg'>
-                      Flavour
-                    </FormLabel>
-                    <FormControl>
-                      {selectedLayer === '1' ? (
-                        // Radio buttons for single layer cakes
-                        <RadioGroup
-                          value={field.value[0] || ''}
-                          onValueChange={(value) => {
-                            field.onChange([value]) // Wrap in array since the field expects array
-                          }}
-                          className='flex flex-wrap gap-3'
-                        >
-                          {selectedCake?.flavours.map((flavour: string) => (
-                            <div
-                              key={flavour}
-                              className='flex items-center space-x-2'
-                            >
-                              <RadioGroupItem
-                                id={`flavour-${flavour}`}
-                                value={flavour}
-                              />
-                              <Label
-                                htmlFor={`flavour-${flavour}`}
-                                className='text-sm font-medium cursor-pointer'
-                              >
-                                {flavour}
-                              </Label>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      ) : (
-                        // Original checkbox implementation for multi-layer cakes
-                        <div className='flex flex-wrap gap-3'>
-                          {selectedCake?.flavours.map((flavour: string) => (
-                            <div
-                              key={flavour}
-                              className='flex items-center space-x-2'
-                            >
-                              <Checkbox
-                                id={`flavour-${flavour}`}
-                                checked={field.value.includes(flavour)}
-                                onCheckedChange={(checked) => {
-                                  const newValue = checked
-                                    ? [...field.value, flavour]
-                                    : field.value.filter((f) => f !== flavour)
-                                  field.onChange(newValue)
-                                }}
-                              />
-                              <Label
-                                htmlFor={`flavour-${flavour}`}
-                                className='text-sm font-medium cursor-pointer'
-                              >
-                                {flavour}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+              {/* Only show flavour field if a valid layer (not placeholder) is selected */}
+              {form.watch('layers') !== 'placeholder' && form.watch('layers') && (
+                <FormField
+                  control={form.control}
+                  name='flavour'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className='text-primary font-medium text-lg'>Flavour</FormLabel>
+                      <FormControl>
+                        {selectedLayer === '1' ? (
+                          <RadioGroup
+                            value={field.value[0] || ''}
+                            onValueChange={(value) => field.onChange([value])}
+                            className='flex flex-wrap gap-3'
+                          >
+                            {selectedCake?.flavours.map((flavour: string) => (
+                              <div key={flavour} className='flex items-center space-x-2'>
+                                <RadioGroupItem id={`flavour-${flavour}`} value={flavour} />
+                                <Label htmlFor={`flavour-${flavour}`} className='text-sm font-medium cursor-pointer'>
+                                  {flavour}
+                                </Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        ) : (
+                          <div className='flex flex-wrap gap-3'>
+                            {selectedCake?.flavours.map((flavour: string) => (
+                              <div key={flavour} className='flex items-center space-x-2'>
+                                <Checkbox
+                                  id={`flavour-${flavour}`}
+                                  checked={field.value.includes(flavour)}
+                                  onCheckedChange={(checked) => {
+                                    const newValue = checked
+                                      ? [...field.value, flavour]
+                                      : field.value.filter((f) => f !== flavour)
+                                    field.onChange(newValue)
+                                  }}
+                                />
+                                <Label htmlFor={`flavour-${flavour}`} className='text-sm font-medium cursor-pointer'>
+                                  {flavour}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <Button type='submit' className='w-full mt-10'>
-                Proceed at: <p>(₦{selectedLayerPrice})</p>
+                Proceed at: <p>(₦{totalPrice})</p>
               </Button>
             </form>
           </Form>
         </SheetContent>
       </Sheet>
-
-      {/* Add mobile filter dialog */}
       <Dialog
         open={isMobileFilterOpen}
         onOpenChange={(open) => {
           if (!open) {
-            // Dialog is closing
             resetFilters()
           }
           setIsMobileFilterOpen(open)
@@ -786,9 +645,7 @@ const ResultsPage = () => {
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value)
-                        const [minPrice, maxPrice] = value
-                          .split('-')
-                          .map(Number)
+                        const [minPrice, maxPrice] = value.split('-').map(Number)
                         setSelectedPriceRange({ minPrice, maxPrice })
                       }}
                       value={field.value}
@@ -798,10 +655,7 @@ const ResultsPage = () => {
                       </SelectTrigger>
                       <SelectContent>
                         {PRICE_RANGES.map((range) => (
-                          <SelectItem
-                            key={range.minPrice}
-                            value={`${range.minPrice}-${range.maxPrice}`}
-                          >
+                          <SelectItem key={range.minPrice} value={`${range.minPrice}-${range.maxPrice}`}>
                             {range.label}
                           </SelectItem>
                         ))}
@@ -811,7 +665,6 @@ const ResultsPage = () => {
                 )}
               />
             </div>
-
             <div className='space-y-2'>
               <Label>Size</Label>
               <FormField
@@ -841,13 +694,8 @@ const ResultsPage = () => {
                 )}
               />
             </div>
-
             {(selectedPriceRange.minPrice || selectedSize) && (
-              <Button
-                variant='outline'
-                onClick={resetFilters}
-                className='w-full'
-              >
+              <Button variant='outline' onClick={resetFilters} className='w-full'>
                 Clear Filters
               </Button>
             )}
