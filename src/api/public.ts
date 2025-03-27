@@ -24,7 +24,7 @@ export interface CakeData {
   flavours: string[]
   topping: string
   layers: number
-  deliveryInfo?: DeliveryInfo
+  deliveryInfo: Record<string, number>
   layerPrices: Record<string, number>
 }
 export interface DeliveryInfo {
