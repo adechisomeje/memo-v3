@@ -254,21 +254,26 @@ const CheckOutPage = () => {
       if (!selectedCake) {
         const pathParts = window.location.pathname.split('/')
         const cakeId = pathParts[pathParts.length - 1]
-
         if (cakeId) {
           try {
             console.log('Trying to fetch cake data for ID:', cakeId)
-            // Attempt to get cake data based on ID from your API
             const cakeResponse = await getCakeProductsByVendor(cakeId)
             if (cakeResponse && cakeResponse.length > 0) {
               const cakeData = cakeResponse[0]
               console.log('Found cake data:', cakeData)
               setSelectedCake(cakeData)
               setSelectedCakeId(cakeData._id)
+              // **Update vendor store here**
+              setVendorInfo({
+                vendorId: cakeData.vendorId,
+                name: cakeData.vendorName,
+                picture: cakeData.vendorPicture,
+                country: cakeData.vendorCountry,
+                state: cakeData.vendorState,
+                city: cakeData.vendorCity,
+              })
             } else {
-              setErrorMessage(
-                "Couldn't find the cake data. Please return to selection."
-              )
+              setErrorMessage("Couldn't find the cake data. Please return to selection.")
             }
           } catch (error) {
             console.error('Error fetching cake data:', error)
@@ -276,12 +281,11 @@ const CheckOutPage = () => {
           }
         }
       }
-      // Set loading to false when done either way
       setIsLoadingCake(false)
     }
-
     fetchCakeData()
   }, [selectedCake, setSelectedCake, setSelectedCakeId])
+  
 
   const handlePaymentSuccess = () => {
     handleClosePayment()
@@ -311,12 +315,12 @@ const CheckOutPage = () => {
   // Calculate total price based on selected layers
   const calculateTotalPrice = () => {
     if (!selectedCake || !cakeCustomization) return 0
-
     const layersNumber = parseInt(cakeCustomization.layers.toString())
-    const layerPrice = selectedCake.layerPrices[layersNumber]
-
-    return layerPrice || selectedCake.price
+    const layerPrice = selectedCake.layerPrices[layersNumber] || selectedCake.price
+    const deliveryFee = selectedCake.deliveryInfo?.deliveryPrice ?? 0
+    return layerPrice + deliveryFee
   }
+  
 
   const totalPrice = calculateTotalPrice()
   const totalWithOtherItems =
@@ -462,6 +466,10 @@ const CheckOutPage = () => {
       additionalProducts,
     })
   }
+  // Log vendor ID for debugging
+  useEffect(() => {
+    console.log('Selected Vendor ID:', vendorId)
+  }, [vendorId])
 
   const { data: vendorProducts } = useQuery({
     queryKey: [queryKeys.vendorProducts, vendorId],
@@ -662,7 +670,9 @@ const CheckOutPage = () => {
                         ) : (
                           <>
                             PROCEED TO PAY (
-                            {formatPrice(totalWithOtherItems + 120)})
+                              {formatPrice(totalWithOtherItems)}
+
+
                           </>
                         )}
                       </Button>
