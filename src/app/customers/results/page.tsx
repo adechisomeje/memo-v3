@@ -49,13 +49,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import NoDataWithWaitlist from '../components/no-data-waitlist-form'
 
+// Customization schema
 const cakeCustomizationSchema = z.object({
   flavour: z.array(z.string()),
   layers: z.string().min(1, { message: 'Please select number of layers' }),
   priceRange: z.string().optional(),
   size: z.string().optional(),
 })
-
 export type CakeCustomizationSchema = z.infer<typeof cakeCustomizationSchema>
 
 type ProductType = 'cakes' | 'gifts' | 'flowers'
@@ -108,7 +108,7 @@ const ResultsPage = () => {
   // Sheet & customization states
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [selectedLayerPrice, setSelectedLayerPrice] = useState<number>(0)
-  // Set default for layers as "placeholder" so user must select.
+  // Use a sentinel value "placeholder" as default for layers.
   const [selectedLayer, setSelectedLayer] = useState<string>('')
 
   // Filtering states
@@ -178,8 +178,7 @@ const ResultsPage = () => {
     form.setValue('size', '')
   }
 
-  // When a cake is selected, store it, reset customization values,
-  // and update vendor info.
+  // When a cake is selected, store it and reset customization values.
   const handleProductSelect = (product: Cake, type: ProductType) => {
     console.log('Selecting product:', product)
     const productCopy = JSON.parse(JSON.stringify(product))
@@ -194,7 +193,7 @@ const ResultsPage = () => {
     setSelectedLayerPrice(layerPrice)
     // Reset selected layer to force user selection.
     setSelectedLayer('')
-    // Update vendor info (which sets selectedVendorId in your store).
+    // Update vendor info (this sets selectedVendorId in your store).
     setVendorInfo({
       vendorId: productCopy.vendorId,
       name: productCopy.vendorName,
@@ -213,12 +212,12 @@ const ResultsPage = () => {
   }
 
   // Initialize the customization form.
-  // Notice the default for layers is now "placeholder".
+  // Default value for layers is "placeholder" so the user must select an actual layer.
   const form = useForm<CakeCustomizationSchema>({
     resolver: zodResolver(cakeCustomizationSchema),
     defaultValues: {
       flavour: [],
-      layers: 'placeholder', // default sentinel value
+      layers: 'placeholder',
       priceRange: '',
       size: '',
     },
@@ -234,7 +233,7 @@ const ResultsPage = () => {
     if (selectedCake) {
       form.reset({
         flavour: [],
-        layers: 'placeholder', // force user selection
+        layers: 'placeholder',
       })
     }
   }, [selectedCake, form])
@@ -252,11 +251,10 @@ const ResultsPage = () => {
     router.push(`/customers/checkout/${selectedCake?._id}`)
   }
 
-  // Handle layer change; update selected layer price and value.
+  // Handle layer change.
   const handleLayerChange = (layer: string) => {
     if (selectedCake && selectedCake.layerPrices) {
       if (layer === 'placeholder') {
-        // When placeholder is selected, clear selection.
         setSelectedLayerPrice(0)
         setSelectedLayer('')
       } else {
@@ -528,7 +526,7 @@ const ResultsPage = () => {
           </SheetHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 mt-8'>
-              {/* Layer Dropdown with default option */}
+              {/* Layer Dropdown with default sentinel option */}
               <FormField
                 control={form.control}
                 name='layers'
@@ -548,7 +546,6 @@ const ResultsPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {/* Use a sentinel value ("placeholder") for the default option */}
                         <SelectItem value='placeholder'>Select Cake Layer</SelectItem>
                         {selectedCake &&
                           selectedCake.layerPrices &&
@@ -563,7 +560,7 @@ const ResultsPage = () => {
                   </FormItem>
                 )}
               />
-              {/* Only show flavour field if a valid layer (not placeholder) is selected */}
+              {/* Only show flavour field if a valid layer is selected */}
               {form.watch('layers') !== 'placeholder' && form.watch('layers') && (
                 <FormField
                   control={form.control}

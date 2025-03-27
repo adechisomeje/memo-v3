@@ -51,7 +51,7 @@ export interface Cake {
   layerPrices: {
     [key: string]: number
   }
-  deliveryInfo: DeliveryInfo
+  deliveryInfo: { [key: string]: number }
 }
 
 
