@@ -6,7 +6,8 @@ export type ApiResponse<T = undefined> = {
   data: T extends undefined ? undefined : T
 }
 
-const BASE_URL = 'https://memo-backend-nestjs.onrender.com/api/v1'
+const BASE_URL = process.env.NEXT_PUBLIC_MEMO_BASE_URL
+
 
 export const axiosClient = axios.create({
   baseURL: BASE_URL,
