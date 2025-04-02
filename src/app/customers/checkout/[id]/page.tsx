@@ -144,7 +144,6 @@ const PhoneNumberInput = ({
                 onValueChange={(value) => {
                   setSelectedCountryCode(value);
                   field.onChange(value);
-
                   // Update the full phone number when country code changes
                   const currentPhone = form.getValues("recipientPhone");
                   const formattedPhone = formatPhoneNumber(currentPhone, value);
