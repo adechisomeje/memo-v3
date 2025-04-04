@@ -208,7 +208,7 @@ const SelectInput: React.FC<SelectInputProps> = ({
           {leftIcons}
           {getDisplayText() || (
             <span
-              className={`text-base max-[500px]:max-w-[70%] max-[500px]:truncate !text-white ${
+              className={`text-base flex-1  !text-white ${
                 minified ? "text-xs" : ""
               }`}
             >
@@ -219,7 +219,7 @@ const SelectInput: React.FC<SelectInputProps> = ({
           {otherChildren}
         </div>
         <Icons.ChevronDownGray
-          className={`transition-transform duration-300 *:!fill-white flex-shrink-0 ${
+          className={`transition-transform duration-300 *:!fill-white flex-shrink-0 ml-4 ${
             isOpen ? "rotate-180" : ""
           } ${minified ? "w-[7.58px] h-[4.61px]" : ""}`}
         />

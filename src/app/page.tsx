@@ -103,9 +103,9 @@ export default function Home() {
                 Cakes, Flowers, & More.
               </h1>
               <p className="md:text-xl mt-2 max-w-2xl mx-auto">
-                We make every celebration, from birthdays to anniversaries,
-                <br /> easy and memorable. Send joy to your loved ones, no
-                matter <br /> where they are
+                We make every celebration, from birthdays to anniversaries, easy
+                and memorable. Send joy to your loved ones, no matter where they
+                are
               </p>
 
               {/* <SearchForm
