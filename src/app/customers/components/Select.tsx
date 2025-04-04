@@ -208,7 +208,7 @@ const SelectInput: React.FC<SelectInputProps> = ({
           {leftIcons}
           {getDisplayText() || (
             <span
-              className={`text-base max-w-[70%] truncate !text-white ${
+              className={`text-base max-[500px]:max-w-[70%] max-[500px]:truncate !text-white ${
                 minified ? "text-xs" : ""
               }`}
             >

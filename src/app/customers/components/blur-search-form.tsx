@@ -154,9 +154,7 @@ export function BlurSearchForm({ onSubmit, isFetching }: BlurSearchFormProps) {
         <div className="flex w-full items-center justify-between gap-4 *:!w-1/2 *:!min-w-1/2">
           <SelectInput
             label="State"
-            placeholder={
-              selectedCountry ? "Your state" : "Select country first"
-            }
+            placeholder={selectedCountry ? "Lagos" : "Select country first"}
             name="state"
             options={states.map((state) => ({
               label: state,
@@ -169,7 +167,7 @@ export function BlurSearchForm({ onSubmit, isFetching }: BlurSearchFormProps) {
 
           <SelectInput
             label="City"
-            placeholder={selectedState ? "Your city" : "Select state first"}
+            placeholder={selectedState ? "Ikeja" : "Select state first"}
             name="city"
             options={cities.map((city) => ({
               label: city,
