@@ -252,7 +252,7 @@ const Navbar = ({ navItems, classNames }: Props) => {
               </div>
               {status !== "authenticated" && (
                 <Link
-                  href="https://memo-v3-vendor-web.vercel.app/"
+                  href="https://vendor.eazigifting.com/"
                   target="_blank"
                 >
                   <Button size="lg">Become A Vendor</Button>

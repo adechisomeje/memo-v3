@@ -132,7 +132,7 @@ export function BlurSearchForm({ onSubmit, isFetching }: BlurSearchFormProps) {
     <div className="w-full h-[70%] my-auto translate-y-[5%] z-10 bg-[rgba(245,244,244,0.18)] rounded-[15px] backdrop-blur-[60px]">
       <div className="bg-[rgba(245,244,244,0.54)] w-full h-[60px] flex items-center justify-center rounded-tl-[15px] rounded-tr-[15px]">
         <p className="text-base text-white font-medium text-center">
-          Where are you delivering to
+        Want to send a gift? Tell us where to send it
         </p>
       </div>
       <form
@@ -141,7 +141,7 @@ export function BlurSearchForm({ onSubmit, isFetching }: BlurSearchFormProps) {
       >
         <SelectInput
           label="Country"
-          placeholder="Your Country"
+          placeholder="Select Country"
           name="country"
           options={countries.map((country) => ({
             label: country,
@@ -154,7 +154,7 @@ export function BlurSearchForm({ onSubmit, isFetching }: BlurSearchFormProps) {
         <div className="flex w-full items-center justify-between gap-4 *:!w-1/2 *:!min-w-1/2">
           <SelectInput
             label="State"
-            placeholder={selectedCountry ? "Lagos" : "Select country first"}
+            placeholder={selectedCountry ? "Select State" : "Select State"}
             name="state"
             options={states.map((state) => ({
               label: state,
@@ -167,7 +167,7 @@ export function BlurSearchForm({ onSubmit, isFetching }: BlurSearchFormProps) {
 
           <SelectInput
             label="City"
-            placeholder={selectedState ? "Ikeja" : "Select state first"}
+            placeholder={selectedState ? "Select City" : "Select City"}
             name="city"
             options={cities.map((city) => ({
               label: city,
