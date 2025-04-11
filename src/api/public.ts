@@ -165,6 +165,7 @@ export async function getLocations() {
 }
 
 export async function getCakeProducts(
+    category: string,
   country: string,
   state: string,
   city: string,
@@ -173,7 +174,7 @@ export async function getCakeProducts(
   deliveryDate: Date
 ) {
   const response = await axiosClient.get<ApiResponse<CakeResponseData>>(
-    `/cakes/public?country=${country}&state=${state}&city=${city}&page=${page}&limit=${limit}&deliveryDate=${deliveryDate}`
+    `products/filter?category=${category}&country=${country}&state=${state}&city=${city}&page=${page}&limit=${limit}&deliveryDate=${deliveryDate}`
   )
   return response.data
 }

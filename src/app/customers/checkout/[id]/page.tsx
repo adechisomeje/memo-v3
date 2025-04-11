@@ -321,7 +321,7 @@ const CheckOutPage = () => {
     if (!selectedCake || !cakeCustomization) return 0;
     const layersNumber = parseInt(cakeCustomization.layers.toString());
     const layerPrice =
-      selectedCake.layerPrices[layersNumber] || selectedCake.price;
+      selectedCake?.layerPrices[layersNumber] || selectedCake?.price;
     const deliveryFee = selectedCake.deliveryInfo?.deliveryPrice ?? 0;
     return layerPrice + deliveryFee;
   };
